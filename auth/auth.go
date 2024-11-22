@@ -1,9 +1,7 @@
-package main
+package auth
 
 import (
-    "fmt"
     "time"
-    "github.com/gin-gonic/gin"
     "github.com/golang-jwt/jwt/v4"
     "golang.org/x/crypto/bcrypt"
 )
@@ -20,15 +18,8 @@ type Claims struct {
     Username string `json:"username"`
     jwt.RegisteredClaims
 }
-// Handler
 
-func login(c *gin.Context) {
-    fmt.Println("LOGIN")
-    
-}
-
-// Helper
-func generateToken(user User) (string, error) {
+func GenerateToken(user User) (string, error) {
     expirationTime := time.Now().Add(1 * time.Hour)
     claims := &Claims{
         Username: user.Username,
@@ -41,11 +32,11 @@ func generateToken(user User) (string, error) {
     return token.SignedString(jwtKey)
 }
 
-func verifyPassword(hashedPassword, password string) error {
+func VerifyPassword(hashedPassword, password string) error {
     return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 }
 
-func hashPassword(password string) (string, error) {
-    bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+func HashPassword(password string) (string, error) {
+    bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
     return string(bytes), err
 }
