@@ -1,6 +1,28 @@
-GET http://localhost:8080/
+
+POST http://localhost:8080/mobile/login
 content-type: application/json
 
 {
-    
+    "hn" : "0123",
+    "firstName" : "123456789012345678901",
+    "lastName" : "asd"
+}
+###
+
+GET http://localhost:8080/mobile/test
+content-type: application/json
+
+###
+
+
+POST http://localhost:8080/mobile/signup
+content-type: application/json
+
+{
+    "hn" : "test3",
+    "firstName" : "fn3",
+    "middleName" : "mn3",
+    "lastName" : "ln3",
+    "phone" : "01111111",
+    "email" : "asd@asd.com"
 }

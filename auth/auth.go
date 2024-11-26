@@ -8,21 +8,15 @@ import (
 
 var jwtKey = []byte("your_secret_key")
 
-type User struct {
-    ID       uint64 `json:"id"`
-    Username string `json:"username"`
-    Password string `json:"password"`
-}
-
 type Claims struct {
-    Username string `json:"username"`
+    Id int `json:"id"`
     jwt.RegisteredClaims
 }
 
-func GenerateToken(user User) (string, error) {
+func GenerateToken(user_id int) (string, error) {
     expirationTime := time.Now().Add(1 * time.Hour)
     claims := &Claims{
-        Username: user.Username,
+        Id: user_id,
         RegisteredClaims: jwt.RegisteredClaims{
             ExpiresAt: jwt.NewNumericDate(expirationTime),
         },
@@ -32,10 +26,11 @@ func GenerateToken(user User) (string, error) {
     return token.SignedString(jwtKey)
 }
 
+// unused
 func VerifyPassword(hashedPassword, password string) error {
     return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 }
-
+// unused
 func HashPassword(password string) (string, error) {
     bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
     return string(bytes), err
