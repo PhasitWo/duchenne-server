@@ -1,16 +1,16 @@
 package model
 
 import (
-	"database/sql"
+	// "database/sql"
 )
 
 type Patient struct {
-	Id         int            `json:"id"`
-	Hn         string         `json:"hn"`
-	FirstName  string         `json:"firstName"`
-	MiddleName sql.NullString `json:"middleName"` // nullable
-	LastName   string         `json:"lastName"`
-	Email      sql.NullString `json:"email"` // nullable
-	Phone      sql.NullString `json:"phone"` // nullable
-	Verified   bool           `json:"verified"`
+	Id         int     `json:"id"`
+	Hn         string  `json:"hn"`
+	FirstName  string  `json:"firstName"`
+	MiddleName *string `json:"middleName"` // nullable
+	LastName   string  `json:"lastName"`
+	Email      *string `json:"email"` // nullable
+	Phone      *string `json:"phone"` // nullable
+	Verified   bool    `json:"verified"`
 }

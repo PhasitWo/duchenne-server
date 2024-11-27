@@ -18,11 +18,11 @@ import (
 /*
 mobile endpoints -> /mobile/
 AUTH
-POST /login	-> authenticate user
-POST /signup -> verify user info
+ok POST /login	-> authenticate user
+ok POST /signup -> verify user info
 
 PROFILE
-GET /profle -> return patient profile data
+ok GET /profle -> return patient profile data
 
 APPOINTMENT
 GET /appointment  -> return maximum 20 of patient's appointments

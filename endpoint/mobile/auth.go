@@ -85,7 +85,7 @@ func (m *mobileHandler) Signup(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credential"})
 		return
 	}
-	if storedPatient.MiddleName.Valid && *s.MiddleName != storedPatient.MiddleName.String {
+	if storedPatient.MiddleName != nil && *s.MiddleName != *storedPatient.MiddleName {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credential"})
 		return
 	}
@@ -97,8 +97,8 @@ func (m *mobileHandler) Signup(c *gin.Context) {
 			FirstName:  storedPatient.FirstName,
 			MiddleName: storedPatient.MiddleName,
 			LastName:   storedPatient.LastName,
-			Email:      sql.NullString{String: s.Email, Valid: true},
-			Phone:      sql.NullString{String: s.Phone, Valid: true},
+			Email:      &s.Email,
+			Phone:      &s.Phone,
 			Verified:   true,
 		})
 	if err != nil {
