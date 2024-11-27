@@ -1,21 +1,16 @@
 
-POST http://localhost:8080/mobile/login
+POST http://localhost:8080/mobile/auth/login
 content-type: application/json
 
 {
-    "hn" : "0123",
-    "firstName" : "123456789012345678901",
-    "lastName" : "asd"
+    "hn" : "test1",
+    "firstName" : "fn",
+    "lastName" : "ln"
 }
 ###
 
-GET http://localhost:8080/mobile/test
-content-type: application/json
 
-###
-
-
-POST http://localhost:8080/mobile/signup
+POST http://localhost:8080/mobile/auth/signup
 content-type: application/json
 
 {
@@ -26,3 +21,15 @@ content-type: application/json
     "phone" : "01111111",
     "email" : "asd@asd.com"
 }
+
+###
+
+GET http://localhost:8080/mobile/api/profile
+content-type: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE3NDA0NzUxODF9.LGCUtfDt97E3rpVKpP62eT30-qYQfCwy6m-SwMhk-hA
+
+###
+
+GET http://localhost:8080/mobile/api/test
+content-type: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE3NDA0NzUxODF9.LGCUtfDt97E3rpVKpP62eT30-qYQfCwy6m-SwMhk-hA

@@ -115,7 +115,31 @@ func (m *mobileHandler) Signup(c *gin.Context) {
 
 }
 
+func (m *mobileHandler) GetProfile(c *gin.Context) {
+	id, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "no 'user_id' from auth middleware"})
+		return
+	}
+	// fetch patient from database
+	p, err := m.repo.GetPatient(id)
+	if err != nil {
+		if errors.Unwrap(err) == sql.ErrNoRows { // no rows found
+			c.Status(http.StatusNotFound)
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, p)
+}
+
 func (m *mobileHandler) Test(c *gin.Context) {
-	err := m.repo.UpdatePatient(model.Patient{Id: 3, Hn: "test1", FirstName: "testasdasd", LastName: "ln3 change na", Email: sql.NullString{String: "email change na", Valid: true}, Phone: sql.NullString{String: "000", Valid: true}, Verified: true})
-	fmt.Printf("%s", err.Error())
+	// id, _ := c.Get("user_id")
+	// fmt.Printf("/Test -> %v\n", id)
+	p, _ := m.repo.GetPatient("test1")
+	s, _ := m.repo.GetPatient(1)
+	fmt.Printf("test1 => %v\n", p)
+	fmt.Printf("test1 => %v\n", s)
+
 }
