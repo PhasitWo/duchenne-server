@@ -3,7 +3,6 @@ package mobile
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/PhasitWo/duchenne-server/auth"
@@ -132,14 +131,4 @@ func (m *mobileHandler) GetProfile(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, p)
-}
-
-func (m *mobileHandler) Test(c *gin.Context) {
-	// id, _ := c.Get("user_id")
-	// fmt.Printf("/Test -> %v\n", id)
-	p, _ := m.repo.GetPatient("test1")
-	s, _ := m.repo.GetPatient(1)
-	fmt.Printf("test1 => %v\n", p)
-	fmt.Printf("test1 => %v\n", s)
-
 }

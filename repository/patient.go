@@ -7,7 +7,7 @@ import (
 )
 
 
-// GetPatient accpet hn string  or  patient_id int
+// GetPatient accept hn string  or  patient_id int
 func (r *Repo) GetPatient(criteria interface{}) (model.Patient, error) {
 	var p model.Patient
 	var query string

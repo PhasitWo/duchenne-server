@@ -1,7 +1,14 @@
 package model
 
-import (
-	// "database/sql"
+// "database/sql"
+
+// Doctor roles
+type Role string
+
+const (
+	ROOT  Role = "root"
+	ADMIN Role = "admin"
+	USER  Role = "user"
 )
 
 type Patient struct {
@@ -14,3 +21,37 @@ type Patient struct {
 	Phone      *string `json:"phone"` // nullable
 	Verified   bool    `json:"verified"`
 }
+
+type Doctor struct {
+	Id         int     `json:"id"`
+	FirstName  string  `json:"firstName"`
+	MiddleName *string `json:"middleName"` // nullable
+	LastName   string  `json:"lastName"`
+	Username   string  `json:"username"`
+	Password   string  `json:"password"`
+	Role       Role    `json:"role"`
+}
+
+type TrimDoctor struct {
+	Id         int     `json:"id"`
+	FirstName  string  `json:"firstName"`
+	MiddleName *string `json:"middleName"` // nullable
+	LastName   string  `json:"lastName"`
+}
+
+type Appointment struct {
+	Id       int        `json:"id"`
+	CreateAt int        `json:"createAt"`
+	Date     int        `json:"date"`
+	Patient  Patient    `json:"patient"`
+	Doctor   TrimDoctor `json:"doctor"`
+}
+
+// type PatientAppointment struct {
+// 	Id         int    `json:"id"`
+// 	CreateAt   int    `json:"createAt"`
+// 	Date       int    `json:"date"`
+// 	PatientId  int    `json:"patientId"`
+// 	DoctorId   int    `json:"doctorId"`
+// 	DoctorName string `json:"doctorName"`
+// }

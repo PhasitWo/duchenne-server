@@ -4,10 +4,11 @@ import (
 	// "net/http"
 	"database/sql"
 	"fmt"
+	"time"
+
 	"github.com/PhasitWo/duchenne-server/config"
 	"github.com/PhasitWo/duchenne-server/endpoint/mobile"
 	"github.com/PhasitWo/duchenne-server/middleware"
-	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -25,8 +26,10 @@ PROFILE
 ok GET /profle -> return patient profile data
 
 APPOINTMENT
-GET /appointment  -> return maximum 20 of patient's appointments
+ok GET /appointment  -> return maximum 20 of patient's appointments
+ok GET /appointment/:id -> individual appointment
 POST /appointment -> create new appointment
+DELETE /appointment/:id
 
 ASK
 GET /ask -> return patient's question history
@@ -60,8 +63,9 @@ func main() {
 		{
 			mobileProtected.GET("/test", m.Test)
 			mobileProtected.GET("/profile", m.GetProfile)
+			mobileProtected.GET("/appointment", m.GetAllPatientAppointment)
+			mobileProtected.GET("/appointment/:id", m.GetPatientAppointment)
 		}
 	}
 	r.Run() // listen and serve on 0.0.0.0:8080
-
 }

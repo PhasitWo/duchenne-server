@@ -20,9 +20,11 @@ CREATE TABLE ask (
 
 CREATE TABLE doctor (
   id int NOT NULL PRIMARY KEY AUTO_INCREMENT,
-  doctor_info varchar(500),
-  username varchar(20),
-  password varchar(100),
+  first_name varchar(100) NOT NULL,
+  middle_name varchar(100),
+  last_name varchar(100) NOT NULL,
+  username varchar(20) NOT NULL,
+  password varchar(100) NOT NULL,
   role varchar(10) NOT NULL
 );
 
