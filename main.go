@@ -28,14 +28,19 @@ ok GET /profle -> return patient profile data
 APPOINTMENT
 ok GET /appointment  -> return maximum 20 of patient's appointments
 ok GET /appointment/:id -> individual appointment
-POST /appointment -> create new appointment
+ok POST /appointment -> create new appointment
 DELETE /appointment/:id
 
 ASK
 GET /ask -> return patient's question history
 GET /ask/:id -> return patient's question and doctor's answer
 POST /ask -> create new question
+
+NOTIFICATION package
+
 */
+
+
 
 func main() {
 	// read config
@@ -65,6 +70,7 @@ func main() {
 			mobileProtected.GET("/profile", m.GetProfile)
 			mobileProtected.GET("/appointment", m.GetAllPatientAppointment)
 			mobileProtected.GET("/appointment/:id", m.GetPatientAppointment)
+			mobileProtected.POST("/appointment", m.CreateAppointment)
 		}
 	}
 	r.Run() // listen and serve on 0.0.0.0:8080

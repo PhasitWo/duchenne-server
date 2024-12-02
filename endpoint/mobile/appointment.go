@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/PhasitWo/duchenne-server/repository"
 	"github.com/gin-gonic/gin"
@@ -53,25 +54,47 @@ func (m *mobileHandler) GetPatientAppointment(c *gin.Context) {
 }
 
 type appointmentInput struct {
-	Id        int `json:"id" binding:"required"`
-	CreateAt  int `json:"createAt" binding:"required"`
-	Date      int `json:"date" binding:"required"`
-	PatientId int `json:"patient" binding:"required"`
-	DoctorId  int `json:"doctor" binding:"required"`
+	CreateAt int `json:"createAt" binding:"required"`
+	Date     int `json:"date" binding:"required"`
+	DoctorId int `json:"doctorId" binding:"required"`
 }
 
 func (m *mobileHandler) CreateAppointment(c *gin.Context) {
+	// get patientId from auth header
+	i, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "no 'user_id' from auth middleware"})
+		return
+	}
+	patientId := i.(int)
+	// binding request body
 	var input appointmentInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	//TODO validate input.date
-	//TODO schedule notification
-	err := m.repo.CreateAppointment(input.CreateAt, input.Date, input.PatientId, input.DoctorId)
+	// validate input.date
+	now := int(time.Now().Add(5 * time.Minute).Unix())
+	if input.Date < now {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "'Date' is before current time"})
+		return
+	}
+	// commit a transaction if scheduling notifications is successful
+	tx, err := m.repo.CreateAppointment(input.CreateAt, input.Date, patientId, input.DoctorId)
+	defer tx.Rollback()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
+	// // mockup err
+	// if true {
+	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "mock up"})
+	// 	return
+	// }
+	/*
+		TODO schedule notification
+	*/
+	tx.Commit()
 	c.Status(http.StatusCreated)
 }
 

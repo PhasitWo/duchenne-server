@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"database/sql"
 	"fmt"
 	"strconv"
 
@@ -138,18 +139,22 @@ var createAppointmentQuery = `
 INSERT INTO appointment (create_at, date, patient_id, doctor_id)
 VALUES (?, ?, ?, ?)
 `
-
-func (r *Repo) CreateAppointment(create_at int, date int, patient_id int, doctor_id int) error {
-	result, err := r.db.Exec(createAppointmentQuery, create_at, date, patient_id, doctor_id)
+// CreateAppointment return (*sql.Tx, error) , **don't forget to call tx.Commit()**
+func (r *Repo) CreateAppointment(create_at int, date int, patient_id int, doctor_id int) (*sql.Tx ,error) {
+	tx, err := r.db.Begin()
 	if err != nil {
-		return fmt.Errorf("exec : %w", err)
+		return nil, fmt.Errorf("exec : %w", err)
+	}
+	result, err := tx.Exec(createAppointmentQuery, create_at, date, patient_id, doctor_id)
+	if err != nil {
+		return nil, fmt.Errorf("exec : %w", err)
 	}
 	rows, err := result.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("exec : %w", err)
+		return nil, fmt.Errorf("exec : %w", err)
 	}
 	if rows != 1 {
-		return fmt.Errorf("exec : no affected row")
+		return nil, fmt.Errorf("exec : no affected row")
 	}
-	return nil
+	return tx, nil
 }
