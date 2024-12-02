@@ -21,7 +21,7 @@ func GenerateToken(user_id int) (string, error) {
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(config.AppConfig.JWT_KEY)
+	return token.SignedString([]byte(config.AppConfig.JWT_KEY))
 }
 
 // unused

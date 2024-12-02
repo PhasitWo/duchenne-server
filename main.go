@@ -71,6 +71,7 @@ func main() {
 			mobileProtected.GET("/appointment", m.GetAllPatientAppointment)
 			mobileProtected.GET("/appointment/:id", m.GetPatientAppointment)
 			mobileProtected.POST("/appointment", m.CreateAppointment)
+			mobileProtected.DELETE("/appointment/:id", m.DeleteAppointment)
 		}
 	}
 	r.Run() // listen and serve on 0.0.0.0:8080

@@ -18,7 +18,7 @@ func AuthMiddleware(c *gin.Context) {
 	// parse token
 	claims := &auth.Claims{User_id: -1}
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-		return config.AppConfig.JWT_KEY, nil
+		return []byte(config.AppConfig.JWT_KEY), nil
 	})
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})

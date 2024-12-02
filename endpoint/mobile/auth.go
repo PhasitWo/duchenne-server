@@ -81,11 +81,11 @@ func (m *mobileHandler) Signup(c *gin.Context) {
 		return
 	}
 	if s.FirstName != storedPatient.FirstName || s.LastName != storedPatient.LastName {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credential"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid first name or last name"})
 		return
 	}
 	if storedPatient.MiddleName != nil && *s.MiddleName != *storedPatient.MiddleName {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credential"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid middle name"})
 		return
 	}
 	// update patient info and mark patient as verified

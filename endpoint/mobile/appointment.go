@@ -81,21 +81,47 @@ func (m *mobileHandler) CreateAppointment(c *gin.Context) {
 	}
 	// commit a transaction if scheduling notifications is successful
 	tx, err := m.repo.CreateAppointment(input.CreateAt, input.Date, patientId, input.DoctorId)
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); !errors.Is(err, sql.ErrTxDone) {
+			c.JSON(http.StatusInternalServerError, gin.H{"tx": "Can't rollback"})
+		}
+	}()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	// // mockup err
-	// if true {
-	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "mock up"})
-	// 	return
-	// }
 	/*
 		TODO schedule notification
 	*/
-	tx.Commit()
+	if err := tx.Commit(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"tx": "Can't commit"})
+	}
 	c.Status(http.StatusCreated)
+}
+
+func (m *mobileHandler) DeleteAppointment(c *gin.Context) {
+	param := c.Param("id")
+	i, err := strconv.ParseInt(param, 10, 0)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Can't parse 'id' param to int"})
+		return
+	}
+	id := int(i)
+	tx, err := m.repo.DeleteAppointment(id)
+	defer func() {
+		if err := tx.Rollback(); !errors.Is(err, sql.ErrTxDone) {
+			c.JSON(http.StatusInternalServerError, gin.H{"tx": "Can't rollback"})
+		}
+	}()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	// TODO cancel the notification, then commit
+	if err := tx.Commit(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"tx": "Can't commit"})
+	}
+	c.Status(http.StatusNoContent)
 }
 
 func (m *mobileHandler) Test(c *gin.Context) {

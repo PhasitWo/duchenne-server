@@ -99,7 +99,6 @@ func (r *Repo) GetAllAppointment(id int, criteria AppointmentCriteria) ([]model.
 	default:
 		return nil, fmt.Errorf("query : invalid criteria")
 	}
-	fmt.Println(queryString)
 	rows, err := r.db.Query(queryString)
 	if err != nil {
 		return nil, fmt.Errorf("query : %w", err)
@@ -139,13 +138,14 @@ var createAppointmentQuery = `
 INSERT INTO appointment (create_at, date, patient_id, doctor_id)
 VALUES (?, ?, ?, ?)
 `
+
 // CreateAppointment return (*sql.Tx, error) , **don't forget to call tx.Commit()**
-func (r *Repo) CreateAppointment(create_at int, date int, patient_id int, doctor_id int) (*sql.Tx ,error) {
+func (r *Repo) CreateAppointment(createAt int, date int, patientId int, doctorId int) (*sql.Tx, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return nil, fmt.Errorf("exec : %w", err)
 	}
-	result, err := tx.Exec(createAppointmentQuery, create_at, date, patient_id, doctor_id)
+	result, err := tx.Exec(createAppointmentQuery, createAt, date, patientId, doctorId)
 	if err != nil {
 		return nil, fmt.Errorf("exec : %w", err)
 	}
@@ -155,6 +155,24 @@ func (r *Repo) CreateAppointment(create_at int, date int, patient_id int, doctor
 	}
 	if rows != 1 {
 		return nil, fmt.Errorf("exec : no affected row")
+	}
+	return tx, nil
+}
+
+var deleteAppointmentQuery = `
+DELETE FROM appointment
+WHERE id = ?;
+`
+
+// DeleteAppointment return (*sql.Tx, error) , **don't forget to call tx.Commit()**
+func (r *Repo) DeleteAppointment(appointmentId int) (*sql.Tx, error) {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return nil, fmt.Errorf("exec : %w", err)
+	}
+	_, err = tx.Exec(deleteAppointmentQuery, appointmentId)
+	if err != nil {
+		return nil, fmt.Errorf("exec : %w", err)
 	}
 	return tx, nil
 }

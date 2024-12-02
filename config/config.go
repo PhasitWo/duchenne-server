@@ -8,7 +8,7 @@ import (
 
 type config struct {
 	DATABASE_DSN string
-	JWT_KEY      []byte
+	JWT_KEY      string
 }
 
 // shared config across packages
@@ -20,7 +20,7 @@ func LoadConfig() {
 		panic("Can't read config file")
 	}
 	AppConfig.DATABASE_DSN = viper.GetString("DATABASE_DSN")
-	AppConfig.JWT_KEY = []byte(viper.GetString("JWT_KEY"))
+	AppConfig.JWT_KEY = viper.GetString("JWT_KEY")
 	checkConfig()
 }
 
@@ -31,6 +31,7 @@ func checkConfig() {
 		field := f.Field(i)
 		fieldName := f.Type().Field(i).Name
 		fieldValue := field.Interface()
+		fmt.Printf("%T\n", fieldValue)
 		if fieldValue == "" {
 			panic(fmt.Sprintf("Can't read %s from .env", fieldName))
 		}
