@@ -3,8 +3,8 @@ package mobile
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/PhasitWo/duchenne-server/repository"
@@ -34,13 +34,7 @@ func (m *mobileHandler) GetAllPatientAppointment(c *gin.Context) {
 }
 
 func (m *mobileHandler) GetPatientAppointment(c *gin.Context) {
-	param := c.Param("id")
-	i, err := strconv.ParseInt(param, 10, 0)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Can't parse 'id' param to int"})
-		return
-	}
-	id := int(i)
+	id := c.Param("id")
 	ap, err := m.repo.GetAppointment(id)
 	if err != nil {
 		if errors.Unwrap(err) == sql.ErrNoRows { // no rows found
@@ -50,6 +44,7 @@ func (m *mobileHandler) GetPatientAppointment(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	fmt.Println(ap)
 	c.JSON(http.StatusOK, ap)
 }
 
@@ -100,13 +95,7 @@ func (m *mobileHandler) CreateAppointment(c *gin.Context) {
 }
 
 func (m *mobileHandler) DeleteAppointment(c *gin.Context) {
-	param := c.Param("id")
-	i, err := strconv.ParseInt(param, 10, 0)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Can't parse 'id' param to int"})
-		return
-	}
-	id := int(i)
+	id := c.Param("id")
 	tx, err := m.repo.DeleteAppointment(id)
 	defer func() {
 		if err := tx.Rollback(); !errors.Is(err, sql.ErrTxDone) {

@@ -31,7 +31,7 @@ INNER JOIN doctor ON appointment.doctor_id = doctor.id
 WHERE appointment.id = ?
 `
 
-func (r *Repo) GetAppointment(appointmentId int) (model.Appointment, error) {
+func (r *Repo) GetAppointment(appointmentId any) (model.Appointment, error) {
 	var ap model.Appointment
 	row := r.db.QueryRow(appointmentQuery, appointmentId)
 	if err := row.Scan(
@@ -165,7 +165,7 @@ WHERE id = ?;
 `
 
 // DeleteAppointment return (*sql.Tx, error) , **don't forget to call tx.Commit()**
-func (r *Repo) DeleteAppointment(appointmentId int) (*sql.Tx, error) {
+func (r *Repo) DeleteAppointment(appointmentId any) (*sql.Tx, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return nil, fmt.Errorf("exec : %w", err)
