@@ -1,11 +1,12 @@
 package middleware
 
 import (
+	"net/http"
+
 	"github.com/PhasitWo/duchenne-server/auth"
 	"github.com/PhasitWo/duchenne-server/config"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
-	"net/http"
 )
 
 func AuthMiddleware(c *gin.Context) {
@@ -16,7 +17,7 @@ func AuthMiddleware(c *gin.Context) {
 		return
 	}
 	// parse token
-	claims := &auth.Claims{User_id: -1}
+	claims := &auth.Claims{UserId: -1}
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(config.AppConfig.JWT_KEY), nil
 	})
@@ -30,6 +31,6 @@ func AuthMiddleware(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	c.Set("user_id", claims.User_id)
+	c.Set("userId", claims.UserId)
 	c.Next()
 }

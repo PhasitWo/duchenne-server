@@ -29,7 +29,7 @@ APPOINTMENT
 ok GET /appointment  -> return maximum 20 of patient's appointments
 ok GET /appointment/:id -> individual appointment
 ok POST /appointment -> create new appointment
-DELETE /appointment/:id
+ok DELETE /appointment/:id
 
 ASK
 GET /ask -> return patient's question history
@@ -54,6 +54,7 @@ func main() {
 	db.SetMaxOpenConns(10)
 	db.SetMaxIdleConns(10)
 	// setup router
+	gin.SetMode(gin.TestMode)
 	r := gin.Default()
 	m := mobile.Init(db)
 	mobile := r.Group("/mobile")

@@ -3,7 +3,6 @@ package mobile
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -19,9 +18,9 @@ import (
 // "github.com/PhasitWo/duchenne-server/repository"
 
 func (m *mobileHandler) GetAllPatientAppointment(c *gin.Context) {
-	i, exists := c.Get("user_id")
+	i, exists := c.Get("userId")
 	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "no 'user_id' from auth middleware"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "no 'userId' from auth middleware"})
 		return
 	}
 	id := i.(int)
@@ -44,7 +43,6 @@ func (m *mobileHandler) GetPatientAppointment(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	fmt.Println(ap)
 	c.JSON(http.StatusOK, ap)
 }
 
@@ -56,9 +54,9 @@ type appointmentInput struct {
 
 func (m *mobileHandler) CreateAppointment(c *gin.Context) {
 	// get patientId from auth header
-	i, exists := c.Get("user_id")
+	i, exists := c.Get("userId")
 	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "no 'user_id' from auth middleware"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "no 'userId' from auth middleware"})
 		return
 	}
 	patientId := i.(int)
