@@ -13,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	// "github.com/PhasitWo/duchenne-server/repository"
+
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -31,16 +32,20 @@ ok GET /appointment/:id -> individual appointment
 ok POST /appointment -> create new appointment
 ok DELETE /appointment/:id
 
+TODO specialize claim type -> PatientClaim, DoctorClaim -> different auth middleware
+
 ASK
 GET /ask -> return patient's question history
 GET /ask/:id -> return patient's question and doctor's answer
 POST /ask -> create new question
 
+TODO add table 'device' with columns -> id, device_name, expo_token
+-> will be able to limit connecting devices to certain number, push notification to all devices
+TODO change login logic to accept expo_token, device_name, add /logout endpoint
+
 NOTIFICATION package
 
 */
-
-
 
 func main() {
 	// read config
@@ -48,11 +53,16 @@ func main() {
 	// open db connection
 	db, err := sql.Open("mysql", config.AppConfig.DATABASE_DSN)
 	if err != nil {
-		panic(fmt.Sprintf("Can't connect to database : %v", err.Error()))
+		panic(fmt.Sprintf("Can't open connection to database : %v", err.Error()))
 	}
+	defer db.Close()
 	db.SetConnMaxLifetime(time.Minute * 3)
 	db.SetMaxOpenConns(10)
 	db.SetMaxIdleConns(10)
+	// ping db
+	if err = db.Ping(); err != nil {
+		panic("Can't connect to database")
+	}
 	// setup router
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
