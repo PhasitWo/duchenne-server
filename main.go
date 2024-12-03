@@ -37,8 +37,9 @@ ok specialize claim type -> PatientClaim, DoctorClaim -> different auth middlewa
 QUESTION
 ok GET /question -> return all patient's question
 ok GET /question/:id -> return patient's question
-POST /question -> create new question
-DELETE /question/:id
+ok POST /question -> create new question
+ok DELETE /question/:id
+POST /question/:id/answer
 
 TODO add table 'device' with columns -> id, device_name, expo_token
 -> will be able to limit connecting devices to certain number, push notification to all devices
@@ -86,6 +87,8 @@ func main() {
 			mobileProtected.DELETE("/appointment/:id", m.DeleteAppointment)
 			mobileProtected.GET("/question", m.GetAllPatientQuestion)
 			mobileProtected.GET("/question/:id", m.GetQuestion)
+			mobileProtected.POST("/question", m.CreateQuestion)
+			mobileProtected.DELETE("/question/:id", m.DeleteQuestion)
 		}
 	}
 	r.Run() // listen and serve on 0.0.0.0:8080

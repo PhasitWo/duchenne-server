@@ -48,12 +48,12 @@ type Appointment struct {
 }
 
 type Question struct {
-	Id       int        `json:"id"`
-	Topic    string     `json:"topic"`
-	Question string     `json:"question"`
-	CreateAt int        `json:"createAt"`
-	Answer   *string     `json:"answer"` // nullable
+	Id       int         `json:"id"`
+	Topic    string      `json:"topic"`
+	Question string      `json:"question"`
+	CreateAt int         `json:"createAt"`
+	Answer   *string     `json:"answer"`   // nullable
 	AnswerAt *int        `json:"answerAt"` // nullable
-	Patient  Patient    `json:"patient"`
-	Doctor   TrimDoctor `json:"doctor"`
+	Patient  Patient     `json:"patient"`
+	Doctor   *TrimDoctor `json:"doctor"` // nullable
 }

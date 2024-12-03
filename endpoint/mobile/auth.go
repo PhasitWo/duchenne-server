@@ -117,7 +117,7 @@ func (m *mobileHandler) Signup(c *gin.Context) {
 func (m *mobileHandler) GetProfile(c *gin.Context) {
 	id, exists := c.Get("patientId")
 	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "no 'userId' from auth middleware"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "no 'patientId' from auth middleware"})
 		return
 	}
 	// fetch patient from database

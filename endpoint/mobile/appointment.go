@@ -20,7 +20,7 @@ import (
 func (m *mobileHandler) GetAllPatientAppointment(c *gin.Context) {
 	i, exists := c.Get("patientId")
 	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "no 'userId' from auth middleware"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "no 'patientId' from auth middleware"})
 		return
 	}
 	id := i.(int)
@@ -67,7 +67,7 @@ func (m *mobileHandler) CreateAppointment(c *gin.Context) {
 	// get patientId from auth header
 	i, exists := c.Get("patientId")
 	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "no 'userId' from auth middleware"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "no 'patientId' from auth middleware"})
 		return
 	}
 	patientId := i.(int)
@@ -104,7 +104,28 @@ func (m *mobileHandler) CreateAppointment(c *gin.Context) {
 }
 
 func (m *mobileHandler) DeleteAppointment(c *gin.Context) {
+	// prepare param from url and auth middleware
+	i, exists := c.Get("patientId")
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "no 'patientId' from auth middleware"})
+		return
+	}
+	patientId := i.(int)
 	id := c.Param("id")
+	// check if this appointment belongs to the patient
+	ap, err := m.repo.GetAppointment(id)
+	if err != nil {
+		if errors.Unwrap(err) == sql.ErrNoRows { // no rows found
+			c.Status(http.StatusNotFound)
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	if patientId != ap.Patient.Id {
+		c.Status(http.StatusUnauthorized)
+		return
+	}
 	tx, err := m.repo.DeleteAppointment(id)
 	defer func() {
 		if err := tx.Rollback(); !errors.Is(err, sql.ErrTxDone) {

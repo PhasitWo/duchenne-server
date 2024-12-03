@@ -14,9 +14,9 @@ CREATE TABLE question (
   question varchar(500) NOT NULL,
   create_at bigint NOT NULL,
   answer varchar(500),
-  answer_at bigint NOT NULL,
+  answer_at bigint,
   patient_id int NOT NULL,
-  doctor_id int NOT NULL
+  doctor_id int 
 );
 
 
