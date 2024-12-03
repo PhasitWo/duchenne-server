@@ -32,12 +32,13 @@ ok GET /appointment/:id -> individual appointment
 ok POST /appointment -> create new appointment
 ok DELETE /appointment/:id
 
-TODO specialize claim type -> PatientClaim, DoctorClaim -> different auth middleware
+ok specialize claim type -> PatientClaim, DoctorClaim -> different auth middleware
 
-ASK
-GET /ask -> return patient's question history
-GET /ask/:id -> return patient's question and doctor's answer
-POST /ask -> create new question
+QUESTION
+ok GET /question -> return all patient's question
+ok GET /question/:id -> return patient's question
+POST /question -> create new question
+DELETE /question/:id
 
 TODO add table 'device' with columns -> id, device_name, expo_token
 -> will be able to limit connecting devices to certain number, push notification to all devices
@@ -75,14 +76,16 @@ func main() {
 			mobileAuth.POST("/signup", m.Signup)
 		}
 		mobileProtected := mobile.Group("/api")
-		mobileProtected.Use(middleware.AuthMiddleware)
+		mobileProtected.Use(middleware.MobileAuthMiddleware)
 		{
 			mobileProtected.GET("/test", m.Test)
 			mobileProtected.GET("/profile", m.GetProfile)
 			mobileProtected.GET("/appointment", m.GetAllPatientAppointment)
-			mobileProtected.GET("/appointment/:id", m.GetPatientAppointment)
+			mobileProtected.GET("/appointment/:id", m.GetAppointment)
 			mobileProtected.POST("/appointment", m.CreateAppointment)
 			mobileProtected.DELETE("/appointment/:id", m.DeleteAppointment)
+			mobileProtected.GET("/question", m.GetAllPatientQuestion)
+			mobileProtected.GET("/question/:id", m.GetQuestion)
 		}
 	}
 	r.Run() // listen and serve on 0.0.0.0:8080

@@ -18,7 +18,7 @@ import (
 // "github.com/PhasitWo/duchenne-server/repository"
 
 func (m *mobileHandler) GetAllPatientAppointment(c *gin.Context) {
-	i, exists := c.Get("userId")
+	i, exists := c.Get("patientId")
 	if !exists {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "no 'userId' from auth middleware"})
 		return
@@ -32,7 +32,13 @@ func (m *mobileHandler) GetAllPatientAppointment(c *gin.Context) {
 	c.JSON(http.StatusOK, aps)
 }
 
-func (m *mobileHandler) GetPatientAppointment(c *gin.Context) {
+func (m *mobileHandler) GetAppointment(c *gin.Context) {
+	i, exists := c.Get("patientId")
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "no 'patientId' from auth middleware"})
+		return
+	}
+	patientId := i.(int)
 	id := c.Param("id")
 	ap, err := m.repo.GetAppointment(id)
 	if err != nil {
@@ -41,6 +47,11 @@ func (m *mobileHandler) GetPatientAppointment(c *gin.Context) {
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	// check if this appointment belongs to the patient
+	if patientId != ap.Patient.Id {
+		c.Status(http.StatusUnauthorized)
 		return
 	}
 	c.JSON(http.StatusOK, ap)
@@ -54,7 +65,7 @@ type appointmentInput struct {
 
 func (m *mobileHandler) CreateAppointment(c *gin.Context) {
 	// get patientId from auth header
-	i, exists := c.Get("userId")
+	i, exists := c.Get("patientId")
 	if !exists {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "no 'userId' from auth middleware"})
 		return

@@ -1,18 +1,20 @@
 
 CREATE TABLE appointment (
   id int NOT NULL PRIMARY KEY AUTO_INCREMENT,
-  create_at timestamp,
-  date timestamp,
+  create_at bigint NOT NULL,
+  date bigint NOT NULL,
   patient_id int NOT NULL,
   doctor_id int NOT NULL
 );
 
 
-CREATE TABLE ask (
+CREATE TABLE question (
   id int NOT NULL PRIMARY KEY AUTO_INCREMENT,
   topic varchar (30) NOT NULL,
   question varchar(500) NOT NULL,
+  create_at bigint NOT NULL,
   answer varchar(500),
+  answer_at bigint NOT NULL,
   patient_id int NOT NULL,
   doctor_id int NOT NULL
 );

@@ -7,15 +7,16 @@ import (
 	"time"
 )
 
-type Claims struct {
-	UserId int `json:"userId"`
+type PatientClaims struct {
+	PatientId   int `json:"patientId"`
+	DeviceId int `json:"deviceId"`
 	jwt.RegisteredClaims
 }
 
-func GenerateToken(userId int) (string, error) {
+func GeneratePatientToken(userId int) (string, error) {
 	expirationTime := time.Now().Add(90 * 24 * time.Hour)
-	claims := &Claims{
-		UserId: userId,
+	claims := &PatientClaims{
+		PatientId: userId,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},

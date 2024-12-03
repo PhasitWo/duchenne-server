@@ -56,13 +56,6 @@ func (r *Repo) GetAppointment(appointmentId any) (model.Appointment, error) {
 	return ap, nil
 }
 
-type AppointmentCriteria string
-
-const (
-	PATIENTID AppointmentCriteria = "WHERE patient_id = "
-	DOCTORID  AppointmentCriteria = "WHERE doctor_id = "
-	NONE      AppointmentCriteria = ""
-)
 
 var allAppointmentQuery = `
 SELECT
@@ -86,8 +79,8 @@ INNER JOIN patient ON appointment.patient_id = patient.id
 INNER JOIN doctor ON appointment.doctor_id = doctor.id
 `
 
-// Get all appointment with following criteria
-func (r *Repo) GetAllAppointment(id int, criteria AppointmentCriteria) ([]model.Appointment, error) {
+// Get all appointments with following criteria
+func (r *Repo) GetAllAppointment(id int, criteria QueryCriteria) ([]model.Appointment, error) {
 	var queryString string
 	switch criteria {
 	case PATIENTID:
@@ -104,7 +97,7 @@ func (r *Repo) GetAllAppointment(id int, criteria AppointmentCriteria) ([]model.
 		return nil, fmt.Errorf("query : %w", err)
 	}
 	defer rows.Close()
-	var res []model.Appointment
+	res := []model.Appointment{}
 	for rows.Next() {
 		var ap model.Appointment
 		if err := rows.Scan(

@@ -9,7 +9,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-func AuthMiddleware(c *gin.Context) {
+func MobileAuthMiddleware(c *gin.Context) {
 	tokenString := c.GetHeader("Authorization")
 	if tokenString == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "No authorization header provided"})
@@ -17,7 +17,7 @@ func AuthMiddleware(c *gin.Context) {
 		return
 	}
 	// parse token
-	claims := &auth.Claims{UserId: -1}
+	claims := &auth.PatientClaims{PatientId: -1, DeviceId: -1}
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(config.AppConfig.JWT_KEY), nil
 	})
@@ -31,6 +31,12 @@ func AuthMiddleware(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	c.Set("userId", claims.UserId)
+	
+	if claims.PatientId == -1 {// TODO add deviceId == -1 statement
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		c.Abort()
+		return
+	}
+	c.Set("patientId", claims.PatientId)
 	c.Next()
 }

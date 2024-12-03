@@ -42,7 +42,7 @@ func (m *mobileHandler) Login(c *gin.Context) {
 		return
 	}
 	// generate token
-	token, err := auth.GenerateToken(storedPatient.Id)
+	token, err := auth.GeneratePatientToken(storedPatient.Id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -105,7 +105,7 @@ func (m *mobileHandler) Signup(c *gin.Context) {
 		return
 	}
 	// generate token
-	token, err := auth.GenerateToken(storedPatient.Id)
+	token, err := auth.GeneratePatientToken(storedPatient.Id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -115,7 +115,7 @@ func (m *mobileHandler) Signup(c *gin.Context) {
 }
 
 func (m *mobileHandler) GetProfile(c *gin.Context) {
-	id, exists := c.Get("userId")
+	id, exists := c.Get("patientId")
 	if !exists {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "no 'userId' from auth middleware"})
 		return
