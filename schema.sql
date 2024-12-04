@@ -41,7 +41,16 @@ CREATE TABLE patient (
   verified bool NOT NULL DEFAULT 0,
 );
 
+CREATE TABLE device (
+  id int PRIMARY KEY AUTO_INCREMENT,
+  login_at int bigint NOT NULL,
+  device_name varchar(30) NOT NULL,
+  expo_token varchar(100) NOT NULL,
+  patient_id int NOT NULL,
+);
+
 ALTER TABLE appointment ADD CONSTRAINT appointment_doctor_id_fk FOREIGN KEY (doctor_id) REFERENCES doctor (id);
 ALTER TABLE appointment ADD CONSTRAINT appointment_patient_id_fk FOREIGN KEY (patient_id) REFERENCES patient (id);
-ALTER TABLE ask ADD CONSTRAINT ask_doctor_id_fk FOREIGN KEY (doctor_id) REFERENCES doctor (id);
-ALTER TABLE ask ADD CONSTRAINT ask_patient_id_fk FOREIGN KEY (patient_id) REFERENCES patient (id);
+ALTER TABLE question ADD CONSTRAINT question_doctor_id_fk FOREIGN KEY (doctor_id) REFERENCES doctor (id);
+ALTER TABLE question ADD CONSTRAINT question_patient_id_fk FOREIGN KEY (patient_id) REFERENCES patient (id);
+ALTER TABLE device ADD CONSTRAINT device_patient_id_fk FOREIGN KEY (patient_id) REFERENCES patient (id);

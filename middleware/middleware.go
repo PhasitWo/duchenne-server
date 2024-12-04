@@ -17,7 +17,7 @@ func MobileAuthMiddleware(c *gin.Context) {
 		return
 	}
 	// parse token
-	claims := &auth.PatientClaims{PatientId: -1, DeviceId: -1}
+	claims := &auth.PatientClaims{PatientId: -1}
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(config.AppConfig.JWT_KEY), nil
 	})
@@ -32,7 +32,7 @@ func MobileAuthMiddleware(c *gin.Context) {
 		return
 	}
 	
-	if claims.PatientId == -1 {// TODO add deviceId == -1 statement
+	if claims.PatientId == -1 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 		c.Abort()
 		return

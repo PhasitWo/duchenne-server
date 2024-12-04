@@ -9,7 +9,6 @@ import (
 
 type PatientClaims struct {
 	PatientId   int `json:"patientId"`
-	DeviceId int `json:"deviceId"`
 	jwt.RegisteredClaims
 }
 

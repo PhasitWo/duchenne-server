@@ -39,14 +39,14 @@ ok GET /question -> return all patient's question
 ok GET /question/:id -> return patient's question
 ok POST /question -> create new question
 ok DELETE /question/:id
-POST /question/:id/answer
 
-TODO add table 'device' with columns -> id, device_name, expo_token
--> will be able to limit connecting devices to certain number, push notification to all devices
+-> new login device will replace oldest login device -> only 'MAX_DEVICE' number of devices will get notifications
 TODO change login logic to accept expo_token, device_name, add /logout endpoint
 
 NOTIFICATION package
 
+web app
+POST /question/:id/answer
 */
 
 func main() {

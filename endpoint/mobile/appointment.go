@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/PhasitWo/duchenne-server/model"
 	"github.com/PhasitWo/duchenne-server/repository"
 	"github.com/gin-gonic/gin"
 )
@@ -144,6 +145,9 @@ func (m *mobileHandler) DeleteAppointment(c *gin.Context) {
 }
 
 func (m *mobileHandler) Test(c *gin.Context) {
-	res, _ := m.repo.GetAllAppointment(1, repository.NONE)
-	c.JSON(http.StatusOK, res)
+	err := m.repo.UpdateDevice(model.Device{Id:3, LoginAt: 55555, DeviceName: "durian phone", ExpoToken: "newToken", PatientId: 2})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+	c.Status(http.StatusOK)
 }
