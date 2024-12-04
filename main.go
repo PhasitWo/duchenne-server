@@ -75,6 +75,7 @@ func main() {
 		{
 			mobileAuth.POST("/login", m.Login)
 			mobileAuth.POST("/signup", m.Signup)
+			mobileAuth.Use(middleware.MobileAuthMiddleware).POST("/logout", m.Logout)
 		}
 		mobileProtected := mobile.Group("/api")
 		mobileProtected.Use(middleware.MobileAuthMiddleware)

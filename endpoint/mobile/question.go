@@ -70,7 +70,7 @@ func (m *mobileHandler) CreateQuestion(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	err := m.repo.CreateQuestion(patientId, input.Topic, input.Question, input.CreateAt)
+	_, err := m.repo.CreateQuestion(patientId, input.Topic, input.Question, input.CreateAt)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

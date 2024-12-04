@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/PhasitWo/duchenne-server/model"
 	"github.com/PhasitWo/duchenne-server/repository"
 	"github.com/gin-gonic/gin"
 )
@@ -85,12 +84,18 @@ func (m *mobileHandler) CreateAppointment(c *gin.Context) {
 		return
 	}
 	// commit a transaction if scheduling notifications is successful
-	tx, err := m.repo.CreateAppointment(input.CreateAt, input.Date, patientId, input.DoctorId)
+	tx, err := m.dbConn.Begin()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"tx": err.Error()})
+		return
+	}
 	defer func() {
-		if err := tx.Rollback(); !errors.Is(err, sql.ErrTxDone) {
+		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
 			c.JSON(http.StatusInternalServerError, gin.H{"tx": "Can't rollback"})
 		}
 	}()
+	repoWithTx := repository.New(tx)
+	_, err = repoWithTx.CreateAppointment(input.CreateAt, input.Date, patientId, input.DoctorId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -100,6 +105,7 @@ func (m *mobileHandler) CreateAppointment(c *gin.Context) {
 	*/
 	if err := tx.Commit(); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"tx": "Can't commit"})
+		return
 	}
 	c.Status(http.StatusCreated)
 }
@@ -127,27 +133,42 @@ func (m *mobileHandler) DeleteAppointment(c *gin.Context) {
 		c.Status(http.StatusUnauthorized)
 		return
 	}
-	tx, err := m.repo.DeleteAppointment(id)
+	// commit a transaction if cancelling notifications is successful
+	tx, err := m.dbConn.Begin()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"tx": err.Error()})
+		return
+	}
 	defer func() {
-		if err := tx.Rollback(); !errors.Is(err, sql.ErrTxDone) {
+		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
 			c.JSON(http.StatusInternalServerError, gin.H{"tx": "Can't rollback"})
 		}
 	}()
+	repoWithTx := repository.New(tx)
+	err = repoWithTx.DeleteAppointment(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	// TODO cancel the notification, then commit
+	/*
+
+	 TODO cancel the notification, then commit
+
+	*/
 	if err := tx.Commit(); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"tx": "Can't commit"})
+		return
 	}
 	c.Status(http.StatusNoContent)
 }
 
 func (m *mobileHandler) Test(c *gin.Context) {
-	err := m.repo.UpdateDevice(model.Device{Id:3, LoginAt: 55555, DeviceName: "durian phone", ExpoToken: "newToken", PatientId: 2})
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-	}
+	// _, tx, err := m.repo.CreateDevice(model.Device{Id: -1, LoginAt: 666666, DeviceName: "cxd phone", ExpoToken: "hhaha", PatientId: 1})
+	// defer tx.Rollback()
+	// if err != nil {
+	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	// 	return
+	// }
+	// tx.Commit()
 	c.Status(http.StatusOK)
 }

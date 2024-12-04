@@ -7,15 +7,7 @@ import (
 	"github.com/PhasitWo/duchenne-server/model"
 )
 
-var allDeviceQuery = `
-SELECT
-id,
-login_at,
-device_name,
-expo_token,
-patient_id
-FROM device
-`
+var allDeviceQuery = `SELECT id, login_at, device_name, expo_token, patient_id FROM device`
 
 // Get all appointments with following criteria
 func (r *Repo) GetAllDevice(id int, criteria QueryCriteria) ([]model.Device, error) {
@@ -66,6 +58,37 @@ func (r *Repo) UpdateDevice(d model.Device) error {
 	}
 	if rows != 1 {
 		return fmt.Errorf("exec : no affected row")
+	}
+	return nil
+}
+
+var createDeviceQuery = `
+INSERT INTO device (login_at, device_name, expo_token, patient_id)
+VALUES (?, ?, ?, ?)
+`
+
+func (r *Repo) CreateDevice(d model.Device) (int, error) {
+	result, err := r.db.Exec(createDeviceQuery, d.LoginAt, d.DeviceName, d.ExpoToken, d.PatientId)
+	if err != nil {
+		return -1, fmt.Errorf("exec : %w", err)
+	}
+	i, err := result.LastInsertId()
+	if err != nil {
+		return -1, fmt.Errorf("exec : %w", err)
+	}
+	lastId := int(i)
+	return lastId, nil
+}
+
+var deleteDeviceQuery = `
+DELETE FROM device
+WHERE id = ?;
+`
+
+func (r *Repo) DeleteDevice(deviceId any) error {
+	_, err := r.db.Exec(deleteDeviceQuery, deviceId)
+	if err != nil {
+		return fmt.Errorf("exec : %w", err)
 	}
 	return nil
 }

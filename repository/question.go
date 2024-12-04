@@ -166,19 +166,17 @@ INSERT INTO question (patient_id, topic, question, create_at)
 VALUES (?, ?, ?, ?)
 `
 
-func (r *Repo) CreateQuestion(patientId int, topic string, question string, createAt int) error {
+func (r *Repo) CreateQuestion(patientId int, topic string, question string, createAt int) (int, error) {
 	result, err := r.db.Exec(createQuestionQuery, patientId, topic, question, createAt)
 	if err != nil {
-		return fmt.Errorf("exec : %w", err)
+		return -1, fmt.Errorf("exec : %w", err)
 	}
-	rows, err := result.RowsAffected()
+	i, err := result.LastInsertId()
 	if err != nil {
-		return fmt.Errorf("exec : %w", err)
+		return -1, fmt.Errorf("exec : %w", err)
 	}
-	if rows != 1 {
-		return fmt.Errorf("exec : no affected row")
-	}
-	return nil
+	lastId := int(i)
+	return lastId, nil
 }
 
 var deleteQuestionQuery = `

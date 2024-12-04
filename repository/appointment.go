@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"database/sql"
 	"fmt"
 	"strconv"
 
@@ -55,7 +54,6 @@ func (r *Repo) GetAppointment(appointmentId any) (model.Appointment, error) {
 	}
 	return ap, nil
 }
-
 
 var allAppointmentQuery = `
 SELECT
@@ -132,24 +130,17 @@ INSERT INTO appointment (create_at, date, patient_id, doctor_id)
 VALUES (?, ?, ?, ?)
 `
 
-// CreateAppointment return (*sql.Tx, error) , **don't forget to call tx.Commit()**
-func (r *Repo) CreateAppointment(createAt int, date int, patientId int, doctorId int) (*sql.Tx, error) {
-	tx, err := r.db.Begin()
+func (r *Repo) CreateAppointment(createAt int, date int, patientId int, doctorId int) (int, error) {
+	result, err := r.db.Exec(createAppointmentQuery, createAt, date, patientId, doctorId)
 	if err != nil {
-		return nil, fmt.Errorf("exec : %w", err)
+		return -1, fmt.Errorf("exec : %w", err)
 	}
-	result, err := tx.Exec(createAppointmentQuery, createAt, date, patientId, doctorId)
+	i, err := result.LastInsertId()
 	if err != nil {
-		return nil, fmt.Errorf("exec : %w", err)
+		return -1, fmt.Errorf("exec : %w", err)
 	}
-	rows, err := result.RowsAffected()
-	if err != nil {
-		return nil, fmt.Errorf("exec : %w", err)
-	}
-	if rows != 1 {
-		return nil, fmt.Errorf("exec : no affected row")
-	}
-	return tx, nil
+	lastId := int(i)
+	return lastId, nil
 }
 
 var deleteAppointmentQuery = `
@@ -157,15 +148,10 @@ DELETE FROM appointment
 WHERE id = ?;
 `
 
-// DeleteAppointment return (*sql.Tx, error) , **don't forget to call tx.Commit()**
-func (r *Repo) DeleteAppointment(appointmentId any) (*sql.Tx, error) {
-	tx, err := r.db.Begin()
+func (r *Repo) DeleteAppointment(appointmentId any) error {
+	_, err := r.db.Exec(deleteAppointmentQuery, appointmentId)
 	if err != nil {
-		return nil, fmt.Errorf("exec : %w", err)
+		return fmt.Errorf("exec : %w", err)
 	}
-	_, err = tx.Exec(deleteAppointmentQuery, appointmentId)
-	if err != nil {
-		return nil, fmt.Errorf("exec : %w", err)
-	}
-	return tx, nil
+	return nil
 }

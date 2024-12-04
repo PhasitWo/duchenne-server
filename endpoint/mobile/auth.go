@@ -4,26 +4,33 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/PhasitWo/duchenne-server/auth"
+	"github.com/PhasitWo/duchenne-server/config"
+	"github.com/PhasitWo/duchenne-server/repository"
+
 	"github.com/PhasitWo/duchenne-server/model"
+
 	"github.com/gin-gonic/gin"
 )
 
 type login struct {
-	Hn        string `json:"hn" binding:"required"`
-	FirstName string `json:"firstName" binding:"required"`
-	LastName  string `json:"lastName" binding:"required"`
+	Hn         string `json:"hn" binding:"required"`
+	FirstName  string `json:"firstName" binding:"required"`
+	LastName   string `json:"lastName" binding:"required"`
+	DeviceName string `json:"deviceName" binding:"required"`
+	ExpoToken  string `json:"expoToken" binding:"required"`
 }
 
 func (m *mobileHandler) Login(c *gin.Context) {
-	var l login
-	if err := c.ShouldBindJSON(&l); err != nil {
+	var input login
+	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	// fetch patient from database
-	storedPatient, err := m.repo.GetPatient(l.Hn)
+	storedPatient, err := m.repo.GetPatient(input.Hn)
 	if err != nil {
 		if errors.Unwrap(err) == sql.ErrNoRows { // no rows found
 			c.Status(http.StatusNotFound)
@@ -37,14 +44,58 @@ func (m *mobileHandler) Login(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unverified account"})
 		return
 	}
-	if l.FirstName != storedPatient.FirstName || l.LastName != storedPatient.LastName {
+	if input.FirstName != storedPatient.FirstName || input.LastName != storedPatient.LastName {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credential"})
 		return
 	}
-	// generate token
-	token, err := auth.GeneratePatientToken(storedPatient.Id)
+	// save this device for notification stuff
+	devices, err := m.repo.GetAllDevice(storedPatient.Id, repository.PATIENTID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	newDevice := model.Device{
+		Id:         -1,
+		LoginAt:    int(time.Now().Unix()),
+		DeviceName: input.DeviceName,
+		ExpoToken:  input.ExpoToken,
+		PatientId:  storedPatient.Id,
+	}
+	tx, err := m.dbConn.Begin()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"tx": err.Error()})
+		return
+	}
+	defer func() {
+		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+			c.JSON(http.StatusInternalServerError, gin.H{"tx": "Can't rollback"})
+		}
+	}()
+	repoWithTx := repository.New(tx)
+	if len(devices) >= config.AppConfig.MAX_DEVICE {
+		// remove the oldest login device
+		toRemoveDeviceId := devices[0].Id
+		err = repoWithTx.DeleteDevice(toRemoveDeviceId)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+	}
+	// insert new device
+	deviceId, err := repoWithTx.CreateDevice(newDevice)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	// generate token
+	token, err := auth.GeneratePatientToken(storedPatient.Id, deviceId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	// commit tx
+	if err := tx.Commit(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"tx": "Can't commit"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"token": token})
@@ -77,7 +128,7 @@ func (m *mobileHandler) Signup(c *gin.Context) {
 	}
 	// checking
 	if storedPatient.Verified { // already verified
-		c.JSON(http.StatusConflict, gin.H{"error": "the account have been verified"})
+		c.JSON(http.StatusConflict, gin.H{"error": "the account has been verified"})
 		return
 	}
 	if s.FirstName != storedPatient.FirstName || s.LastName != storedPatient.LastName {
@@ -104,31 +155,20 @@ func (m *mobileHandler) Signup(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	// generate token
-	token, err := auth.GeneratePatientToken(storedPatient.Id)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"token": token})
-
+	c.Status(http.StatusOK)
 }
 
-func (m *mobileHandler) GetProfile(c *gin.Context) {
-	id, exists := c.Get("patientId")
+func (m *mobileHandler) Logout(c *gin.Context) {
+	i, exists := c.Get("deviceId")
 	if !exists {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "no 'patientId' from auth middleware"})
 		return
 	}
-	// fetch patient from database
-	p, err := m.repo.GetPatient(id)
+	deviceId := i.(int)
+	err := m.repo.DeleteDevice(deviceId)
 	if err != nil {
-		if errors.Unwrap(err) == sql.ErrNoRows { // no rows found
-			c.Status(http.StatusNotFound)
-			return
-		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, p)
+	c.Status(http.StatusOK)
 }

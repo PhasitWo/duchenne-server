@@ -8,8 +8,9 @@ import (
 
 type mobileHandler struct {
 	repo *repository.Repo
+	dbConn *sql.DB
 }
 
 func Init(db *sql.DB) *mobileHandler {
-	return &mobileHandler{repo: repository.New(db)}
+	return &mobileHandler{repo: repository.New(db), dbConn : db}
 }
