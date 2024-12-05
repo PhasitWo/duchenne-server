@@ -58,6 +58,13 @@ type Question struct {
 	Doctor   *TrimDoctor `json:"doctor"` // nullable
 }
 
+type QuestionTopic struct {
+	Id       int    `json:"id"`
+	Topic    string `json:"topic"`
+	CreateAt int    `json:"createAt"`
+	AnswerAt *int   `json:"answerAt"` // nullable
+}
+
 type Device struct {
 	Id         int    `json:"id"`
 	LoginAt    int    `json:"loginAt"`

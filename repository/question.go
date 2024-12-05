@@ -161,6 +161,52 @@ func (r *Repo) GetAllQuestion(id int, criteria QueryCriteria) ([]model.Question,
 	return res, nil
 }
 
+var allQuestionTopicQuery = `
+SELECT
+question.id,
+topic,
+create_at,
+answer_at
+FROM question
+`
+
+// Get all questions with following criteria
+func (r *Repo) GetAllQuestionTopic(id int, criteria QueryCriteria) ([]model.QuestionTopic, error) {
+	var queryString string
+	switch criteria {
+	case PATIENTID:
+		queryString = allQuestionTopicQuery + " " + string(PATIENTID) + strconv.Itoa(id)
+	case DOCTORID:
+		queryString = allQuestionTopicQuery + " " + string(DOCTORID) + strconv.Itoa(id)
+	case NONE:
+		queryString = allQuestionTopicQuery
+	default:
+		return nil, fmt.Errorf("query : invalid criteria")
+	}
+	rows, err := r.db.Query(queryString + " ORDER BY create_at DESC")
+	if err != nil {
+		return nil, fmt.Errorf("query : %w", err)
+	}
+	defer rows.Close()
+	res := []model.QuestionTopic{}
+	for rows.Next() {
+		var q model.QuestionTopic
+		if err := rows.Scan(
+			&q.Id,
+			&q.Topic,
+			&q.CreateAt,
+			&q.AnswerAt,
+		); err != nil {
+			return nil, fmt.Errorf("query : %w", err)
+		}
+		res = append(res, q)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("query : %w", err)
+	}
+	return res, nil
+}
+
 var createQuestionQuery = `
 INSERT INTO question (patient_id, topic, question, create_at)
 VALUES (?, ?, ?, ?)
