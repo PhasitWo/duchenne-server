@@ -63,12 +63,12 @@ func (m *mobileHandler) Login(c *gin.Context) {
 	}
 	tx, err := m.dbConn.Begin()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"tx": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
-			c.JSON(http.StatusInternalServerError, gin.H{"tx": "Can't rollback"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "tx can't rollback"})
 		}
 	}()
 	repoWithTx := repository.New(tx)
@@ -95,7 +95,7 @@ func (m *mobileHandler) Login(c *gin.Context) {
 	}
 	// commit tx
 	if err := tx.Commit(); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"tx": "Can't commit"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Tx can't commit"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"token": token})

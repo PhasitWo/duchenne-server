@@ -58,7 +58,6 @@ func (m *mobileHandler) GetAppointment(c *gin.Context) {
 }
 
 type appointmentInput struct {
-	CreateAt int `json:"createAt" binding:"required"`
 	Date     int `json:"date" binding:"required"`
 	DoctorId int `json:"doctorId" binding:"required"`
 }
@@ -86,16 +85,16 @@ func (m *mobileHandler) CreateAppointment(c *gin.Context) {
 	// commit a transaction if scheduling notifications is successful
 	tx, err := m.dbConn.Begin()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"tx": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
-			c.JSON(http.StatusInternalServerError, gin.H{"tx": "Can't rollback"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Tx can't rollback"})
 		}
 	}()
 	repoWithTx := repository.New(tx)
-	_, err = repoWithTx.CreateAppointment(input.CreateAt, input.Date, patientId, input.DoctorId)
+	_, err = repoWithTx.CreateAppointment(int(time.Now().Unix()), input.Date, patientId, input.DoctorId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -104,7 +103,7 @@ func (m *mobileHandler) CreateAppointment(c *gin.Context) {
 		TODO schedule notification
 	*/
 	if err := tx.Commit(); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"tx": "Can't commit"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Tx can't commit"})
 		return
 	}
 	c.Status(http.StatusCreated)
@@ -136,12 +135,12 @@ func (m *mobileHandler) DeleteAppointment(c *gin.Context) {
 	// commit a transaction if cancelling notifications is successful
 	tx, err := m.dbConn.Begin()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"tx": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
-			c.JSON(http.StatusInternalServerError, gin.H{"tx": "Can't rollback"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Tx can't rollback"})
 		}
 	}()
 	repoWithTx := repository.New(tx)
@@ -156,7 +155,7 @@ func (m *mobileHandler) DeleteAppointment(c *gin.Context) {
 
 	*/
 	if err := tx.Commit(); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"tx": "Can't commit"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Tx can't commit"})
 		return
 	}
 	c.Status(http.StatusNoContent)

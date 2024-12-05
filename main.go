@@ -90,6 +90,7 @@ func main() {
 			mobileProtected.GET("/question/:id", m.GetQuestion)
 			mobileProtected.POST("/question", m.CreateQuestion)
 			mobileProtected.DELETE("/question/:id", m.DeleteQuestion)
+			mobileProtected.GET("/doctor", m.GetAllDoctor)
 		}
 	}
 	r.Run() // listen and serve on 0.0.0.0:8080

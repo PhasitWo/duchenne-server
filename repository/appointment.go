@@ -90,7 +90,7 @@ func (r *Repo) GetAllAppointment(id int, criteria QueryCriteria) ([]model.Appoin
 	default:
 		return nil, fmt.Errorf("query : invalid criteria")
 	}
-	rows, err := r.db.Query(queryString)
+	rows, err := r.db.Query(queryString  + " ORDER BY date ASC LIMIT 15")
 	if err != nil {
 		return nil, fmt.Errorf("query : %w", err)
 	}
