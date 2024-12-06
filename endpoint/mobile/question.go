@@ -3,6 +3,8 @@ package mobile
 import (
 	"database/sql"
 	"errors"
+	"time"
+
 	// "github.com/PhasitWo/duchenne-server/repository"
 	"net/http"
 
@@ -60,7 +62,6 @@ func (m *mobileHandler) GetQuestion(c *gin.Context) {
 type questionInput struct {
 	Topic    string `json:"topic" binding:"required"`
 	Question string `json:"question" binding:"required"`
-	CreateAt int    `json:"createAt" binding:"required"`
 }
 
 func (m *mobileHandler) CreateQuestion(c *gin.Context) {
@@ -77,7 +78,7 @@ func (m *mobileHandler) CreateQuestion(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	_, err := m.repo.CreateQuestion(patientId, input.Topic, input.Question, input.CreateAt)
+	_, err := m.repo.CreateQuestion(patientId, input.Topic, input.Question, int(time.Now().Unix()))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

@@ -104,7 +104,7 @@ func (m *mobileHandler) Login(c *gin.Context) {
 type signup struct {
 	Hn         string  `json:"hn" binding:"required"`
 	FirstName  string  `json:"firstName" binding:"required"`
-	MiddleName *string `json:"middleName" binding:"required"` // nullable
+	MiddleName string `json:"middleName" binding:"required"`
 	LastName   string  `json:"lastName" binding:"required"`
 	Phone      string  `json:"phone" binding:"required"`
 	Email      string  `json:"email" binding:"required"`
@@ -135,7 +135,7 @@ func (m *mobileHandler) Signup(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid first name or last name"})
 		return
 	}
-	if storedPatient.MiddleName != nil && *s.MiddleName != *storedPatient.MiddleName {
+	if storedPatient.MiddleName != nil && s.MiddleName != *storedPatient.MiddleName {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid middle name"})
 		return
 	}
