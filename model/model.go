@@ -72,3 +72,11 @@ type Device struct {
 	ExpoToken  string `json:"expoToken"`
 	PatientId  int    `json:"patientId"`
 }
+
+type AppointmentDevice struct {
+	AppointmentId int    `json:"appointment_id"`
+	Date          int    `json:"date"`
+	DeviceId      int    `json:"device_id"`
+	ExpoToken     string `json:"expoToken"`
+	PatientId     int    `json:"patient_id"`
+}

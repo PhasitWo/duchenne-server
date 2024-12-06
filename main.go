@@ -2,6 +2,7 @@ package main
 
 import (
 	// "net/http"
+	"crypto/tls"
 	"database/sql"
 	"fmt"
 	"time"
@@ -14,7 +15,7 @@ import (
 
 	// "github.com/PhasitWo/duchenne-server/repository"
 
-	_ "github.com/go-sql-driver/mysql"
+	"github.com/go-sql-driver/mysql"
 )
 
 /*
@@ -53,10 +54,16 @@ func main() {
 	// read config
 	config.LoadConfig()
 	// open db connection
+	mysql.RegisterTLSConfig("tidb", &tls.Config{
+		MinVersion: tls.VersionTLS12,
+		ServerName: "gateway01.ap-southeast-1.prod.aws.tidbcloud.com",
+	})
+
 	db, err := sql.Open("mysql", config.AppConfig.DATABASE_DSN)
 	if err != nil {
 		panic(fmt.Sprintf("Can't open connection to database : %v", err.Error()))
 	}
+	fmt.Println("Connected to database")
 	defer db.Close()
 	db.SetConnMaxLifetime(time.Minute * 3)
 	db.SetMaxOpenConns(10)
@@ -95,3 +102,41 @@ func main() {
 	}
 	r.Run() // listen and serve on 0.0.0.0:8080
 }
+
+// var apmtQuery = `
+// select appointment.id ,date, device.id , expo_token, appointment.patient_id from appointment 
+// inner join device on appointment.patient_id = device.patient_id  
+// order by appointment.id asc
+// `
+
+// func scheduleNotifications(db *sql.DB) {
+// 	rows, err := db.Query(apmtQuery)
+// 	if err != nil {
+// 		fmt.Println("scheduleNotifications : Can't query database")
+// 		return
+// 	}
+// 	defer rows.Close()
+// 	res := []model.AppointmentDevice{}
+// 	for rows.Next() {
+// 		var ad model.AppointmentDevice
+// 		if err := rows.Scan(
+// 			&ad.AppointmentId,
+// 			&ad.Date,
+// 			&ad.DeviceId,
+// 			&ad.ExpoToken,
+// 			&ad.PatientId,
+// 		); err != nil {
+// 			fmt.Printf("scheduleNotifications : %v", err.Error())
+// 			return
+// 		}
+// 		res = append(res, ad)
+// 	}
+// 	if err := rows.Err(); err != nil {
+// 		fmt.Printf("scheduleNotifications : %v", err.Error())
+// 		return
+// 	}
+// 	// schedule
+// 	for _, element := range res {
+// 		fmt.Printf("scheduled appointment_id:%v , device_id:%v --> push token: %v\n", element.AppointmentId, element.DeviceId, element.ExpoToken)
+// 	}
+// }

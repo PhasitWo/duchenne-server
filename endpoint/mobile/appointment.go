@@ -77,7 +77,7 @@ func (m *mobileHandler) CreateAppointment(c *gin.Context) {
 		return
 	}
 	// validate input.date
-	now := int(time.Now().Add(5 * time.Minute).Unix())
+	now := int(time.Now().Add(3 * time.Minute).Unix())
 	if input.Date < now {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "'Date' is before current time"})
 		return

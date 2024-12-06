@@ -7,13 +7,15 @@ import (
 )
 
 type config struct {
-	DATABASE_DSN string
-	JWT_KEY      string
-	MAX_DEVICE   int
+	MODE               string
+	DATABASE_DSN       string
+	DATABASE_DSN_LOCAL string
+	JWT_KEY            string
+	MAX_DEVICE         int
 }
 
 // shared config across packages
-var AppConfig config
+var AppConfig = config{MODE: "dev"}
 
 func LoadConfig() {
 	viper.SetConfigFile(".env")
@@ -41,4 +43,10 @@ func LoadConfig() {
 		fmt.Printf("\t%-15s\t=>\t%-10v\n", fieldName, f.Field(i).Interface())
 	}
 	fmt.Printf("Config Loaded\n\n")
+	fmt.Printf("Server is running in mode `%v`\n", AppConfig.MODE)
+	if (AppConfig.MODE == "dev") {
+		AppConfig.DATABASE_DSN = AppConfig.DATABASE_DSN_LOCAL
+		fmt.Printf("Replacing AppConfig.DATABASE_DSN with => %v\n\n", AppConfig.DATABASE_DSN_LOCAL)
+	}
+	fmt.Printf("Uses this DSN => %v\n", AppConfig.DATABASE_DSN)
 }

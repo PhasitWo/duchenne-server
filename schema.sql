@@ -27,7 +27,7 @@ CREATE TABLE doctor (
   last_name varchar(100) NOT NULL,
   username varchar(20) NOT NULL,
   password varchar(100) NOT NULL,
-  role varchar(10) NOT NULL
+  doctor_role varchar(10) NOT NULL
 );
 
 CREATE TABLE patient (
@@ -38,15 +38,15 @@ CREATE TABLE patient (
   last_name varchar(100) NOT NULL,
   email varchar(255),
   phone varchar(15),
-  verified bool NOT NULL DEFAULT 0,
+  verified bool NOT NULL DEFAULT 0
 );
 
 CREATE TABLE device (
   id int PRIMARY KEY AUTO_INCREMENT,
-  login_at int bigint NOT NULL,
+  login_at bigint NOT NULL,
   device_name varchar(30) NOT NULL,
   expo_token varchar(100) NOT NULL,
-  patient_id int NOT NULL,
+  patient_id int NOT NULL
 );
 
 ALTER TABLE appointment ADD CONSTRAINT appointment_doctor_id_fk FOREIGN KEY (doctor_id) REFERENCES doctor (id);
