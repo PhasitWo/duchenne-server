@@ -42,7 +42,7 @@ func (m *mobileHandler) Login(c *gin.Context) {
 	}
 	// checking
 	if !storedPatient.Verified {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unverified account"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "unverified account"})
 		return
 	}
 	if input.FirstName != storedPatient.FirstName || input.LastName != storedPatient.LastName {
