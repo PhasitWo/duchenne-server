@@ -9,6 +9,7 @@ import (
 	"github.com/PhasitWo/duchenne-server/auth"
 	"github.com/PhasitWo/duchenne-server/config"
 	"github.com/PhasitWo/duchenne-server/repository"
+	"github.com/golang-jwt/jwt/v4"
 
 	"github.com/PhasitWo/duchenne-server/model"
 
@@ -102,12 +103,12 @@ func (m *mobileHandler) Login(c *gin.Context) {
 }
 
 type signup struct {
-	Hn         string  `json:"hn" binding:"required"`
-	FirstName  string  `json:"firstName" binding:"required"`
+	Hn         string `json:"hn" binding:"required"`
+	FirstName  string `json:"firstName" binding:"required"`
 	MiddleName string `json:"middleName" binding:"required"`
-	LastName   string  `json:"lastName" binding:"required"`
-	Phone      string  `json:"phone" binding:"required"`
-	Email      string  `json:"email" binding:"required"`
+	LastName   string `json:"lastName" binding:"required"`
+	Phone      string `json:"phone" binding:"required"`
+	Email      string `json:"email" binding:"required"`
 }
 
 func (m *mobileHandler) Signup(c *gin.Context) {
@@ -159,13 +160,22 @@ func (m *mobileHandler) Signup(c *gin.Context) {
 }
 
 func (m *mobileHandler) Logout(c *gin.Context) {
-	i, exists := c.Get("deviceId")
-	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "no 'patientId' from auth middleware"})
+	tokenString := c.GetHeader("Authorization")
+	if tokenString == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "No authorization header provided"})
 		return
 	}
-	deviceId := i.(int)
-	err := m.repo.DeleteDevice(deviceId)
+	// parse token
+	claims := &auth.PatientClaims{PatientId: -1, DeviceId: -1}
+	jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(config.AppConfig.JWT_KEY), nil
+	})
+	if claims.DeviceId == -1 {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token, no deviceId"})
+		return
+	}
+
+	err := m.repo.DeleteDevice(claims.DeviceId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
