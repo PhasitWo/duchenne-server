@@ -1,16 +1,16 @@
 {
   "id": "0",
   "name": "Duchenne_db",
-  "createdAt": "2024-11-27T15:56:44.520Z",
-  "updatedAt": "2024-11-27T15:56:44.520Z",
+  "createdAt": "2024-12-07T18:49:32.304Z",
+  "updatedAt": "2024-12-07T18:49:32.304Z",
   "databaseType": "mysql",
   "tables": [
     {
       "id": "1",
-      "name": "appointment",
+      "name": "ask",
       "schema": "test",
-      "x": 1040,
-      "y": 300,
+      "x": 2100,
+      "y": 100,
       "fields": [
         {
           "id": "2",
@@ -22,113 +22,10 @@
           "primaryKey": true,
           "unique": true,
           "nullable": false,
-          "createdAt": 1732716849193
-        },
-        {
-          "id": "3",
-          "name": "create_at",
-          "type": {
-            "name": "bigint",
-            "id": "bigint"
-          },
-          "primaryKey": false,
-          "unique": false,
-          "nullable": true,
-          "createdAt": 1732716849193
-        },
-        {
-          "id": "4",
-          "name": "date",
-          "type": {
-            "name": "bigint",
-            "id": "bigint"
-          },
-          "primaryKey": false,
-          "unique": false,
-          "nullable": true,
-          "createdAt": 1732716849193
-        },
-        {
-          "id": "5",
-          "name": "patient_id",
-          "type": {
-            "id": "int",
-            "name": "int"
-          },
-          "primaryKey": false,
-          "unique": false,
-          "nullable": false,
-          "createdAt": 1732716849193
-        },
-        {
-          "id": "6",
-          "name": "doctor_id",
-          "type": {
-            "id": "int",
-            "name": "int"
-          },
-          "primaryKey": false,
-          "unique": false,
-          "nullable": false,
-          "createdAt": 1732716849193
-        }
-      ],
-      "indexes": [
-        {
-          "id": "7",
-          "name": "appointment_doctor_id_fk",
-          "unique": false,
-          "fieldIds": [
-            "6"
-          ],
-          "createdAt": 1732716849193
-        },
-        {
-          "id": "8",
-          "name": "appointment_patient_id_fk",
-          "unique": false,
-          "fieldIds": [
-            "5"
-          ],
-          "createdAt": 1732716849193
-        },
-        {
-          "id": "9",
-          "name": "PRIMARY",
-          "unique": true,
-          "fieldIds": [
-            "2"
-          ],
-          "createdAt": 1732716849193
-        }
-      ],
-      "color": "#ff9f74",
-      "isView": false,
-      "isMaterializedView": false,
-      "createdAt": 1732716849193,
-      "diagramId": "yhhi2mc3k1a0"
-    },
-    {
-      "id": "10",
-      "name": "ask",
-      "schema": "test",
-      "x": 1040,
-      "y": 540,
-      "fields": [
-        {
-          "id": "11",
-          "name": "id",
-          "type": {
-            "id": "int",
-            "name": "int"
-          },
-          "primaryKey": true,
-          "unique": true,
-          "nullable": false,
           "createdAt": 1732716849194
         },
         {
-          "id": "12",
+          "id": "3",
           "name": "question",
           "type": {
             "id": "varchar",
@@ -142,7 +39,7 @@
           "createdAt": 1732716849194
         },
         {
-          "id": "13",
+          "id": "4",
           "name": "answer",
           "type": {
             "id": "varchar",
@@ -156,7 +53,7 @@
           "createdAt": 1732716849194
         },
         {
-          "id": "14",
+          "id": "5",
           "name": "patient_id",
           "type": {
             "id": "int",
@@ -168,7 +65,7 @@
           "createdAt": 1732716849194
         },
         {
-          "id": "15",
+          "id": "6",
           "name": "doctor_id",
           "type": {
             "id": "int",
@@ -180,7 +77,7 @@
           "createdAt": 1732716849194
         },
         {
-          "id": "16",
+          "id": "7",
           "name": "topic",
           "type": {
             "id": "varchar",
@@ -196,29 +93,29 @@
       ],
       "indexes": [
         {
-          "id": "17",
+          "id": "8",
           "name": "ask_doctor_id_fk",
           "unique": false,
           "fieldIds": [
-            "15"
+            "6"
           ],
           "createdAt": 1732716849194
         },
         {
-          "id": "18",
+          "id": "9",
           "name": "ask_patient_id_fk",
           "unique": false,
           "fieldIds": [
-            "14"
+            "5"
           ],
           "createdAt": 1732716849194
         },
         {
-          "id": "19",
+          "id": "10",
           "name": "PRIMARY",
           "unique": true,
           "fieldIds": [
-            "11"
+            "2"
           ],
           "createdAt": 1732716849194
         }
@@ -230,11 +127,113 @@
       "diagramId": "yhhi2mc3k1a0"
     },
     {
-      "id": "20",
-      "name": "doctor",
+      "id": "11",
+      "name": "appointment",
       "schema": "test",
-      "x": 680,
-      "y": 300,
+      "x": 520,
+      "y": 100,
+      "fields": [
+        {
+          "id": "12",
+          "name": "id",
+          "type": {
+            "id": "int",
+            "name": "int"
+          },
+          "primaryKey": true,
+          "unique": true,
+          "nullable": false,
+          "createdAt": 1733597305318
+        },
+        {
+          "id": "13",
+          "name": "create_at",
+          "type": {
+            "id": "bigint",
+            "name": "bigint"
+          },
+          "primaryKey": false,
+          "unique": false,
+          "nullable": true,
+          "createdAt": 1733597305318
+        },
+        {
+          "id": "14",
+          "name": "date",
+          "type": {
+            "id": "bigint",
+            "name": "bigint"
+          },
+          "primaryKey": false,
+          "unique": false,
+          "nullable": true,
+          "createdAt": 1733597305318
+        },
+        {
+          "id": "15",
+          "name": "patient_id",
+          "type": {
+            "id": "int",
+            "name": "int"
+          },
+          "primaryKey": false,
+          "unique": false,
+          "nullable": false,
+          "createdAt": 1733597305318
+        },
+        {
+          "id": "16",
+          "name": "doctor_id",
+          "type": {
+            "id": "int",
+            "name": "int"
+          },
+          "primaryKey": false,
+          "unique": false,
+          "nullable": false,
+          "createdAt": 1733597305318
+        }
+      ],
+      "indexes": [
+        {
+          "id": "17",
+          "name": "PRIMARY",
+          "unique": true,
+          "fieldIds": [
+            "12"
+          ],
+          "createdAt": 1733597305318
+        },
+        {
+          "id": "18",
+          "name": "appointment_doctor_id_fk",
+          "unique": false,
+          "fieldIds": [
+            "16"
+          ],
+          "createdAt": 1733597305318
+        },
+        {
+          "id": "19",
+          "name": "appointment_patient_id_fk",
+          "unique": false,
+          "fieldIds": [
+            "15"
+          ],
+          "createdAt": 1733597305318
+        }
+      ],
+      "color": "#ff6b8a",
+      "isView": false,
+      "isMaterializedView": false,
+      "createdAt": 1733597305318
+    },
+    {
+      "id": "20",
+      "name": "device",
+      "schema": "test",
+      "x": 520,
+      "y": -180,
       "fields": [
         {
           "id": "21",
@@ -246,53 +245,23 @@
           "primaryKey": true,
           "unique": true,
           "nullable": false,
-          "createdAt": 1732716849194
+          "createdAt": 1733597305318
         },
         {
           "id": "22",
-          "name": "doctor_info",
+          "name": "login_at",
           "type": {
-            "id": "varchar",
-            "name": "varchar"
+            "id": "bigint",
+            "name": "bigint"
           },
           "primaryKey": false,
           "unique": false,
-          "nullable": true,
-          "character_maximum_length": "500",
-          "collation": "utf8mb4_0900_ai_ci",
-          "createdAt": 1732716849194
+          "nullable": false,
+          "createdAt": 1733597305318
         },
         {
           "id": "23",
-          "name": "username",
-          "type": {
-            "id": "varchar",
-            "name": "varchar"
-          },
-          "primaryKey": false,
-          "unique": false,
-          "nullable": true,
-          "character_maximum_length": "20",
-          "collation": "utf8mb4_0900_ai_ci",
-          "createdAt": 1732716849194
-        },
-        {
-          "id": "24",
-          "name": "password",
-          "type": {
-            "id": "varchar",
-            "name": "varchar"
-          },
-          "primaryKey": false,
-          "unique": false,
-          "nullable": true,
-          "character_maximum_length": "100",
-          "collation": "utf8mb4_0900_ai_ci",
-          "createdAt": 1732716849194
-        },
-        {
-          "id": "25",
-          "name": "role",
+          "name": "device_name",
           "type": {
             "id": "varchar",
             "name": "varchar"
@@ -300,9 +269,35 @@
           "primaryKey": false,
           "unique": false,
           "nullable": false,
-          "character_maximum_length": "10",
+          "character_maximum_length": "30",
           "collation": "utf8mb4_0900_ai_ci",
-          "createdAt": 1732716849194
+          "createdAt": 1733597305318
+        },
+        {
+          "id": "24",
+          "name": "expo_token",
+          "type": {
+            "id": "varchar",
+            "name": "varchar"
+          },
+          "primaryKey": false,
+          "unique": false,
+          "nullable": false,
+          "character_maximum_length": "100",
+          "collation": "utf8mb4_0900_ai_ci",
+          "createdAt": 1733597305318
+        },
+        {
+          "id": "25",
+          "name": "patient_id",
+          "type": {
+            "id": "int",
+            "name": "int"
+          },
+          "primaryKey": false,
+          "unique": false,
+          "nullable": false,
+          "createdAt": 1733597305318
         }
       ],
       "indexes": [
@@ -313,24 +308,32 @@
           "fieldIds": [
             "21"
           ],
-          "createdAt": 1732716849194
+          "createdAt": 1733597305318
+        },
+        {
+          "id": "27",
+          "name": "patient_id",
+          "unique": false,
+          "fieldIds": [
+            "25"
+          ],
+          "createdAt": 1733597305318
         }
       ],
-      "color": "#42e0c0",
+      "color": "#8eb7ff",
       "isView": false,
       "isMaterializedView": false,
-      "createdAt": 1732716849194,
-      "diagramId": "yhhi2mc3k1a0"
+      "createdAt": 1733597305318
     },
     {
-      "id": "27",
-      "name": "patient",
+      "id": "28",
+      "name": "doctor",
       "schema": "test",
-      "x": 1420,
-      "y": 300,
+      "x": 900,
+      "y": 100,
       "fields": [
         {
-          "id": "28",
+          "id": "29",
           "name": "id",
           "type": {
             "id": "int",
@@ -339,21 +342,7 @@
           "primaryKey": true,
           "unique": true,
           "nullable": false,
-          "createdAt": 1732716849194
-        },
-        {
-          "id": "29",
-          "name": "hn",
-          "type": {
-            "id": "varchar",
-            "name": "varchar"
-          },
-          "primaryKey": false,
-          "unique": true,
-          "nullable": false,
-          "character_maximum_length": "15",
-          "collation": "utf8mb4_0900_ai_ci",
-          "createdAt": 1732716849194
+          "createdAt": 1733597305318
         },
         {
           "id": "30",
@@ -367,7 +356,7 @@
           "nullable": false,
           "character_maximum_length": "100",
           "collation": "utf8mb4_0900_ai_ci",
-          "createdAt": 1732716849194
+          "createdAt": 1733597305318
         },
         {
           "id": "31",
@@ -381,7 +370,7 @@
           "nullable": true,
           "character_maximum_length": "100",
           "collation": "utf8mb4_0900_ai_ci",
-          "createdAt": 1732716849194
+          "createdAt": 1733597305318
         },
         {
           "id": "32",
@@ -395,10 +384,144 @@
           "nullable": false,
           "character_maximum_length": "100",
           "collation": "utf8mb4_0900_ai_ci",
-          "createdAt": 1732716849194
+          "createdAt": 1733597305318
         },
         {
           "id": "33",
+          "name": "username",
+          "type": {
+            "id": "varchar",
+            "name": "varchar"
+          },
+          "primaryKey": false,
+          "unique": false,
+          "nullable": false,
+          "character_maximum_length": "20",
+          "collation": "utf8mb4_0900_ai_ci",
+          "createdAt": 1733597305318
+        },
+        {
+          "id": "34",
+          "name": "password",
+          "type": {
+            "id": "varchar",
+            "name": "varchar"
+          },
+          "primaryKey": false,
+          "unique": false,
+          "nullable": false,
+          "character_maximum_length": "100",
+          "collation": "utf8mb4_0900_ai_ci",
+          "createdAt": 1733597305318
+        },
+        {
+          "id": "35",
+          "name": "role",
+          "type": {
+            "id": "varchar",
+            "name": "varchar"
+          },
+          "primaryKey": false,
+          "unique": false,
+          "nullable": false,
+          "character_maximum_length": "10",
+          "collation": "utf8mb4_0900_ai_ci",
+          "createdAt": 1733597305318
+        }
+      ],
+      "indexes": [
+        {
+          "id": "36",
+          "name": "PRIMARY",
+          "unique": true,
+          "fieldIds": [
+            "29"
+          ],
+          "createdAt": 1733597305319
+        }
+      ],
+      "color": "#b067e9",
+      "isView": false,
+      "isMaterializedView": false,
+      "createdAt": 1733597305319
+    },
+    {
+      "id": "37",
+      "name": "patient",
+      "schema": "test",
+      "x": 100,
+      "y": 100,
+      "fields": [
+        {
+          "id": "38",
+          "name": "id",
+          "type": {
+            "id": "int",
+            "name": "int"
+          },
+          "primaryKey": true,
+          "unique": true,
+          "nullable": false,
+          "createdAt": 1733597305319
+        },
+        {
+          "id": "39",
+          "name": "hn",
+          "type": {
+            "id": "varchar",
+            "name": "varchar"
+          },
+          "primaryKey": false,
+          "unique": true,
+          "nullable": false,
+          "character_maximum_length": "15",
+          "collation": "utf8mb4_0900_ai_ci",
+          "createdAt": 1733597305319
+        },
+        {
+          "id": "40",
+          "name": "first_name",
+          "type": {
+            "id": "varchar",
+            "name": "varchar"
+          },
+          "primaryKey": false,
+          "unique": false,
+          "nullable": false,
+          "character_maximum_length": "100",
+          "collation": "utf8mb4_0900_ai_ci",
+          "createdAt": 1733597305319
+        },
+        {
+          "id": "41",
+          "name": "middle_name",
+          "type": {
+            "id": "varchar",
+            "name": "varchar"
+          },
+          "primaryKey": false,
+          "unique": false,
+          "nullable": true,
+          "character_maximum_length": "100",
+          "collation": "utf8mb4_0900_ai_ci",
+          "createdAt": 1733597305319
+        },
+        {
+          "id": "42",
+          "name": "last_name",
+          "type": {
+            "id": "varchar",
+            "name": "varchar"
+          },
+          "primaryKey": false,
+          "unique": false,
+          "nullable": false,
+          "character_maximum_length": "100",
+          "collation": "utf8mb4_0900_ai_ci",
+          "createdAt": 1733597305319
+        },
+        {
+          "id": "43",
           "name": "email",
           "type": {
             "id": "varchar",
@@ -409,10 +532,10 @@
           "nullable": true,
           "character_maximum_length": "255",
           "collation": "utf8mb4_0900_ai_ci",
-          "createdAt": 1732716849194
+          "createdAt": 1733597305319
         },
         {
-          "id": "34",
+          "id": "44",
           "name": "phone",
           "type": {
             "id": "varchar",
@@ -423,10 +546,10 @@
           "nullable": true,
           "character_maximum_length": "15",
           "collation": "utf8mb4_0900_ai_ci",
-          "createdAt": 1732716849194
+          "createdAt": 1733597305319
         },
         {
-          "id": "35",
+          "id": "45",
           "name": "verified",
           "type": {
             "id": "tinyint",
@@ -435,92 +558,253 @@
           "primaryKey": false,
           "unique": false,
           "nullable": false,
-          "createdAt": 1732716849194
+          "createdAt": 1733597305319
         }
       ],
       "indexes": [
         {
-          "id": "36",
+          "id": "46",
           "name": "PRIMARY",
           "unique": true,
           "fieldIds": [
-            "28"
+            "38"
           ],
-          "createdAt": 1732716849194
+          "createdAt": 1733597305319
         },
         {
-          "id": "37",
+          "id": "47",
           "name": "unique_hn",
           "unique": true,
           "fieldIds": [
-            "29"
+            "39"
           ],
-          "createdAt": 1732716849194
+          "createdAt": 1733597305319
+        },
+        {
+          "id": "48",
+          "name": "idx_patient_hn",
+          "unique": true,
+          "fieldIds": [
+            "39"
+          ],
+          "createdAt": 1733597305319
         }
       ],
-      "color": "#7175fa",
+      "color": "#ff9f74",
       "isView": false,
       "isMaterializedView": false,
-      "createdAt": 1732716849194,
-      "diagramId": "yhhi2mc3k1a0"
+      "createdAt": 1733597305319
+    },
+    {
+      "id": "49",
+      "name": "question",
+      "schema": "test",
+      "x": 520,
+      "y": 360,
+      "fields": [
+        {
+          "id": "50",
+          "name": "id",
+          "type": {
+            "id": "int",
+            "name": "int"
+          },
+          "primaryKey": true,
+          "unique": true,
+          "nullable": false,
+          "createdAt": 1733597305319
+        },
+        {
+          "id": "51",
+          "name": "topic",
+          "type": {
+            "id": "varchar",
+            "name": "varchar"
+          },
+          "primaryKey": false,
+          "unique": false,
+          "nullable": false,
+          "character_maximum_length": "30",
+          "collation": "utf8mb4_0900_ai_ci",
+          "createdAt": 1733597305319
+        },
+        {
+          "id": "52",
+          "name": "question",
+          "type": {
+            "id": "varchar",
+            "name": "varchar"
+          },
+          "primaryKey": false,
+          "unique": false,
+          "nullable": false,
+          "character_maximum_length": "500",
+          "collation": "utf8mb4_0900_ai_ci",
+          "createdAt": 1733597305319
+        },
+        {
+          "id": "53",
+          "name": "create_at",
+          "type": {
+            "id": "bigint",
+            "name": "bigint"
+          },
+          "primaryKey": false,
+          "unique": false,
+          "nullable": false,
+          "createdAt": 1733597305319
+        },
+        {
+          "id": "54",
+          "name": "answer",
+          "type": {
+            "id": "varchar",
+            "name": "varchar"
+          },
+          "primaryKey": false,
+          "unique": false,
+          "nullable": true,
+          "character_maximum_length": "500",
+          "collation": "utf8mb4_0900_ai_ci",
+          "createdAt": 1733597305319
+        },
+        {
+          "id": "55",
+          "name": "answer_at",
+          "type": {
+            "id": "bigint",
+            "name": "bigint"
+          },
+          "primaryKey": false,
+          "unique": false,
+          "nullable": true,
+          "createdAt": 1733597305319
+        },
+        {
+          "id": "56",
+          "name": "patient_id",
+          "type": {
+            "id": "int",
+            "name": "int"
+          },
+          "primaryKey": false,
+          "unique": false,
+          "nullable": false,
+          "createdAt": 1733597305319
+        },
+        {
+          "id": "57",
+          "name": "doctor_id",
+          "type": {
+            "id": "int",
+            "name": "int"
+          },
+          "primaryKey": false,
+          "unique": false,
+          "nullable": true,
+          "createdAt": 1733597305319
+        }
+      ],
+      "indexes": [
+        {
+          "id": "58",
+          "name": "PRIMARY",
+          "unique": true,
+          "fieldIds": [
+            "50"
+          ],
+          "createdAt": 1733597305319
+        },
+        {
+          "id": "59",
+          "name": "ask_doctor_id_fk",
+          "unique": false,
+          "fieldIds": [
+            "57"
+          ],
+          "createdAt": 1733597305319
+        },
+        {
+          "id": "60",
+          "name": "ask_patient_id_fk",
+          "unique": false,
+          "fieldIds": [
+            "56"
+          ],
+          "createdAt": 1733597305319
+        }
+      ],
+      "color": "#b067e9",
+      "isView": false,
+      "isMaterializedView": false,
+      "createdAt": 1733597305319
     }
   ],
   "relationships": [
     {
-      "id": "38",
+      "id": "61",
       "name": "appointment_doctor_id_fk",
       "sourceSchema": "test",
       "targetSchema": "test",
-      "sourceTableId": "1",
-      "targetTableId": "20",
-      "sourceFieldId": "6",
-      "targetFieldId": "21",
+      "sourceTableId": "11",
+      "targetTableId": "28",
+      "sourceFieldId": "16",
+      "targetFieldId": "29",
       "sourceCardinality": "many",
       "targetCardinality": "one",
-      "createdAt": 1732716849194,
-      "diagramId": "yhhi2mc3k1a0"
+      "createdAt": 1733597305319
     },
     {
-      "id": "39",
+      "id": "62",
       "name": "appointment_patient_id_fk",
       "sourceSchema": "test",
       "targetSchema": "test",
-      "sourceTableId": "1",
-      "targetTableId": "27",
-      "sourceFieldId": "5",
-      "targetFieldId": "28",
+      "sourceTableId": "11",
+      "targetTableId": "37",
+      "sourceFieldId": "15",
+      "targetFieldId": "38",
       "sourceCardinality": "many",
       "targetCardinality": "one",
-      "createdAt": 1732716849194,
-      "diagramId": "yhhi2mc3k1a0"
+      "createdAt": 1733597305319
     },
     {
-      "id": "40",
+      "id": "63",
       "name": "ask_doctor_id_fk",
       "sourceSchema": "test",
       "targetSchema": "test",
-      "sourceTableId": "10",
-      "targetTableId": "20",
-      "sourceFieldId": "15",
-      "targetFieldId": "21",
+      "sourceTableId": "49",
+      "targetTableId": "28",
+      "sourceFieldId": "57",
+      "targetFieldId": "29",
       "sourceCardinality": "many",
       "targetCardinality": "one",
-      "createdAt": 1732716849194,
-      "diagramId": "yhhi2mc3k1a0"
+      "createdAt": 1733597305319
     },
     {
-      "id": "41",
+      "id": "64",
       "name": "ask_patient_id_fk",
       "sourceSchema": "test",
       "targetSchema": "test",
-      "sourceTableId": "10",
-      "targetTableId": "27",
-      "sourceFieldId": "14",
-      "targetFieldId": "28",
+      "sourceTableId": "49",
+      "targetTableId": "37",
+      "sourceFieldId": "56",
+      "targetFieldId": "38",
       "sourceCardinality": "many",
       "targetCardinality": "one",
-      "createdAt": 1732716849194,
-      "diagramId": "yhhi2mc3k1a0"
+      "createdAt": 1733597305319
+    },
+    {
+      "id": "65",
+      "name": "device_ibfk_1",
+      "sourceSchema": "test",
+      "targetSchema": "test",
+      "sourceTableId": "20",
+      "targetTableId": "37",
+      "sourceFieldId": "25",
+      "targetFieldId": "38",
+      "sourceCardinality": "many",
+      "targetCardinality": "one",
+      "createdAt": 1733597305319
     }
   ],
   "dependencies": []

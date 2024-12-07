@@ -12,6 +12,7 @@ type config struct {
 	DATABASE_DSN_LOCAL string
 	JWT_KEY            string
 	MAX_DEVICE         int
+	NOTIFY_IN_RANGE    int
 }
 
 // shared config across packages
@@ -44,7 +45,7 @@ func LoadConfig() {
 	}
 	fmt.Printf("Config Loaded\n\n")
 	fmt.Printf("Server is running in mode `%v`\n", AppConfig.MODE)
-	if (AppConfig.MODE == "dev") {
+	if AppConfig.MODE == "dev" {
 		AppConfig.DATABASE_DSN = AppConfig.DATABASE_DSN_LOCAL
 		fmt.Printf("Replacing AppConfig.DATABASE_DSN with => %v\n\n", AppConfig.DATABASE_DSN_LOCAL)
 	}
