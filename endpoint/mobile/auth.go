@@ -105,7 +105,7 @@ func (m *mobileHandler) Login(c *gin.Context) {
 type signup struct {
 	Hn         string `json:"hn" binding:"required"`
 	FirstName  string `json:"firstName" binding:"required"`
-	MiddleName string `json:"middleName" binding:"required"`
+	MiddleName string `json:"middleName"`
 	LastName   string `json:"lastName" binding:"required"`
 	Phone      string `json:"phone" binding:"required"`
 	Email      string `json:"email" binding:"required"`
