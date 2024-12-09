@@ -22,40 +22,26 @@ import (
 /*
 NOTIFICATION
 TODO schedule cronjob to run everyday at xx:xx
-TODO set condition to filter appointments -> in range X days  
+TODO set condition to filter appointments -> in range X days
 
 web app
 POST /question/:id/answer
 */
 
 func main() {
-	// read config
-	config.LoadConfig()
-	// open db connection
-	mysql.RegisterTLSConfig("tidb", &tls.Config{
-		MinVersion: tls.VersionTLS12,
-		ServerName: "gateway01.ap-southeast-1.prod.aws.tidbcloud.com",
-	})
-
-	db, err := sql.Open("mysql", config.AppConfig.DATABASE_DSN)
-	if err != nil {
-		panic(fmt.Sprintf("Can't open connection to database : %v", err.Error()))
-	}
-	fmt.Println("Connected to database")
+	db := setupDB()
 	defer db.Close()
-	db.SetConnMaxLifetime(time.Minute * 3)
-	db.SetMaxOpenConns(10)
-	db.SetMaxIdleConns(10)
-	// ping db
-	if err = db.Ping(); err != nil {
-		panic("Can't connect to database")
-	}
 	// setup router
-	gin.SetMode(gin.TestMode)
-	r := gin.Default()
+	r := setupRouter()
 	m := mobile.Init(db)
+	setupHandler(r, m)
+	// scheduleNotifications(db)
+	r.Run() // listen and serve on 0.0.0.0:8080
+}
+
+func setupHandler(r *gin.Engine, m *mobile.MobileHandler) {
 	mobile := r.Group("/mobile")
-	mobile.POST("/testnoti", notification.TestPushNotification(db))
+	mobile.POST("/testnoti", notification.TestPushNotification(m.DBConn))
 	{
 		mobileAuth := mobile.Group("/auth")
 		{
@@ -79,6 +65,34 @@ func main() {
 			mobileProtected.GET("/doctor", m.GetAllDoctor)
 		}
 	}
-	// scheduleNotifications(db)
-	r.Run() // listen and serve on 0.0.0.0:8080
+}
+
+func setupDB() *sql.DB {
+	// read config
+	config.LoadConfig()
+	// open db connection
+	mysql.RegisterTLSConfig("tidb", &tls.Config{
+		MinVersion: tls.VersionTLS12,
+		ServerName: "gateway01.ap-southeast-1.prod.aws.tidbcloud.com",
+	})
+
+	db, err := sql.Open("mysql", config.AppConfig.DATABASE_DSN)
+	if err != nil {
+		panic(fmt.Sprintf("Can't open connection to database : %v", err.Error()))
+	}
+	fmt.Println("Connected to database")
+	db.SetConnMaxLifetime(time.Minute * 3)
+	db.SetMaxOpenConns(10)
+	db.SetMaxIdleConns(10)
+	// ping db
+	if err = db.Ping(); err != nil {
+		panic("Can't connect to database")
+	}
+	return db
+}
+
+func setupRouter() *gin.Engine {
+	gin.SetMode(gin.TestMode)
+	r := gin.Default()
+	return r
 }

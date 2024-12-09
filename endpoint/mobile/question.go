@@ -3,6 +3,7 @@ package mobile
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	// "github.com/PhasitWo/duchenne-server/repository"
@@ -12,7 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (m *mobileHandler) GetAllPatientQuestion(c *gin.Context) {
+func (m *MobileHandler) GetAllPatientQuestion(c *gin.Context) {
 	i, exists := c.Get("patientId")
 	if !exists {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "no 'patientId' from auth middleware"})
@@ -23,9 +24,9 @@ func (m *mobileHandler) GetAllPatientQuestion(c *gin.Context) {
 	var qs any
 	var err error
 	if queryExists {
-		qs, err = m.repo.GetAllQuestionTopic(id, repository.PATIENTID)
+		qs, err = m.Repo.GetAllQuestionTopic(id, repository.PATIENTID)
 	} else {
-		qs, err = m.repo.GetAllQuestion(id, repository.PATIENTID)
+		qs, err = m.Repo.GetAllQuestion(id, repository.PATIENTID)
 	}
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -34,7 +35,7 @@ func (m *mobileHandler) GetAllPatientQuestion(c *gin.Context) {
 	c.JSON(http.StatusOK, qs)
 }
 
-func (m *mobileHandler) GetQuestion(c *gin.Context) {
+func (m *MobileHandler) GetQuestion(c *gin.Context) {
 	i, exists := c.Get("patientId")
 	if !exists {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "no 'patientId' from auth middleware"})
@@ -42,7 +43,7 @@ func (m *mobileHandler) GetQuestion(c *gin.Context) {
 	}
 	patientId := i.(int)
 	id := c.Param("id")
-	q, err := m.repo.GetQuestion(id)
+	q, err := m.Repo.GetQuestion(id)
 	if err != nil {
 		if errors.Unwrap(err) == sql.ErrNoRows { // no rows found
 			c.Status(http.StatusNotFound)
@@ -64,7 +65,10 @@ type questionInput struct {
 	Question string `json:"question" binding:"required"`
 }
 
-func (m *mobileHandler) CreateQuestion(c *gin.Context) {
+const MAX_TOPIC_LENGTH = 50
+const MAX_QUESTION_LENGTH = 700
+
+func (m *MobileHandler) CreateQuestion(c *gin.Context) {
 	// get patientId from auth header
 	i, exists := c.Get("patientId")
 	if !exists {
@@ -78,15 +82,24 @@ func (m *mobileHandler) CreateQuestion(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	_, err := m.repo.CreateQuestion(patientId, input.Topic, input.Question, int(time.Now().Unix()))
+	// validate
+	if len(input.Topic) > MAX_TOPIC_LENGTH {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": fmt.Sprintf("topic input is exceeding %d maximum of characters", MAX_TOPIC_LENGTH)})
+		return
+	}
+	if len(input.Question) > MAX_QUESTION_LENGTH {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": fmt.Sprintf("question input is exceeding %d maximum of characters", MAX_QUESTION_LENGTH)})
+		return
+	}
+	insertedId, err := m.Repo.CreateQuestion(patientId, input.Topic, input.Question, int(time.Now().Unix()))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.Status(http.StatusCreated)
+	c.JSON(http.StatusCreated, gin.H{"id": insertedId})
 }
 
-func (m *mobileHandler) DeleteQuestion(c *gin.Context) {
+func (m *MobileHandler) DeleteQuestion(c *gin.Context) {
 	// prepare param from url and auth middleware
 	id := c.Param("id")
 	i, exists := c.Get("patientId")
@@ -96,7 +109,7 @@ func (m *mobileHandler) DeleteQuestion(c *gin.Context) {
 	}
 	patientId := i.(int)
 	// check if this question belongs to the patient
-	q, err := m.repo.GetQuestion(id)
+	q, err := m.Repo.GetQuestion(id)
 	if err != nil {
 		if errors.Unwrap(err) == sql.ErrNoRows { // no row found
 			c.Status(http.StatusNotFound)
@@ -109,7 +122,7 @@ func (m *mobileHandler) DeleteQuestion(c *gin.Context) {
 		c.Status(http.StatusUnauthorized)
 		return
 	}
-	err = m.repo.DeleteQuestion(id)
+	err = m.Repo.DeleteQuestion(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

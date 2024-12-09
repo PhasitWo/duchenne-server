@@ -24,14 +24,14 @@ type login struct {
 	ExpoToken  string `json:"expoToken" binding:"required"`
 }
 
-func (m *mobileHandler) Login(c *gin.Context) {
+func (m *MobileHandler) Login(c *gin.Context) {
 	var input login
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	// fetch patient from database
-	storedPatient, err := m.repo.GetPatient(input.Hn)
+	storedPatient, err := m.Repo.GetPatient(input.Hn)
 	if err != nil {
 		if errors.Unwrap(err) == sql.ErrNoRows { // no rows found
 			c.Status(http.StatusNotFound)
@@ -50,7 +50,7 @@ func (m *mobileHandler) Login(c *gin.Context) {
 		return
 	}
 	// save this device for notification stuff
-	devices, err := m.repo.GetAllDevice(storedPatient.Id, repository.PATIENTID)
+	devices, err := m.Repo.GetAllDevice(storedPatient.Id, repository.PATIENTID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -62,7 +62,7 @@ func (m *mobileHandler) Login(c *gin.Context) {
 		ExpoToken:  input.ExpoToken,
 		PatientId:  storedPatient.Id,
 	}
-	tx, err := m.dbConn.Begin()
+	tx, err := m.DBConn.Begin()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -111,14 +111,14 @@ type signup struct {
 	Email      string `json:"email" binding:"required"`
 }
 
-func (m *mobileHandler) Signup(c *gin.Context) {
+func (m *MobileHandler) Signup(c *gin.Context) {
 	var s signup
 	if err := c.ShouldBindJSON(&s); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	// fetch patient from database
-	storedPatient, err := m.repo.GetPatient(s.Hn)
+	storedPatient, err := m.Repo.GetPatient(s.Hn)
 	if err != nil {
 		if errors.Unwrap(err) == sql.ErrNoRows { // no rows found
 			c.Status(http.StatusNotFound)
@@ -140,8 +140,12 @@ func (m *mobileHandler) Signup(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid middle name"})
 		return
 	}
+	if storedPatient.MiddleName == nil && s.MiddleName != "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "does not require middle name"})
+		return
+	}
 	// update patient info and mark patient as verified
-	err = m.repo.UpdatePatient(
+	err = m.Repo.UpdatePatient(
 		model.Patient{
 			Id:         storedPatient.Id,
 			Hn:         storedPatient.Hn,
@@ -159,7 +163,7 @@ func (m *mobileHandler) Signup(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-func (m *mobileHandler) Logout(c *gin.Context) {
+func (m *MobileHandler) Logout(c *gin.Context) {
 	tokenString := c.GetHeader("Authorization")
 	if tokenString == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "No authorization header provided"})
@@ -175,7 +179,7 @@ func (m *mobileHandler) Logout(c *gin.Context) {
 		return
 	}
 
-	err := m.repo.DeleteDevice(claims.DeviceId)
+	err := m.Repo.DeleteDevice(claims.DeviceId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

@@ -2,15 +2,16 @@ package mobile
 
 import (
 	"database/sql"
+
 	"github.com/PhasitWo/duchenne-server/repository"
 	_ "github.com/go-sql-driver/mysql"
 )
 
-type mobileHandler struct {
-	repo *repository.Repo
-	dbConn *sql.DB
+type MobileHandler struct {
+	Repo   *repository.Repo
+	DBConn *sql.DB
 }
 
-func Init(db *sql.DB) *mobileHandler {
-	return &mobileHandler{repo: repository.New(db), dbConn : db}
+func Init(db *sql.DB) *MobileHandler {
+	return &MobileHandler{Repo: repository.New(db), DBConn: db}
 }

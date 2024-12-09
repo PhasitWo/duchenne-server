@@ -27,7 +27,7 @@ CREATE TABLE doctor (
   last_name varchar(100) NOT NULL,
   username varchar(20) NOT NULL,
   password varchar(100) NOT NULL,
-  doctor_role varchar(10) NOT NULL
+  role varchar(10) NOT NULL
 );
 
 CREATE TABLE patient (

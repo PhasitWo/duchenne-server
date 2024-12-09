@@ -17,14 +17,14 @@ import (
 // "github.com/PhasitWo/duchenne-server/model"
 // "github.com/PhasitWo/duchenne-server/repository"
 
-func (m *mobileHandler) GetAllPatientAppointment(c *gin.Context) {
+func (m *MobileHandler) GetAllPatientAppointment(c *gin.Context) {
 	i, exists := c.Get("patientId")
 	if !exists {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "no 'patientId' from auth middleware"})
 		return
 	}
 	id := i.(int)
-	aps, err := m.repo.GetAllAppointment(id, repository.PATIENTID)
+	aps, err := m.Repo.GetAllAppointment(id, repository.PATIENTID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -32,7 +32,7 @@ func (m *mobileHandler) GetAllPatientAppointment(c *gin.Context) {
 	c.JSON(http.StatusOK, aps)
 }
 
-func (m *mobileHandler) GetAppointment(c *gin.Context) {
+func (m *MobileHandler) GetAppointment(c *gin.Context) {
 	i, exists := c.Get("patientId")
 	if !exists {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "no 'patientId' from auth middleware"})
@@ -40,7 +40,7 @@ func (m *mobileHandler) GetAppointment(c *gin.Context) {
 	}
 	patientId := i.(int)
 	id := c.Param("id")
-	ap, err := m.repo.GetAppointment(id)
+	ap, err := m.Repo.GetAppointment(id)
 	if err != nil {
 		if errors.Unwrap(err) == sql.ErrNoRows { // no rows found
 			c.Status(http.StatusNotFound)
@@ -62,7 +62,7 @@ type appointmentInput struct {
 	DoctorId int `json:"doctorId" binding:"required"`
 }
 
-func (m *mobileHandler) CreateAppointment(c *gin.Context) {
+func (m *MobileHandler) CreateAppointment(c *gin.Context) {
 	// get patientId from auth header
 	i, exists := c.Get("patientId")
 	if !exists {
@@ -83,7 +83,7 @@ func (m *mobileHandler) CreateAppointment(c *gin.Context) {
 		return
 	}
 	// commit a transaction if scheduling notifications is successful
-	tx, err := m.dbConn.Begin()
+	tx, err := m.DBConn.Begin()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -94,7 +94,7 @@ func (m *mobileHandler) CreateAppointment(c *gin.Context) {
 		}
 	}()
 	repoWithTx := repository.New(tx)
-	_, err = repoWithTx.CreateAppointment(int(time.Now().Unix()), input.Date, patientId, input.DoctorId)
+	insertedId, err := repoWithTx.CreateAppointment(int(time.Now().Unix()), input.Date, patientId, input.DoctorId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -106,10 +106,10 @@ func (m *mobileHandler) CreateAppointment(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Tx can't commit"})
 		return
 	}
-	c.Status(http.StatusCreated)
+	c.JSON(http.StatusCreated, gin.H{"id": insertedId})
 }
 
-func (m *mobileHandler) DeleteAppointment(c *gin.Context) {
+func (m *MobileHandler) DeleteAppointment(c *gin.Context) {
 	// prepare param from url and auth middleware
 	i, exists := c.Get("patientId")
 	if !exists {
@@ -119,7 +119,7 @@ func (m *mobileHandler) DeleteAppointment(c *gin.Context) {
 	patientId := i.(int)
 	id := c.Param("id")
 	// check if this appointment belongs to the patient
-	ap, err := m.repo.GetAppointment(id)
+	ap, err := m.Repo.GetAppointment(id)
 	if err != nil {
 		if errors.Unwrap(err) == sql.ErrNoRows { // no rows found
 			c.Status(http.StatusNotFound)
@@ -133,7 +133,7 @@ func (m *mobileHandler) DeleteAppointment(c *gin.Context) {
 		return
 	}
 	// commit a transaction if cancelling notifications is successful
-	tx, err := m.dbConn.Begin()
+	tx, err := m.DBConn.Begin()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -161,8 +161,8 @@ func (m *mobileHandler) DeleteAppointment(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
-func (m *mobileHandler) Test(c *gin.Context) {
-	// _, tx, err := m.repo.CreateDevice(model.Device{Id: -1, LoginAt: 666666, DeviceName: "cxd phone", ExpoToken: "hhaha", PatientId: 1})
+func (m *MobileHandler) Test(c *gin.Context) {
+	// _, tx, err := m.Repo.CreateDevice(model.Device{Id: -1, LoginAt: 666666, DeviceName: "cxd phone", ExpoToken: "hhaha", PatientId: 1})
 	// defer tx.Rollback()
 	// if err != nil {
 	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
