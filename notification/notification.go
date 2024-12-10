@@ -9,18 +9,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/PhasitWo/duchenne-server/config"
 	"github.com/PhasitWo/duchenne-server/model"
 	expo "github.com/PhasitWo/duchenne-server/notification/expo/exponent-server-sdk-golang-master/sdk"
-	"github.com/gin-gonic/gin"
 )
 
 var NotiLogger = log.New(os.Stdout, "[NOTI] ", log.LstdFlags)
-
-func TestPushNotificationHandler(db *sql.DB) func(c *gin.Context) {
-	return func(c *gin.Context) {
-		MockupScheduleNotifications(db, MockSendRequest)
-	}
-}
 
 func MockupScheduleNotifications(db *sql.DB, sendRequestFunc func([]expo.PushMessage)) {
 	// query
@@ -110,12 +104,14 @@ func sendRequest(messages []expo.PushMessage) {
 var apmtQuery = `
 select appointment.id ,date, device.id, device.device_name , expo_token, appointment.patient_id from appointment 
 inner join device on appointment.patient_id = device.patient_id
-where device.expo_token != "" AND appointment.date > ?
+where device.expo_token != "" AND appointment.date > ? AND appointment.date < ?
 order by appointment.id asc
 `
 
 func queryDB(db *sql.DB) ([]model.AppointmentDevice, error) {
-	rows, err := db.Query(apmtQuery, time.Now().Unix())
+	now := int(time.Now().Unix())
+	limit := now + config.AppConfig.NOTIFY_IN_RANGE*24*60*60
+	rows, err := db.Query(apmtQuery, now, limit)
 	if err != nil {
 		fmt.Println("queryDB : Can't query database")
 		return nil, err
