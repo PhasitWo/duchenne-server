@@ -5,20 +5,20 @@ import (
 	"fmt"
 	"math"
 	"strings"
+	"time"
 
 	"github.com/PhasitWo/duchenne-server/model"
-	"github.com/gin-gonic/gin"
 	expo "github.com/PhasitWo/duchenne-server/notification/expo/exponent-server-sdk-golang-master/sdk"
+	"github.com/gin-gonic/gin"
 )
 
 func TestPushNotification(db *sql.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		MockupScheduleNotifications(db)
+		MockupScheduleNotifications(db, mockSendRequest)
 	}
-
 }
 
-func MockupScheduleNotifications(db *sql.DB) {
+func MockupScheduleNotifications(db *sql.DB, sendRequestFunc func([]expo.PushMessage)) {
 	// query
 	res, err := queryDB(db)
 	if err != nil {
@@ -41,7 +41,7 @@ func MockupScheduleNotifications(db *sql.DB) {
 			}
 			newMessage = expo.PushMessage{
 				To:       []expo.ExponentPushToken{expo.ExponentPushToken(elem.ExpoToken)},
-				Body:     fmt.Sprintf("for appointmentId:  %v", elem.AppointmentId),
+				Body:     formatTimeOutput(elem.Date, int(time.Now().Unix())),
 				Sound:    "default",
 				Title:    "Test Notification",
 				Priority: expo.HighPriority,
@@ -74,8 +74,12 @@ func MockupScheduleNotifications(db *sql.DB) {
 
 		// send request
 		fmt.Printf("sending request %v\n", i)
-		sendRequest(messagesPool[int(base):int(limit)])
+		sendRequestFunc(messagesPool[int(base):int(limit)])
 	}
+
+}
+
+func mockSendRequest(messages []expo.PushMessage) {
 
 }
 
@@ -103,12 +107,12 @@ func sendRequest(messages []expo.PushMessage) {
 var apmtQuery = `
 select appointment.id ,date, device.id, device.device_name , expo_token, appointment.patient_id from appointment 
 inner join device on appointment.patient_id = device.patient_id
-where device.expo_token != ""
+where device.expo_token != "" AND appointment.date > ?
 order by appointment.id asc
 `
 
 func queryDB(db *sql.DB) ([]model.AppointmentDevice, error) {
-	rows, err := db.Query(apmtQuery)
+	rows, err := db.Query(apmtQuery, time.Now().Unix())
 	if err != nil {
 		fmt.Println("queryDB : Can't query database")
 		return nil, err
@@ -135,4 +139,23 @@ func queryDB(db *sql.DB) ([]model.AppointmentDevice, error) {
 		return nil, err
 	}
 	return res, nil
+}
+
+func formatTimeOutput(dueTimestamp int, nowTimestamp int) string {
+	sec := (dueTimestamp - nowTimestamp)
+	minute := sec / 60
+	hour := minute / 60
+	day := hour / 24
+	baseStr := "You've got an appointment coming up in "
+	var output string
+	if minute == 0 {
+		output = "several minutes"
+	} else if hour == 0 {
+		output = fmt.Sprintf("%d minutes", minute)
+	} else if day == 0 {
+		output = fmt.Sprintf("%d hour(s) %d minute(s)", hour, minute%60)
+	} else {
+		output = fmt.Sprintf("%d day(s) %d hour(s)", day, hour%24)
+	}
+	return baseStr + output
 }

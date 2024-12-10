@@ -31,15 +31,13 @@ POST /question/:id/answer
 func main() {
 	db := setupDB()
 	defer db.Close()
-	// setup router
 	r := setupRouter()
 	m := mobile.Init(db)
-	setupHandler(r, m)
-	// scheduleNotifications(db)
+	attachHandler(r, m)
 	r.Run() // listen and serve on 0.0.0.0:8080
 }
 
-func setupHandler(r *gin.Engine, m *mobile.MobileHandler) {
+func attachHandler(r *gin.Engine, m *mobile.MobileHandler) {
 	mobile := r.Group("/mobile")
 	mobile.POST("/testnoti", notification.TestPushNotification(m.DBConn))
 	{

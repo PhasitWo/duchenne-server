@@ -50,7 +50,7 @@ func TestMain(m *testing.M) {
 	defer tx.Rollback()
 	handler = &mobile.MobileHandler{Repo: repository.New(tx), DBConn: db}
 	router = setupTestRouter()
-	setupHandler(router, handler)
+	attachHandler(router, handler)
 	m.Run()
 }
 
