@@ -4,13 +4,15 @@ import (
 	// "net/http"
 	"crypto/tls"
 	"database/sql"
-	"fmt"
+	"log"
+	"os"
 	"time"
 
 	"github.com/PhasitWo/duchenne-server/config"
 	"github.com/PhasitWo/duchenne-server/endpoint/mobile"
 	"github.com/PhasitWo/duchenne-server/middleware"
 	"github.com/PhasitWo/duchenne-server/notification"
+	"github.com/robfig/cron"
 
 	"github.com/gin-gonic/gin"
 
@@ -27,19 +29,21 @@ TODO set condition to filter appointments -> in range X days
 web app
 POST /question/:id/answer
 */
-
+var mainLogger = log.New(os.Stdout, "[MAIN] ", log.LstdFlags)
 func main() {
 	db := setupDB()
 	defer db.Close()
 	r := setupRouter()
 	m := mobile.Init(db)
 	attachHandler(r, m)
+	c := InitCronScheduler(db)
+	defer c.Stop()
 	r.Run() // listen and serve on 0.0.0.0:8080
 }
 
 func attachHandler(r *gin.Engine, m *mobile.MobileHandler) {
 	mobile := r.Group("/mobile")
-	mobile.POST("/testnoti", notification.TestPushNotification(m.DBConn))
+	mobile.POST("/testnoti", notification.TestPushNotificationHandler(m.DBConn))
 	{
 		mobileAuth := mobile.Group("/auth")
 		{
@@ -76,15 +80,15 @@ func setupDB() *sql.DB {
 
 	db, err := sql.Open("mysql", config.AppConfig.DATABASE_DSN)
 	if err != nil {
-		panic(fmt.Sprintf("Can't open connection to database : %v", err.Error()))
+		mainLogger.Panicf("Can't open connection to database : %v", err.Error())
 	}
-	fmt.Println("Connected to database")
+	mainLogger.Println("Connected to database")
 	db.SetConnMaxLifetime(time.Minute * 3)
 	db.SetMaxOpenConns(10)
 	db.SetMaxIdleConns(10)
 	// ping db
 	if err = db.Ping(); err != nil {
-		panic("Can't connect to database")
+		mainLogger.Panic("Can't connect to database")
 	}
 	return db
 }
@@ -93,4 +97,16 @@ func setupRouter() *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
 	return r
+}
+
+func InitCronScheduler(db *sql.DB) *cron.Cron {
+	c := cron.New()
+	// everyday on 10.00 -> spec : "00 10 * * *"
+	c.AddFunc("@every 00h00m05s", func() {
+		mainLogger.Println("Executing Push Notifications..")
+		notification.MockupScheduleNotifications(db, notification.MockSendRequest)
+	})
+	c.Start()
+	mainLogger.Println("Cron scheduler initialized")
+	return c
 }

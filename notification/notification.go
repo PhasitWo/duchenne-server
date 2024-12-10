@@ -3,7 +3,9 @@ package notification
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"math"
+	"os"
 	"strings"
 	"time"
 
@@ -12,9 +14,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func TestPushNotification(db *sql.DB) func(c *gin.Context) {
+var NotiLogger = log.New(os.Stdout, "[NOTI] ", log.LstdFlags)
+
+func TestPushNotificationHandler(db *sql.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		MockupScheduleNotifications(db, mockSendRequest)
+		MockupScheduleNotifications(db, MockSendRequest)
 	}
 }
 
@@ -52,17 +56,17 @@ func MockupScheduleNotifications(db *sql.DB, sendRequestFunc func([]expo.PushMes
 		prior = elem.AppointmentId
 	}
 	// log result
-	fmt.Printf("Preparing Messages\n.\n.\n.\n")
-	for _, m := range messagesPool {
-		fmt.Printf("Message: %v\n", m.Body)
-		fmt.Println("To:")
-		for _, t := range m.To {
-			fmt.Printf("\t%v\n", t)
-		}
-	}
+	// NotiLogger.Printf("Preparing Messages\n")
+	// for _, m := range messagesPool {
+	// 	fmt.Printf("Message: %v\n", m.Body)
+	// 	fmt.Println("To:")
+	// 	for _, t := range m.To {
+	// 		fmt.Printf("\t%v\n", t)
+	// 	}
+	// }
 	// 1 request can contain up to 100 messages, for safety purpose -> 1 request should contain only up to 80 messages
 	// divide len([]message) with 80 -> split up to multiple request
-	fmt.Printf("Splitting up messages to multiple request\n.\n.\n.\n")
+	NotiLogger.Printf("Splitting up messages to multiple request\n")
 	const MAX_MESSAGES_PER_REQUEST = 80
 	var messageCnt = float64(len(messagesPool))
 	var cnt float64 = math.Ceil(float64(messageCnt) / MAX_MESSAGES_PER_REQUEST)
@@ -70,16 +74,15 @@ func MockupScheduleNotifications(db *sql.DB, sendRequestFunc func([]expo.PushMes
 		// calculate base and limit for slicing slice
 		base := float64(i * MAX_MESSAGES_PER_REQUEST)
 		limit := base + math.Min(messageCnt-base, MAX_MESSAGES_PER_REQUEST)
-		fmt.Printf("request %v => messagesPool[%v:%v]\n", i, base, limit)
 
 		// send request
-		fmt.Printf("sending request %v\n", i)
+		NotiLogger.Printf("sending request %v => messagesPool[%v:%v]\n", i, base, limit)
 		sendRequestFunc(messagesPool[int(base):int(limit)])
 	}
 
 }
 
-func mockSendRequest(messages []expo.PushMessage) {
+func MockSendRequest(messages []expo.PushMessage) {
 
 }
 
@@ -89,10 +92,10 @@ func sendRequest(messages []expo.PushMessage) {
 	responses, err := client.PublishMultiple(messages)
 
 	// Check errors
-	if err != nil && !strings.Contains(err.Error(), "Mismatched response length"){
-		panic(err)
+	if err != nil && !strings.Contains(err.Error(), "Mismatched response length") {
+		NotiLogger.Panic(err)
 	}
-	fmt.Println("validate")
+	NotiLogger.Println("validating..")
 	// Validate responses
 	for index, response := range responses {
 		fmt.Printf("push ticket %v =>", index)

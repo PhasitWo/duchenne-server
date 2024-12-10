@@ -2,8 +2,11 @@ package config
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
+	"log"
+	"os"
 	"reflect"
+
+	"github.com/spf13/viper"
 )
 
 type config struct {
@@ -19,19 +22,20 @@ type config struct {
 var AppConfig = config{MODE: "dev"}
 
 func LoadConfig() {
+	configLogger := log.New(os.Stdout, "[CONFIG] ", 0)
 	viper.SetConfigFile(".env")
 	if err := viper.ReadInConfig(); err != nil {
 		panic("Can't read config file")
 	}
 	// load config by struct field's name
 	f := reflect.ValueOf(&AppConfig).Elem()
-	fmt.Print("Loading Config:\n")
+	configLogger.Print("Loading Config:\n")
 	for i := 0; i < f.NumField(); i++ {
 		field := f.Field(i)
 		fieldName := f.Type().Field(i).Name
 		fieldValue := field.Interface()
 		if !viper.IsSet(fieldName) {
-			panic(fmt.Sprintf("Can't read %s from .env", fieldName))
+			configLogger.Panicf("Can't read %s from .env", fieldName)
 		}
 		switch fieldValue.(type) {
 		case string:
@@ -43,11 +47,11 @@ func LoadConfig() {
 		}
 		fmt.Printf("\t%-15s\t=>\t%-10v\n", fieldName, f.Field(i).Interface())
 	}
-	fmt.Printf("Config Loaded\n\n")
-	fmt.Printf("Server is running in mode `%v`\n", AppConfig.MODE)
+	configLogger.Printf("Config Loaded\n\n")
+	configLogger.Printf("Server is running in mode `%v`\n", AppConfig.MODE)
 	if AppConfig.MODE == "dev" {
 		AppConfig.DATABASE_DSN = AppConfig.DATABASE_DSN_LOCAL
-		fmt.Printf("Replacing AppConfig.DATABASE_DSN with => %v\n\n", AppConfig.DATABASE_DSN_LOCAL)
+		configLogger.Printf("Replacing AppConfig.DATABASE_DSN with => %v\n", AppConfig.DATABASE_DSN_LOCAL)
 	}
-	fmt.Printf("Uses this DSN => %v\n", AppConfig.DATABASE_DSN)
+	configLogger.Printf("Uses this DSN => %v\n", AppConfig.DATABASE_DSN)
 }
