@@ -20,13 +20,14 @@ func MockupScheduleNotifications(db *sql.DB, sendRequestFunc func([]expo.PushMes
 	// query
 	res, err := queryDB(db)
 	if err != nil {
-		fmt.Println("Notification: Can't query database")
+		NotiLogger.Println("Notification: Can't query database")
 		return
 	}
 	if res == nil {
-		fmt.Println("Notification: No appointment..")
+		NotiLogger.Println("Notification: No appointment..")
 		return
 	}
+	NotiLogger.Printf("Preparing messages..\n")
 	// prepare messages
 	// 1 appointmemnt -> 1 message -- to --> multiple receivers
 	messagesPool := []expo.PushMessage{}
