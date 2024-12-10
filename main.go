@@ -44,7 +44,7 @@ func main() {
 func attachHandler(r *gin.Engine, m *mobile.MobileHandler) {
 	mobile := r.Group("/mobile")
 	mobile.POST("/testnoti", func(c *gin.Context) {
-		notification.MockupScheduleNotifications(m.DBConn, notification.MockSendRequest)
+		notification.MockupScheduleNotifications(m.DBConn, notification.SendRequest)
 	})
 	{
 		mobileAuth := mobile.Group("/auth")

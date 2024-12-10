@@ -80,7 +80,7 @@ func MockSendRequest(messages []expo.PushMessage) {
 
 }
 
-func sendRequest(messages []expo.PushMessage) {
+func SendRequest(messages []expo.PushMessage) {
 	client := expo.NewPushClient(nil)
 	// Publish message
 	responses, err := client.PublishMultiple(messages)
