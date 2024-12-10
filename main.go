@@ -104,7 +104,7 @@ func setupRouter() *gin.Engine {
 func InitCronScheduler(db *sql.DB) *cron.Cron {
 	c := cron.New()
 	// everyday on 10.00 -> spec : "00 10 * * *"
-	c.AddFunc("@every 00h00m05s", func() {
+	c.AddFunc("00 10 * * *", func() {
 		mainLogger.Println("Executing Push Notifications..")
 		notification.MockupScheduleNotifications(db, notification.MockSendRequest)
 	})
