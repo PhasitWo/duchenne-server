@@ -51,14 +51,13 @@ func MockupScheduleNotifications(db *sql.DB, sendRequestFunc func([]expo.PushMes
 		prior = elem.AppointmentId
 	}
 	// log result
-	// NotiLogger.Printf("Preparing Messages\n")
-	// for _, m := range messagesPool {
-	// 	fmt.Printf("Message: %v\n", m.Body)
-	// 	fmt.Println("To:")
-	// 	for _, t := range m.To {
-	// 		fmt.Printf("\t%v\n", t)
-	// 	}
-	// }
+	for _, m := range messagesPool {
+		fmt.Printf("Message: %v\n", m.Body)
+		fmt.Println("To:")
+		for _, t := range m.To {
+			fmt.Printf("\t%v\n", t)
+		}
+	}
 	// 1 request can contain up to 100 messages, for safety purpose -> 1 request should contain only up to 80 messages
 	// divide len([]message) with 80 -> split up to multiple request
 	NotiLogger.Printf("Splitting up messages to multiple request\n")
@@ -68,7 +67,7 @@ func MockupScheduleNotifications(db *sql.DB, sendRequestFunc func([]expo.PushMes
 	for i := 0; i < int(cnt); i++ {
 		// calculate base and limit for slicing slice
 		base := float64(i * MAX_MESSAGES_PER_REQUEST)
-		limit := base + math.Min(messageCnt-base, MAX_MESSAGES_PER_REQUEST)
+		limit := base + math.Min(messageCnt-base+1, MAX_MESSAGES_PER_REQUEST)
 
 		// send request
 		NotiLogger.Printf("sending request %v => messagesPool[%v:%v]\n", i, base, limit)
