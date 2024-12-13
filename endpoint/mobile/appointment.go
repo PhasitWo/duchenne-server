@@ -82,28 +82,10 @@ func (m *MobileHandler) CreateAppointment(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "'Date' is before current time"})
 		return
 	}
-	// commit a transaction if scheduling notifications is successful
-	tx, err := m.DBConn.Begin()
+	// create new appointment
+	insertedId, err := m.Repo.CreateAppointment(int(time.Now().Unix()), input.Date, patientId, input.DoctorId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	defer func() {
-		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Tx can't rollback"})
-		}
-	}()
-	repoWithTx := repository.New(tx)
-	insertedId, err := repoWithTx.CreateAppointment(int(time.Now().Unix()), input.Date, patientId, input.DoctorId)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	/*
-		TODO schedule notification
-	*/
-	if err := tx.Commit(); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Tx can't commit"})
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{"id": insertedId})
@@ -132,30 +114,10 @@ func (m *MobileHandler) DeleteAppointment(c *gin.Context) {
 		c.Status(http.StatusUnauthorized)
 		return
 	}
-	// commit a transaction if cancelling notifications is successful
-	tx, err := m.DBConn.Begin()
+	// delete appointment
+	err = m.Repo.DeleteAppointment(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	defer func() {
-		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Tx can't rollback"})
-		}
-	}()
-	repoWithTx := repository.New(tx)
-	err = repoWithTx.DeleteAppointment(id)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	/*
-
-	 TODO cancel the notification, then commit
-
-	*/
-	if err := tx.Commit(); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Tx can't commit"})
 		return
 	}
 	c.Status(http.StatusNoContent)

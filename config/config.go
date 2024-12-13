@@ -13,6 +13,7 @@ type config struct {
 	MODE               string
 	DATABASE_DSN       string
 	DATABASE_DSN_LOCAL string
+	REDIS_URL          string
 	JWT_KEY            string
 	MAX_DEVICE         int
 	NOTIFY_IN_RANGE    int
@@ -47,11 +48,6 @@ func LoadConfig() {
 		}
 		fmt.Printf("\t%-15s\t=>\t%-10v\n", fieldName, f.Field(i).Interface())
 	}
-	configLogger.Printf("Config Loaded\n\n")
-	configLogger.Printf("Server is running in mode `%v`\n", AppConfig.MODE)
-	if AppConfig.MODE == "dev" {
-		AppConfig.DATABASE_DSN = AppConfig.DATABASE_DSN_LOCAL
-		configLogger.Printf("Replacing AppConfig.DATABASE_DSN with => %v\n", AppConfig.DATABASE_DSN_LOCAL)
-	}
-	configLogger.Printf("Uses this DSN => %v\n", AppConfig.DATABASE_DSN)
+	configLogger.Printf("Config Loaded\n")
+	configLogger.Printf("Server is running in mode `%v`\n\n", AppConfig.MODE)
 }

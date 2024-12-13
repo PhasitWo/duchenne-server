@@ -12,6 +12,7 @@ import (
 
 	"testing"
 
+	"github.com/PhasitWo/duchenne-server/config"
 	"github.com/PhasitWo/duchenne-server/endpoint/mobile"
 	"github.com/PhasitWo/duchenne-server/repository"
 	"github.com/gin-gonic/gin"
@@ -43,14 +44,16 @@ func setupTestRouter() *gin.Engine {
 }
 
 func TestMain(m *testing.M) {
+	config.LoadConfig()
 	db := setupDB()
 	defer db.Close()
-	db.Exec("INSERT INTO appointment (id ,create_at, date, patient_id, doctor_id) VALUES (?,?, ?, ?, ?)", 9999, 1111, 2222, 3, 1) // FOR delete appointment
+	rdc := setupRedisClient()
+	// db.Exec("INSERT INTO appointment (id ,create_at, date, patient_id, doctor_id) VALUES (?,?, ?, ?, ?)", 9999, 1111, 2222, 3, 1) // FOR delete appointment
 	tx, _ := db.Begin()
 	defer tx.Rollback()
 	handler = &mobile.MobileHandler{Repo: repository.New(tx), DBConn: db}
 	router = setupTestRouter()
-	attachHandler(router, handler)
+	attachHandler(router, handler, rdc)
 	m.Run()
 }
 
@@ -187,7 +190,7 @@ func TestDeleteAppointment(t *testing.T) {
 		t,
 		[]testCase{{name: "request to own appointment", authToken: validAuthToken, expected: http.StatusNoContent}},
 		"DELETE",
-		fmt.Sprintf("/api/appointment/%d", 9999),
+		fmt.Sprintf("/api/appointment/%d", insertedAppointmentId),
 	)
 	testInternal(
 		t,
