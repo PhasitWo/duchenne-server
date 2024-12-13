@@ -76,7 +76,7 @@ func (rdc *RedisClient) RedisPersonalizedCacheMiddleware(c *gin.Context) {
 		return
 	}
 	patientId := i.(int)
-	key := "$" + strconv.Itoa(patientId) + c.Request.URL.Path
+	key := "$" + strconv.Itoa(patientId) + c.Request.RequestURI
 	// setup writer wrapper
 	w := responseBodyWriter{body: &bytes.Buffer{}, ResponseWriter: c.Writer}
 	c.Writer = &w
