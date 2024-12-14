@@ -10,8 +10,8 @@ CREATE TABLE appointment (
 
 CREATE TABLE question (
   id int NOT NULL PRIMARY KEY AUTO_INCREMENT,
-  topic varchar (30) NOT NULL,
-  question varchar(500) NOT NULL,
+  topic varchar (50) NOT NULL,
+  question varchar(700) NOT NULL,
   create_at bigint NOT NULL,
   answer varchar(500),
   answer_at bigint,

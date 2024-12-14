@@ -59,10 +59,12 @@ type Question struct {
 }
 
 type QuestionTopic struct {
-	Id       int    `json:"id"`
-	Topic    string `json:"topic"`
-	CreateAt int    `json:"createAt"`
-	AnswerAt *int   `json:"answerAt"` // nullable
+	Id       int         `json:"id"`
+	Topic    string      `json:"topic"`
+	CreateAt int         `json:"createAt"`
+	AnswerAt *int        `json:"answerAt"` // nullable
+	Doctor   *TrimDoctor `json:"doctor"`   // nullable
+	Patient  Patient     `json:"patient"`
 }
 
 type Device struct {

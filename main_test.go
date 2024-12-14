@@ -14,6 +14,7 @@ import (
 
 	"github.com/PhasitWo/duchenne-server/config"
 	"github.com/PhasitWo/duchenne-server/endpoint/mobile"
+	"github.com/PhasitWo/duchenne-server/middleware"
 	"github.com/PhasitWo/duchenne-server/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -43,17 +44,43 @@ func setupTestRouter() *gin.Engine {
 	return r
 }
 
+func attachTestHandler(r *gin.Engine, m *mobile.MobileHandler) {
+	mobile := r.Group("/mobile")
+	{
+		mobileAuth := mobile.Group("/auth")
+		{
+			mobileAuth.POST("/login", m.Login)
+			mobileAuth.POST("/signup", m.Signup)
+			mobileAuth.POST("/logout", middleware.MobileAuthMiddleware, m.Logout)
+		}
+		mobileProtected := mobile.Group("/api")
+		mobileProtected.Use(middleware.MobileAuthMiddleware)
+		{
+			mobileProtected.GET("/test", m.Test)
+			mobileProtected.GET("/profile", m.GetProfile)
+			mobileProtected.GET("/appointment", m.GetAllPatientAppointment)
+			mobileProtected.GET("/appointment/:id", m.GetAppointment)
+			mobileProtected.POST("/appointment", m.CreateAppointment)
+			mobileProtected.DELETE("/appointment/:id", m.DeleteAppointment)
+			mobileProtected.GET("/question", m.GetAllPatientQuestion)
+			mobileProtected.GET("/question/:id", m.GetQuestion)
+			mobileProtected.POST("/question", m.CreateQuestion)
+			mobileProtected.DELETE("/question/:id", m.DeleteQuestion)
+			mobileProtected.GET("/doctor", m.GetAllDoctor)
+		}
+	}
+}
+
 func TestMain(m *testing.M) {
 	config.LoadConfig()
 	db := setupDB()
 	defer db.Close()
-	rdc := setupRedisClient()
 	// db.Exec("INSERT INTO appointment (id ,create_at, date, patient_id, doctor_id) VALUES (?,?, ?, ?, ?)", 9999, 1111, 2222, 3, 1) // FOR delete appointment
 	tx, _ := db.Begin()
 	defer tx.Rollback()
 	handler = &mobile.MobileHandler{Repo: repository.New(tx), DBConn: db}
 	router = setupTestRouter()
-	attachHandler(router, handler, rdc)
+	attachTestHandler(router, handler)
 	m.Run()
 }
 
