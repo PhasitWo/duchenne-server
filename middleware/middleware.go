@@ -109,6 +109,6 @@ func (rdc *RedisClient) RedisPersonalizedCacheMiddleware(c *gin.Context) {
 	redisLogger.Println("Cache miss")
 	c.Next()
 	if c.Writer.Status() == http.StatusOK {
-		rdc.Client.Set(context.Background(), key, w.body.Bytes(), time.Duration(time.Minute*5)).Err()
+		rdc.Client.Set(context.Background(), key, w.body.Bytes(), time.Minute*5).Err()
 	}
 }

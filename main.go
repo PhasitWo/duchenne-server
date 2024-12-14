@@ -77,6 +77,8 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, rdc *middleware.Redis
 			mobileProtected.POST("/question", rdc.RedisPersonalizedCacheMiddleware, m.CreateQuestion)
 			mobileProtected.DELETE("/question/:id", rdc.RedisPersonalizedCacheMiddleware, m.DeleteQuestion)
 			mobileProtected.GET("/doctor", m.GetAllDoctor)
+			mobileProtected.GET("/device", m.GetAllDevice)
+			mobileProtected.POST("/device", m.CreateDevice)
 		}
 	}
 }

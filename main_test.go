@@ -3,7 +3,7 @@ package main
 import (
 	// "encoding/json"
 	"bytes"
-	"encoding/json"
+	"database/sql"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -30,18 +30,24 @@ type testCase struct {
 var handler *mobile.MobileHandler
 var router *gin.Engine
 
-
 const basePath = "/mobile"
 
 // test3 fn3 ln3
 const validAuthToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXRpZW50SWQiOjMsImRldmljZUlkIjoxMywiZXhwIjoxNzQxNDYxOTk3fQ.fo_5VWqPmyfRL0TccGdYMTh8enuFUu61-4G_aqoDnJY"
 const invalidAuthToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXRpZW50SWQiOjMsImRldmljZUlkIjoxNCwiZXhwIjoxNzMzNzQ0OTM3fQ.WQnEQwt8AJuCOF22DeKCCh3hpmM-9hX8PgNZOZG8NFs"
 
-func setupTestRouter() *gin.Engine {
-	gin.SetMode(gin.ReleaseMode)
-	gin.DefaultWriter = ioutil.Discard
-	r := gin.Default()
-	return r
+func TestMain(m *testing.M) {
+	config.LoadConfig()
+	db := setupDB()
+	defer db.Close()
+	// db.Exec("INSERT INTO appointment (id ,create_at, date, patient_id, doctor_id) VALUES (?,?, ?, ?, ?)", 9999, 1111, 2222, 3, 1) // FOR delete appointment
+	tx, _ := db.Begin()
+	defer tx.Rollback()
+	setupDBdata(db, tx) // mockup data
+	handler = &mobile.MobileHandler{Repo: repository.New(tx), DBConn: db}
+	router = setupTestRouter()
+	attachTestHandler(router, handler)
+	m.Run()
 }
 
 func attachTestHandler(r *gin.Engine, m *mobile.MobileHandler) {
@@ -67,38 +73,47 @@ func attachTestHandler(r *gin.Engine, m *mobile.MobileHandler) {
 			mobileProtected.POST("/question", m.CreateQuestion)
 			mobileProtected.DELETE("/question/:id", m.DeleteQuestion)
 			mobileProtected.GET("/doctor", m.GetAllDoctor)
+			mobileProtected.GET("/device", m.GetAllDevice)
+			mobileProtected.POST("/device", m.CreateDevice)
 		}
 	}
 }
 
-func TestMain(m *testing.M) {
-	config.LoadConfig()
-	db := setupDB()
-	defer db.Close()
-	// db.Exec("INSERT INTO appointment (id ,create_at, date, patient_id, doctor_id) VALUES (?,?, ?, ?, ?)", 9999, 1111, 2222, 3, 1) // FOR delete appointment
-	tx, _ := db.Begin()
-	defer tx.Rollback()
-	handler = &mobile.MobileHandler{Repo: repository.New(tx), DBConn: db}
-	router = setupTestRouter()
-	attachTestHandler(router, handler)
-	m.Run()
+func setupTestRouter() *gin.Engine {
+	gin.SetMode(gin.ReleaseMode)
+	gin.DefaultWriter = ioutil.Discard
+	r := gin.Default()
+	return r
+}
+
+var selfAppointmentId int
+var otherPatientAppointmentId int
+var toBeDeletedAppointmentId int
+var selfQuestionId int
+var otherPatientQuestionId int
+var toBeDeletedQuestionId int
+
+func setupDBdata(db *sql.DB ,tx *sql.Tx) {
+	// verified account
+	db.Exec(`insert into patient (id, hn, first_name, middle_name, last_name, email, phone, verified) 
+	values (1234 , "mt1", "fnmt1", "mnmt1", "lnmt1", "mt@test.com", "9193929", 1)`)
+	// unverified account
+	db.Exec(`insert into patient (id, hn, first_name, middle_name, last_name, email, phone, verified) 
+	values (4321 , "mt2", "fnmt2", NULL, "lnmt2", NULL, NULL, 0)`)
+	db.Exec(`insert into patient (id, hn, first_name, middle_name, last_name, email, phone, verified) 
+	values (5551 , "mt3", "fnmt3", "mnmt3", "lnmt3", NULL, NULL, 0)`)
+	// appointment
+	r := repository.New(tx)
+	selfAppointmentId, _ = r.CreateAppointment(555, 555, 3, 1)
+	toBeDeletedAppointmentId, _ = r.CreateAppointment(555, 555, 3, 1)
+	otherPatientAppointmentId, _ = r.CreateAppointment(555, 555, 4, 1)
+	// question
+	selfQuestionId, _ = r.CreateQuestion(3, "to be deleted", "asdasdsa", 555)
+	toBeDeletedQuestionId, _ = r.CreateQuestion(3, "to be deleted", "asdasdsa", 555)
+	otherPatientQuestionId, _ = r.CreateQuestion(4, "haha xdxd", "asdasdsa", 555)
 }
 
 func testInternal(t *testing.T, testCases []testCase, method string, url string) {
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			w := httptest.NewRecorder()
-			req, _ := http.NewRequest(method, basePath+url, bytes.NewBuffer(tc.requestBody))
-			if tc.authToken != "" {
-				req.Header.Set("Authorization", tc.authToken)
-			}
-			router.ServeHTTP(w, req)
-			assert.Equal(t, tc.expected, w.Code)
-		})
-	}
-}
-
-func testInternalNoTx(t *testing.T, testCases []testCase, method string, url string) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
@@ -121,10 +136,10 @@ func TestAuthMiddleware(t *testing.T) {
 }
 
 func TestLogin(t *testing.T) {
-	validInput := []byte(`{"hn" : "test3","firstName" : "fn3","lastName" : "ln3","deviceName": "main_test","expoToken": "dummy-expo-token"}`)
-	badInput := []byte(`{"firstName" : "fn3","lastName" : "ln3","deviceName": "main_test","expoToken": "dummy-expo-token"}`)
-	invalidInput := []byte(`{"hn" : "test3","firstName" : "fn3123","lastName" : "ln3","deviceName": "main_test","expoToken": "dummy-expo-token"}`)
-	unverifiedAccInput := []byte(`{"hn" : "test30","firstName" : "fn30","lastName" : "ln30","deviceName": "main_test","expoToken": "dummy-expo-token"}`)
+	validInput := []byte(`{"hn" : "mt1","firstName" : "fnmt1","lastName" : "lnmt1","deviceName": "main_test","expoToken": "dummy-expo-token"}`)
+	badInput := []byte(`{"firstName" : "mt1","lastName" : "lnmt1","deviceName": "main_test","expoToken": "dummy-expo-token"}`)
+	invalidInput := []byte(`{"hn" : "mt1","firstName" : "fn3123","lastName" : "lnmt1","deviceName": "main_test","expoToken": "dummy-expo-token"}`)
+	unverifiedAccInput := []byte(`{"hn" : "mt2","firstName" : "fnmt2","lastName" : "lnmt2","deviceName": "main_test","expoToken": "dummy-expo-token"}`)
 	nonExistentAccInput := []byte(`{"hn" : "test30111","firstName" : "fn30","lastName" : "ln30","deviceName": "main_test","expoToken": "dummy-expo-token"}`)
 	testCases := []testCase{
 		{name: "request with valid input", requestBody: validInput, expected: http.StatusOK},
@@ -136,12 +151,12 @@ func TestLogin(t *testing.T) {
 }
 
 func TestSignup(t *testing.T) {
-	validInput := []byte(`{"hn" : "test28","firstName" : "fn28", "middleName" : "mn28","lastName" : "ln28","phone": "0000000","email": "test@tmail.com"}`)
-	badInput := []byte(`{"firstName" : "fn28", "middleName" : "mn28","lastName" : "ln28","phone": "0000000","email": "test@tmail.com"}`)
-	mnNotRequireMnInput := []byte(`{"hn" : "test30","firstName" : "fn30", "middleName" : "something","lastName" : "ln30","phone": "0000000","email": "test@tmail.com"}`)
-	noMnRequireMnInput := []byte(`{"hn" : "test28","firstName" : "fn28", "lastName" : "ln28","phone": "0000000","email": "test@tmail.com"}`)
+	validInput := []byte(`{"hn" : "mt3","firstName" : "fnmt3", "middleName" : "mnmt3","lastName" : "lnmt3","phone": "0000000","email": "test@tmail.com"}`)
+	badInput := []byte(`{"firstName" : "fnmt3", "middleName" : "mnmt3","lastName" : "lnmt3","phone": "0000000","email": "test@tmail.com"}`)
+	mnNotRequireMnInput := []byte(`{"hn" : "mt2","firstName" : "fnmt2", "middleName" : "mnmt2","lastName" : "lnmt2","phone": "0000000","email": "test@tmail.com"}`)
+	noMnRequireMnInput := []byte(`{"hn" : "mt3","firstName" : "fnmt3","lastName" : "lnmt3","phone": "0000000","email": "test@tmail.com"}`)
 	nonExistentAccInput := []byte(`{"hn" : "test28aa","firstName" : "fn28", "middleName" : "mn28","lastName" : "ln28","phone": "0000000","email": "test@tmail.com"}`)
-	AlreadyVerifiedAccInput := []byte(`{"hn" : "test3","firstName" : "fn3", "middleName" : "","lastName" : "ln3","phone": "0000000","email": "test@tmail.com"}`)
+	AlreadyVerifiedAccInput := []byte(`{"hn" : "mt1","firstName" : "fnmt1", "middleName" : "mnmt1","lastName" : "lnmt1","phone": "0000000","email": "test@tmail.com"}`)
 	testCases := []testCase{
 		{name: "request with bad input", requestBody: badInput, expected: http.StatusBadRequest},
 		{name: "request with middleName but account not require middlename", requestBody: mnNotRequireMnInput, expected: http.StatusUnauthorized},
@@ -170,18 +185,16 @@ func TestGetOneAppointment(t *testing.T) {
 	testCaseSet1 := []testCase{
 		{name: "request to own appointment", authToken: validAuthToken, requestBody: nil, expected: http.StatusOK},
 	}
-	testInternal(t, testCaseSet1, "GET", "/api/appointment/31")
+	testInternal(t, testCaseSet1, "GET", fmt.Sprintf("/api/appointment/%d", selfAppointmentId))
 	testCaseSet2 := []testCase{
 		{name: "request to other patient's appointment", authToken: validAuthToken, requestBody: nil, expected: http.StatusUnauthorized},
 	}
-	testInternal(t, testCaseSet2, "GET", "/api/appointment/35")
+	testInternal(t, testCaseSet2, "GET", fmt.Sprintf("/api/appointment/%d", otherPatientAppointmentId))
 	testCaseSet3 := []testCase{
 		{name: "request to nonexistent appointment", authToken: validAuthToken, requestBody: nil, expected: http.StatusNotFound},
 	}
-	testInternal(t, testCaseSet3, "GET", "/api/appointment/100")
+	testInternal(t, testCaseSet3, "GET", "/api/appointment/999999")
 }
-
-var insertedAppointmentId int
 
 func TestCreateAppointment(t *testing.T) {
 	validInput := []byte(`{ "date" : 1766120265, "doctorId" : 1}`)
@@ -195,20 +208,9 @@ func TestCreateAppointment(t *testing.T) {
 		{name: "request with bad doctorId input", authToken: validAuthToken, requestBody: badDoctorIdInput, expected: http.StatusInternalServerError},
 		{name: "request with missing date input", authToken: validAuthToken, requestBody: missingDateInput, expected: http.StatusBadRequest},
 		{name: "request with missing doctorId input", authToken: validAuthToken, requestBody: missingDoctorIdInput, expected: http.StatusBadRequest},
+		{name: "request with valid input", authToken: validAuthToken, requestBody: validInput, expected: http.StatusCreated},
 	}
 	testInternal(t, testCases, "POST", "/api/appointment")
-
-	t.Run("request with valid input", func(t *testing.T) {
-		var resp map[string]interface{}
-		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", basePath+"/api/appointment", bytes.NewBuffer(validInput))
-		req.Header.Set("Authorization", validAuthToken)
-		router.ServeHTTP(w, req)
-		if assert.Equal(t, http.StatusCreated, w.Code) {
-			json.Unmarshal([]byte(w.Body.String()), &resp)
-			insertedAppointmentId = int(resp["id"].(float64))
-		}
-	})
 }
 
 // request to other patient's appointment
@@ -217,13 +219,13 @@ func TestDeleteAppointment(t *testing.T) {
 		t,
 		[]testCase{{name: "request to own appointment", authToken: validAuthToken, expected: http.StatusNoContent}},
 		"DELETE",
-		fmt.Sprintf("/api/appointment/%d", insertedAppointmentId),
+		fmt.Sprintf("/api/appointment/%d", toBeDeletedAppointmentId),
 	)
 	testInternal(
 		t,
 		[]testCase{{name: "request to other patient's appointment", authToken: validAuthToken, expected: http.StatusUnauthorized}},
 		"DELETE",
-		"/api/appointment/35",
+		fmt.Sprintf("/api/appointment/%d", otherPatientAppointmentId),
 	)
 	testInternal(
 		t,
@@ -244,18 +246,16 @@ func TestGetOneQuestion(t *testing.T) {
 	testCaseSet1 := []testCase{
 		{name: "request to own question", authToken: validAuthToken, requestBody: nil, expected: http.StatusOK},
 	}
-	testInternal(t, testCaseSet1, "GET", "/api/question/25")
+	testInternal(t, testCaseSet1, "GET", fmt.Sprintf("/api/question/%d", selfQuestionId))
 	testCaseSet2 := []testCase{
 		{name: "request to other patient's question", authToken: validAuthToken, requestBody: nil, expected: http.StatusUnauthorized},
 	}
-	testInternal(t, testCaseSet2, "GET", "/api/question/30")
+	testInternal(t, testCaseSet2, "GET", fmt.Sprintf("/api/question/%d", otherPatientQuestionId))
 	testCaseSet3 := []testCase{
 		{name: "request to nonexistent question", authToken: validAuthToken, requestBody: nil, expected: http.StatusNotFound},
 	}
-	testInternal(t, testCaseSet3, "GET", "/api/question/100")
+	testInternal(t, testCaseSet3, "GET", "/api/question/99999")
 }
-
-var insertedQuestionId int
 
 func TestCreateQuestion(t *testing.T) {
 	validInput := []byte(`{ "topic" : "my topic", "question" : "my question"}`)
@@ -273,19 +273,9 @@ func TestCreateQuestion(t *testing.T) {
 		{name: "request with empty question input", authToken: validAuthToken, requestBody: emptyQuestionInput, expected: http.StatusBadRequest},
 		{name: "request with missing topic input", authToken: validAuthToken, requestBody: missingTopicInput, expected: http.StatusBadRequest},
 		{name: "request with missing question input", authToken: validAuthToken, requestBody: missingQuestionInput, expected: http.StatusBadRequest},
+		{name: "request with valid input", authToken: validAuthToken, requestBody: validInput, expected: http.StatusCreated},
 	}
 	testInternal(t, testCases, "POST", "/api/question")
-	t.Run("request with valid input", func(t *testing.T) {
-		var resp map[string]interface{}
-		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", basePath+"/api/question", bytes.NewBuffer(validInput))
-		req.Header.Set("Authorization", validAuthToken)
-		router.ServeHTTP(w, req)
-		if assert.Equal(t, http.StatusCreated, w.Code) {
-			json.Unmarshal([]byte(w.Body.String()), &resp)
-			insertedQuestionId = int(resp["id"].(float64))
-		}
-	})
 }
 
 func TestDeleteQuestion(t *testing.T) {
@@ -293,13 +283,13 @@ func TestDeleteQuestion(t *testing.T) {
 		t,
 		[]testCase{{name: "request to own question", authToken: validAuthToken, expected: http.StatusNoContent}},
 		"DELETE",
-		fmt.Sprintf("/api/question/%d", insertedQuestionId),
+		fmt.Sprintf("/api/question/%d", toBeDeletedQuestionId),
 	)
 	testInternal(
 		t,
 		[]testCase{{name: "request to other patient's question", authToken: validAuthToken, expected: http.StatusUnauthorized}},
 		"DELETE",
-		"/api/question/30",
+		fmt.Sprintf("/api/question/%d", otherPatientQuestionId),
 	)
 	testInternal(
 		t,
@@ -315,5 +305,25 @@ func TestGetAllDoctor(t *testing.T) {
 		[]testCase{{name: "request", authToken: validAuthToken, expected: http.StatusOK}},
 		"GET",
 		"/api/doctor",
+	)
+}
+
+func TestGetAllDevice(t *testing.T) {
+	testInternal(
+		t,
+		[]testCase{{name: "request to get active devices for push notifications", authToken: validAuthToken, expected: http.StatusOK}},
+		"GET",
+		"/api/device",
+	)
+}
+
+func TestCreateDevice(t *testing.T) {
+	req := []byte(`{"deviceName" : "thunder client","expoToken" : "test insert new device"}`)
+	tc := []testCase{{name: "request to insert new device for push notifications", authToken: validAuthToken, requestBody: req, expected: http.StatusOK}}
+	testInternal(
+		t,
+		tc,
+		"POST",
+		"/api/device",
 	)
 }
