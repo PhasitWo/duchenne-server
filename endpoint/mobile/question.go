@@ -20,8 +20,8 @@ func (m *MobileHandler) GetAllPatientQuestion(c *gin.Context) {
 		return
 	}
 	id := i.(int)
-	// _, queryExists := c.GetQuery("onlytopic")
-	qs, err := m.Repo.GetAllQuestion(id, repository.PATIENTID)
+	criteria := repository.Criteria{QueryCriteria: repository.PATIENTID, Value: id}
+	qs, err := m.Repo.GetAllQuestion(criteria)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

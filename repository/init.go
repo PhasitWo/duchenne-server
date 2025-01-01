@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
 )
 
 // repository.New can accept both sql.DB or sql.Tx
@@ -21,10 +22,33 @@ func New(db DBTX) *Repo {
 }
 
 // CRITERIA
-type QueryCriteria string
+type Criteria struct {
+	QueryCriteria ColumnCriteria
+	Value any
+}
+
+func (c *Criteria) ToString() string {
+	return fmt.Sprintf(" %s %v ", c.QueryCriteria, c.Value)
+}
+
+type ColumnCriteria string
 
 const (
-	PATIENTID QueryCriteria = "WHERE patient_id = "
-	DOCTORID  QueryCriteria = "WHERE doctor_id = "
-	NONE      QueryCriteria = ""
+	PATIENTID ColumnCriteria = "patient_id = "
+	DOCTORID  ColumnCriteria = "doctor_id = "
+	NONE      ColumnCriteria = ""
 )
+
+func attachCriteria(queryString string, criteria ...Criteria) string {
+	if len(criteria) == 0 {
+		return  queryString
+	}
+	for index, c := range criteria {
+		if index == 0 {
+			queryString += " WHERE" + c.ToString()
+			continue
+		}
+		queryString += " AND" + c.ToString()
+	}
+	return queryString
+}

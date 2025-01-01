@@ -2,8 +2,6 @@ package repository
 
 import (
 	"fmt"
-	"strconv"
-
 	"github.com/PhasitWo/duchenne-server/model"
 )
 
@@ -78,18 +76,8 @@ INNER JOIN doctor ON appointment.doctor_id = doctor.id
 `
 
 // Get all appointments with following criteria
-func (r *Repo) GetAllAppointment(id int, criteria QueryCriteria) ([]model.Appointment, error) {
-	var queryString string
-	switch criteria {
-	case PATIENTID:
-		queryString = allAppointmentQuery + " " + string(PATIENTID) + strconv.Itoa(id)
-	case DOCTORID:
-		queryString = allAppointmentQuery + " " + string(DOCTORID) + strconv.Itoa(id)
-	case NONE:
-		queryString = allAppointmentQuery
-	default:
-		return nil, fmt.Errorf("query : invalid criteria")
-	}
+func (r *Repo) GetAllAppointment(criteria ...Criteria) ([]model.Appointment, error) {
+	queryString := attachCriteria(allAppointmentQuery, criteria...)
 	rows, err := r.db.Query(queryString  + " ORDER BY date ASC LIMIT 15")
 	if err != nil {
 		return nil, fmt.Errorf("query : %w", err)

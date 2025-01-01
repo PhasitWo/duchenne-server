@@ -50,7 +50,8 @@ func (m *MobileHandler) Login(c *gin.Context) {
 		return
 	}
 	// save this device for notification stuff
-	devices, err := m.Repo.GetAllDevice(storedPatient.Id, repository.PATIENTID)
+	criteria := repository.Criteria{QueryCriteria: repository.PATIENTID, Value: storedPatient.Id}
+	devices, err := m.Repo.GetAllDevice(criteria)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

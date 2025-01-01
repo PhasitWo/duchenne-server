@@ -2,24 +2,13 @@ package repository
 
 import (
 	"fmt"
-	"strconv"
-
 	"github.com/PhasitWo/duchenne-server/model"
 )
 
 var allDeviceQuery = `SELECT id, login_at, device_name, expo_token, patient_id FROM device`
 
-// Get all appointments with following criteria
-func (r *Repo) GetAllDevice(id int, criteria QueryCriteria) ([]model.Device, error) {
-	var queryString string
-	switch criteria {
-	case PATIENTID:
-		queryString = allDeviceQuery + " " + string(PATIENTID) + strconv.Itoa(id)
-	case NONE:
-		queryString = allDeviceQuery
-	default:
-		return nil, fmt.Errorf("query : invalid criteria")
-	}
+func (r *Repo) GetAllDevice(criteria ...Criteria) ([]model.Device, error) {
+	queryString := attachCriteria(allDeviceQuery, criteria...)
 	rows, err := r.db.Query(queryString + " ORDER BY login_at ASC")
 	if err != nil {
 		return nil, fmt.Errorf("query : %w", err)

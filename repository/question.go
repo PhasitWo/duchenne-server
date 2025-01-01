@@ -2,8 +2,6 @@ package repository
 
 import (
 	"fmt"
-	"strconv"
-
 	"github.com/PhasitWo/duchenne-server/model"
 )
 
@@ -101,18 +99,8 @@ LEFT JOIN doctor ON question.doctor_id = doctor.id
 `
 
 // Get all questions with following criteria
-func (r *Repo) GetAllQuestion(id int, criteria QueryCriteria) ([]model.QuestionTopic, error) {
-	var queryString string
-	switch criteria {
-	case PATIENTID:
-		queryString = allQuestionQuery + " " + string(PATIENTID) + strconv.Itoa(id)
-	case DOCTORID:
-		queryString = allQuestionQuery + " " + string(DOCTORID) + strconv.Itoa(id)
-	case NONE:
-		queryString = allQuestionQuery
-	default:
-		return nil, fmt.Errorf("query : invalid criteria")
-	}
+func (r *Repo) GetAllQuestion(criteria ...Criteria) ([]model.QuestionTopic, error) {
+	queryString := attachCriteria(allQuestionQuery, criteria...)
 	rows, err := r.db.Query(queryString + " ORDER BY CASE WHEN answer_at IS NOT NULL THEN answer_at ELSE create_at END DESC")
 	if err != nil {
 		return nil, fmt.Errorf("query : %w", err)

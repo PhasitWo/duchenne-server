@@ -24,7 +24,8 @@ func (m *MobileHandler) GetAllPatientAppointment(c *gin.Context) {
 		return
 	}
 	id := i.(int)
-	aps, err := m.Repo.GetAllAppointment(id, repository.PATIENTID)
+	criteria := repository.Criteria{QueryCriteria: repository.PATIENTID, Value: id}
+	aps, err := m.Repo.GetAllAppointment(criteria)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

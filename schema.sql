@@ -25,7 +25,7 @@ CREATE TABLE doctor (
   first_name varchar(100) NOT NULL,
   middle_name varchar(100),
   last_name varchar(100) NOT NULL,
-  username varchar(20) NOT NULL,
+  username varchar(20) UNIQUE NOT NULL,
   password varchar(100) NOT NULL,
   role varchar(10) NOT NULL
 );

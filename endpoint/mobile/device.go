@@ -20,7 +20,8 @@ func (m *MobileHandler) GetAllDevice(c *gin.Context) {
 		return
 	}
 	id := i.(int)
-	dv, err := m.Repo.GetAllDevice(id, repository.PATIENTID)
+	criteria := repository.Criteria{QueryCriteria: repository.PATIENTID, Value: id}
+	dv, err := m.Repo.GetAllDevice(criteria)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -54,7 +55,8 @@ func (m *MobileHandler) CreateDevice(c *gin.Context) {
 		ExpoToken:  dv.ExpoToken,
 		PatientId:  id,
 	}
-	devices, err := m.Repo.GetAllDevice(id, repository.PATIENTID)
+	criteria := repository.Criteria{QueryCriteria: repository.PATIENTID, Value: id}
+	devices, err := m.Repo.GetAllDevice(criteria)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
