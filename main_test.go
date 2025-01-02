@@ -13,7 +13,7 @@ import (
 	"testing"
 
 	"github.com/PhasitWo/duchenne-server/config"
-	"github.com/PhasitWo/duchenne-server/endpoint/mobile"
+	"github.com/PhasitWo/duchenne-server/handlers/mobile"
 	"github.com/PhasitWo/duchenne-server/middleware"
 	"github.com/PhasitWo/duchenne-server/repository"
 	"github.com/gin-gonic/gin"

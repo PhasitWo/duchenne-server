@@ -10,9 +10,12 @@ import (
 	"time"
 
 	"github.com/PhasitWo/duchenne-server/config"
-	"github.com/PhasitWo/duchenne-server/endpoint/mobile"
+	"github.com/PhasitWo/duchenne-server/handlers/mobile"
+	"github.com/PhasitWo/duchenne-server/handlers/web"
 	"github.com/PhasitWo/duchenne-server/middleware"
+	"github.com/PhasitWo/duchenne-server/model"
 	"github.com/PhasitWo/duchenne-server/notification"
+	"github.com/PhasitWo/duchenne-server/repository"
 	"github.com/redis/go-redis/v9"
 	"github.com/robfig/cron"
 
@@ -24,11 +27,28 @@ import (
 )
 
 /*
-NOTIFICATION
-TODO schedule cronjob to run everyday at xx:xx
-TODO set condition to filter appointments -> in range X days
+DOCTOR WEBSITE
+POST /login
 
-web app
+GET /profile
+POST /profile
+
+GET /doctor
+POST /doctor
+GET /doctor/:id
+PUT /doctor/:id
+DELETE /doctor/:id
+
+GET /patient
+POST /patient
+GET /patient/:id
+PUT /patient/:id
+DELETE /patient/:id
+
+GET /appointment?owner={me|all}&type={incoming | history}&limit=0&offset=5
+
+GET /question?owner={me|all}&type={unreplied | replied}&limit=0&offset=5
+GET /question/:id
 POST /question/:id/answer
 */
 var mainLogger = log.New(os.Stdout, "[MAIN] ", log.LstdFlags)
@@ -44,14 +64,15 @@ func main() {
 	// Setup router and handler
 	r := setupRouter()
 	m := mobile.Init(db)
-	attachHandler(r, m, rdc)
+	w := web.Init(db)
+	attachHandler(r, m, w, rdc)
 	// CRON
 	c := InitCronScheduler(db)
 	defer c.Stop()
 	r.Run() // listen and serve on 0.0.0.0:8080
 }
 
-func attachHandler(r *gin.Engine, m *mobile.MobileHandler, rdc *middleware.RedisClient) {
+func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, rdc *middleware.RedisClient) {
 	mobile := r.Group("/mobile")
 	mobile.POST("/testnoti", func(c *gin.Context) {
 		notification.MockupScheduleNotifications(m.DBConn, notification.SendRequest)
@@ -79,6 +100,13 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, rdc *middleware.Redis
 			mobileProtected.GET("/doctor", m.GetAllDoctor)
 			mobileProtected.GET("/device", m.GetAllDevice)
 			mobileProtected.POST("/device", m.CreateDevice)
+		}
+	}
+	web := r.Group("/web")
+	{
+		webAuth := web.Group("/auth")
+		{
+			webAuth.POST("/login", w.Login)
 		}
 	}
 }
@@ -157,4 +185,23 @@ func setupRedisClient() *middleware.RedisClient {
 	middlewareclient.Client.FlushDB(context.Background())
 	mainLogger.Println("Connected to", serverMode)
 	return middlewareclient
+}
+
+func testRepo() {
+	db := setupDB()
+	repo := repository.New(db)
+	mn := "mid na"
+	res, err := repo.CreateDoctor(model.Doctor{
+		Id:         -1,
+		FirstName:  "myrepo",
+		MiddleName: &mn,
+		LastName:   "ln na",
+		Username:   "myrepousername",
+		Password:   "1234",
+		Role:       model.USER,
+	})
+	if err != nil {
+		panic(err)
+	}
+	log.Println(res)
 }

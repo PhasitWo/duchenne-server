@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 )
 
@@ -16,10 +17,15 @@ type Repo struct {
 	db DBTX
 }
 
+
 // Constructor
 func New(db DBTX) *Repo {
 	return &Repo{db: db}
 }
+
+// ERROR
+var ErrDuplicateEntry = errors.New("Duplicate Entry")
+
 
 // CRITERIA
 type Criteria struct {
