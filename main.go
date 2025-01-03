@@ -31,8 +31,8 @@ POST /login ok
 GET /profile ok
 POST /profile ok
 
-GET /doctor
-POST /doctor
+GET /doctor ok
+POST /doctor ok
 GET /doctor/:id
 PUT /doctor/:id
 DELETE /doctor/:id
@@ -111,6 +111,8 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, rd
 		{
 			webProtected.GET("/profile", w.GetProfile)
 			webProtected.POST("/profile", w.UpdateProfile)
+			webProtected.GET("/doctor", w.GetAllDoctor)
+			webProtected.POST("/doctor", w.CreateDoctor)
 		}
 	}
 }

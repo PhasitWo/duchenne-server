@@ -19,7 +19,7 @@ func GeneratePatientToken(patientId int, deviceId int) (string, error) {
 	expirationTime := time.Now().Add(90 * 24 * time.Hour)
 	claims := &PatientClaims{
 		PatientId: patientId,
-		DeviceId: deviceId,
+		DeviceId:  deviceId,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},
@@ -29,16 +29,16 @@ func GeneratePatientToken(patientId int, deviceId int) (string, error) {
 }
 
 type DoctorClaims struct {
-	DoctorId int `json:"doctorId"`
-	Role model.Role `json:"role"`
+	DoctorId int        `json:"doctorId"`
+	Role     model.Role `json:"role"`
 	jwt.RegisteredClaims
 }
 
 func GenerateDoctorToken(doctorId int, role model.Role) (string, error) {
-	expirationTime := time.Now().Add(300*24 * time.Hour)
+	expirationTime := time.Now().Add(30 * time.Minute)
 	claims := &DoctorClaims{
 		DoctorId: doctorId,
-		Role: role,
+		Role:     role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},

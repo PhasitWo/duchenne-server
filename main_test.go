@@ -13,6 +13,7 @@ import (
 	"github.com/PhasitWo/duchenne-server/config"
 	"github.com/PhasitWo/duchenne-server/handlers/mobile"
 	"github.com/PhasitWo/duchenne-server/handlers/web"
+	"github.com/PhasitWo/duchenne-server/model"
 	"github.com/PhasitWo/duchenne-server/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -88,6 +89,9 @@ func setupDBdata(db *sql.DB, tx *sql.Tx) {
 	selfQuestionId, _ = r.CreateQuestion(3, "to be deleted", "asdasdsa", 555)
 	toBeDeletedQuestionId, _ = r.CreateQuestion(3, "to be deleted", "asdasdsa", 555)
 	otherPatientQuestionId, _ = r.CreateQuestion(4, "haha xdxd", "asdasdsa", 555)
+	// doctor
+	// to test duplicate username
+	r.CreateDoctor(model.Doctor{FirstName: "main_test", LastName: "main_test", Username: "main_test_duplicate", Password: "1234", Role: model.ADMIN})
 }
 
 func testInternal(t *testing.T, testCases []testCase, method string, url string) {
