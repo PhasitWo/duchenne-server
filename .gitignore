@@ -1,2 +1,6 @@
 .env
 *.exe
+
+*.env
+
+test.yaml

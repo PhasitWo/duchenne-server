@@ -28,7 +28,7 @@ import (
 
 /*
 DOCTOR WEBSITE
-POST /login
+POST /login ok
 
 GET /profile
 POST /profile
@@ -89,14 +89,14 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, rd
 		{
 			mobileProtected.GET("/test", m.Test)
 			mobileProtected.GET("/profile", m.GetProfile)
-			mobileProtected.GET("/appointment", rdc.RedisPersonalizedCacheMiddleware, m.GetAllPatientAppointment)
+			mobileProtected.GET("/appointment", rdc.UseRedisMiddleware(m.GetAllPatientAppointment)...)
 			mobileProtected.GET("/appointment/:id", m.GetAppointment)
-			mobileProtected.POST("/appointment", rdc.RedisPersonalizedCacheMiddleware, m.CreateAppointment)
-			mobileProtected.DELETE("/appointment/:id", rdc.RedisPersonalizedCacheMiddleware, m.DeleteAppointment)
-			mobileProtected.GET("/question", rdc.RedisPersonalizedCacheMiddleware, m.GetAllPatientQuestion)
+			mobileProtected.POST("/appointment", rdc.UseRedisMiddleware(m.CreateAppointment)...)
+			mobileProtected.DELETE("/appointment/:id", rdc.UseRedisMiddleware(m.DeleteAppointment)...)
+			mobileProtected.GET("/question", rdc.UseRedisMiddleware(m.GetAllPatientQuestion)...)
 			mobileProtected.GET("/question/:id", m.GetQuestion)
-			mobileProtected.POST("/question", rdc.RedisPersonalizedCacheMiddleware, m.CreateQuestion)
-			mobileProtected.DELETE("/question/:id", rdc.RedisPersonalizedCacheMiddleware, m.DeleteQuestion)
+			mobileProtected.POST("/question", rdc.UseRedisMiddleware(m.CreateQuestion)...)
+			mobileProtected.DELETE("/question/:id", rdc.UseRedisMiddleware(m.DeleteQuestion)...)
 			mobileProtected.GET("/doctor", m.GetAllDoctor)
 			mobileProtected.GET("/device", m.GetAllDevice)
 			mobileProtected.POST("/device", m.CreateDevice)
@@ -107,6 +107,11 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, rd
 		webAuth := web.Group("/auth")
 		{
 			webAuth.POST("/login", w.Login)
+		}
+		webProtected := web.Group("/api")
+		webProtected.Use(middleware.WebAuthMiddleware)
+		{
+			webProtected.GET("/profile", w.GetProfile)
 		}
 	}
 }
@@ -158,6 +163,10 @@ func InitCronScheduler(db *sql.DB) *cron.Cron {
 }
 
 func setupRedisClient() *middleware.RedisClient {
+	// check config
+	if !config.AppConfig.ENABLE_REDIS {
+		return nil
+	}
 	var middlewareclient *middleware.RedisClient
 	var serverMode string
 	if config.AppConfig.MODE != "test" {

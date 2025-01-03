@@ -13,6 +13,7 @@ type config struct {
 	MODE               string
 	DATABASE_DSN       string
 	DATABASE_DSN_LOCAL string
+	ENABLE_REDIS       bool
 	REDIS_URL          string
 	JWT_KEY            string
 	MAX_DEVICE         int
@@ -43,6 +44,8 @@ func LoadConfig() {
 			field.SetString(viper.GetString(fieldName))
 		case int:
 			field.SetInt(int64(viper.GetInt(fieldName)))
+		case bool:
+			field.SetBool(viper.GetBool(fieldName))
 		default:
 			panic("invalid config type")
 		}

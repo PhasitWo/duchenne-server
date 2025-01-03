@@ -50,6 +50,39 @@ func MobileAuthMiddleware(c *gin.Context) {
 	c.Next()
 }
 
+func WebAuthMiddleware(c *gin.Context) {
+	tokenString := c.GetHeader("Authorization")
+	if tokenString == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "No authorization header provided"})
+		c.Abort() // stop the chain of middlewares
+		return
+	}
+	// parse token
+	claims := &auth.DoctorClaims{DoctorId: -1}
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(config.AppConfig.JWT_KEY), nil
+	})
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		c.Abort()
+		return
+	}
+	if !token.Valid {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		c.Abort()
+		return
+	}
+
+	if claims.DoctorId == -1 {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		c.Abort()
+		return
+	}
+	c.Set("doctorId", claims.DoctorId)
+	c.Set("doctorRole", claims.Role)
+	c.Next()
+}
+
 var redisLogger = log.New(os.Stdout, "[REDIS] ", log.LstdFlags)
 
 type RedisClient struct {
@@ -111,4 +144,13 @@ func (rdc *RedisClient) RedisPersonalizedCacheMiddleware(c *gin.Context) {
 	if c.Writer.Status() == http.StatusOK {
 		rdc.Client.Set(context.Background(), key, w.body.Bytes(), time.Minute*5).Err()
 	}
+}
+
+func (rdc *RedisClient) UseRedisMiddleware(handler ...gin.HandlerFunc) []gin.HandlerFunc {
+	if rdc == nil {
+		return handler
+	}
+	res := []gin.HandlerFunc{rdc.RedisPersonalizedCacheMiddleware}
+	res = append(res, handler...)
+	return res
 }

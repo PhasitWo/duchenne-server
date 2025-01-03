@@ -35,7 +35,7 @@ type DoctorClaims struct {
 }
 
 func GenerateDoctorToken(doctorId int, role model.Role) (string, error) {
-	expirationTime := time.Now().Add(30 * time.Minute)
+	expirationTime := time.Now().Add(300*24 * time.Hour)
 	claims := &DoctorClaims{
 		DoctorId: doctorId,
 		Role: role,
