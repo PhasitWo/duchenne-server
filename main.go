@@ -13,9 +13,7 @@ import (
 	"github.com/PhasitWo/duchenne-server/handlers/mobile"
 	"github.com/PhasitWo/duchenne-server/handlers/web"
 	"github.com/PhasitWo/duchenne-server/middleware"
-	"github.com/PhasitWo/duchenne-server/model"
 	"github.com/PhasitWo/duchenne-server/notification"
-	"github.com/PhasitWo/duchenne-server/repository"
 	"github.com/redis/go-redis/v9"
 	"github.com/robfig/cron"
 
@@ -30,8 +28,8 @@ import (
 DOCTOR WEBSITE
 POST /login ok
 
-GET /profile
-POST /profile
+GET /profile ok
+POST /profile ok
 
 GET /doctor
 POST /doctor
@@ -112,6 +110,7 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, rd
 		webProtected.Use(middleware.WebAuthMiddleware)
 		{
 			webProtected.GET("/profile", w.GetProfile)
+			webProtected.POST("/profile", w.UpdateProfile)
 		}
 	}
 }
@@ -196,21 +195,21 @@ func setupRedisClient() *middleware.RedisClient {
 	return middlewareclient
 }
 
-func testRepo() {
-	db := setupDB()
-	repo := repository.New(db)
-	mn := "mid na"
-	res, err := repo.CreateDoctor(model.Doctor{
-		Id:         -1,
-		FirstName:  "myrepo",
-		MiddleName: &mn,
-		LastName:   "ln na",
-		Username:   "myrepousername",
-		Password:   "1234",
-		Role:       model.USER,
-	})
-	if err != nil {
-		panic(err)
-	}
-	log.Println(res)
-}
+// func testRepo() {
+// 	db := setupDB()
+// 	repo := repository.New(db)
+// 	mn := "mid na"
+// 	res, err := repo.CreateDoctor(model.Doctor{
+// 		Id:         -1,
+// 		FirstName:  "myrepo",
+// 		MiddleName: &mn,
+// 		LastName:   "ln na",
+// 		Username:   "myrepousername",
+// 		Password:   "1234",
+// 		Role:       model.USER,
+// 	})
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	log.Println(res)
+// }

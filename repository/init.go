@@ -24,7 +24,7 @@ func New(db DBTX) *Repo {
 }
 
 // ERROR
-var ErrDuplicateEntry = errors.New("Duplicate Entry")
+var ErrDuplicateEntry = errors.New("duplicate entry")
 
 
 // CRITERIA

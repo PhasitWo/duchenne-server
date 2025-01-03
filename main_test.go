@@ -13,7 +13,6 @@ import (
 	"github.com/PhasitWo/duchenne-server/config"
 	"github.com/PhasitWo/duchenne-server/handlers/mobile"
 	"github.com/PhasitWo/duchenne-server/handlers/web"
-	"github.com/PhasitWo/duchenne-server/middleware"
 	"github.com/PhasitWo/duchenne-server/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -55,35 +54,6 @@ func TestMain(m *testing.M) {
 	webValidAuthToken = viper.GetString("webTest.validAuthToken")
 	webInvalidAuthToken = viper.GetString("webTest.invalidAuthToken")
 	m.Run()
-}
-
-func attachTestHandler(r *gin.Engine, m *mobile.MobileHandler) {
-	mobile := r.Group("/mobile")
-	{
-		mobileAuth := mobile.Group("/auth")
-		{
-			mobileAuth.POST("/login", m.Login)
-			mobileAuth.POST("/signup", m.Signup)
-			mobileAuth.POST("/logout", middleware.MobileAuthMiddleware, m.Logout)
-		}
-		mobileProtected := mobile.Group("/api")
-		mobileProtected.Use(middleware.MobileAuthMiddleware)
-		{
-			mobileProtected.GET("/test", m.Test)
-			mobileProtected.GET("/profile", m.GetProfile)
-			mobileProtected.GET("/appointment", m.GetAllPatientAppointment)
-			mobileProtected.GET("/appointment/:id", m.GetAppointment)
-			mobileProtected.POST("/appointment", m.CreateAppointment)
-			mobileProtected.DELETE("/appointment/:id", m.DeleteAppointment)
-			mobileProtected.GET("/question", m.GetAllPatientQuestion)
-			mobileProtected.GET("/question/:id", m.GetQuestion)
-			mobileProtected.POST("/question", m.CreateQuestion)
-			mobileProtected.DELETE("/question/:id", m.DeleteQuestion)
-			mobileProtected.GET("/doctor", m.GetAllDoctor)
-			mobileProtected.GET("/device", m.GetAllDevice)
-			mobileProtected.POST("/device", m.CreateDevice)
-		}
-	}
 }
 
 func setupTestRouter() *gin.Engine {

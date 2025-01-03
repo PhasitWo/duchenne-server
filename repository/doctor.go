@@ -75,3 +75,14 @@ func (r *Repo) CreateDoctor(doctor model.Doctor) (int, error) {
 	lastId := int(i)
 	return lastId, nil
 }
+
+const updateDoctorQuery = "UPDATE doctor SET first_name = ?, middle_name=?, last_name=?, username=?, password=?, role=?  WHERE id = ?"
+
+func (r *Repo) UpdateDoctor(doctor model.Doctor) error {
+	// update should be idempotent -> error occur when this handler is called consecutively with same input -> err no affected row
+	_, err := r.db.Exec(updateDoctorQuery, doctor.FirstName, doctor.MiddleName, doctor.LastName, doctor.Username, doctor.Password, doctor.Role, doctor.Id)
+	if err != nil {
+		return fmt.Errorf("exec : %w", err)
+	}
+	return nil
+}
