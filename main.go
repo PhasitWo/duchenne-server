@@ -29,7 +29,7 @@ DOCTOR WEBSITE
 POST /login ok
 
 GET /profile ok
-POST /profile ok
+PUT /profile ok
 
 GET /doctor ok
 POST /doctor ok
@@ -37,9 +37,9 @@ GET /doctor/:id ok
 PUT /doctor/:id ok
 DELETE /doctor/:id ok
 
-GET /patient
-POST /patient
-GET /patient/:id
+GET /patient ok
+POST /patient ok
+GET /patient/:id ok
 PUT /patient/:id
 DELETE /patient/:id
 
@@ -110,12 +110,15 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, rd
 		webProtected.Use(middleware.WebAuthMiddleware)
 		{
 			webProtected.GET("/profile", w.GetProfile)
-			webProtected.POST("/profile", w.UpdateProfile)
+			webProtected.PUT("/profile", w.UpdateProfile)
 			webProtected.GET("/doctor", w.GetAllDoctor)
 			webProtected.POST("/doctor", w.CreateDoctor)
 			webProtected.GET("/doctor/:id", w.GetDoctor)
 			webProtected.PUT("/doctor/:id", w.UpdateDoctor)
 			webProtected.DELETE("/doctor/:id", w.DeleteDoctor)
+			webProtected.GET("/patient", w.GetAllPatient)
+			webProtected.POST("/patient", w.CreatePatient)
+			webProtected.GET("/patient/:id", w.GetPatient)
 		}
 	}
 }

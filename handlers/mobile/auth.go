@@ -31,7 +31,7 @@ func (m *MobileHandler) Login(c *gin.Context) {
 		return
 	}
 	// fetch patient from database
-	storedPatient, err := m.Repo.GetPatient(input.Hn)
+	storedPatient, err := m.Repo.GetPatientByHN(input.Hn)
 	if err != nil {
 		if errors.Unwrap(err) == sql.ErrNoRows { // no rows found
 			c.Status(http.StatusNotFound)
@@ -119,7 +119,7 @@ func (m *MobileHandler) Signup(c *gin.Context) {
 		return
 	}
 	// fetch patient from database
-	storedPatient, err := m.Repo.GetPatient(s.Hn)
+	storedPatient, err := m.Repo.GetPatientByHN(s.Hn)
 	if err != nil {
 		if errors.Unwrap(err) == sql.ErrNoRows { // no rows found
 			c.Status(http.StatusNotFound)

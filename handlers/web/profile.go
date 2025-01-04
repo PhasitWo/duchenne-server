@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/PhasitWo/duchenne-server/model"
+	"github.com/PhasitWo/duchenne-server/repository"
 	"github.com/gin-gonic/gin"
 )
 
@@ -62,12 +63,17 @@ func (w *WebHandler) UpdateProfile(c *gin.Context) {
 			FirstName:  input.FirstName,
 			MiddleName: input.MiddleName,
 			LastName:   input.LastName,
-			Username:   input.LastName,
+			Username:   input.Username,
 			Password:   input.Password,
 			Role:       role,
 		})
 	if err != nil {
+		if errors.Unwrap(err) == repository.ErrDuplicateEntry {
+			c.JSON(http.StatusConflict, gin.H{"error": "duplicate username"})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	c.Status(http.StatusOK)
 }

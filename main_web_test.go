@@ -48,12 +48,22 @@ func TestWebUpdateProfile(t *testing.T) {
     "password" : "1234"
 	}
 	`)
+	dupEntryRequestBody := []byte(`
+	{
+	"firstName" : "updatefn",
+	"middleName" : "hahaxdxd",
+    "lastName" : "updateln",
+    "username" : "main_test_duplicate",
+    "password" : "1234"
+	}
+	`)
 	testcases := []testCase{
 		{name: "request with bad input", authToken: webValidAuthToken, requestBody: badRequestBody, expected: http.StatusBadRequest},
+		{name: "request with duplicate username", authToken: webValidAuthToken, requestBody: dupEntryRequestBody, expected: http.StatusConflict},
 		{name: "request with no middle name", authToken: webValidAuthToken, requestBody: noMiddleNameRequestBody, expected: http.StatusOK},
 		{name: "request with middle name", authToken: webValidAuthToken, requestBody: hasMiddleNameRequestBody, expected: http.StatusOK},
 	}
-	testInternal(t, testcases, "POST", "/web/api/profile")
+	testInternal(t, testcases, "PUT", "/web/api/profile")
 }
 
 func TestWebGetAllDoctor(t *testing.T) {
@@ -62,6 +72,25 @@ func TestWebGetAllDoctor(t *testing.T) {
 		[]testCase{{name: "request", authToken: webValidAuthToken, expected: http.StatusOK}},
 		"GET",
 		"/web/api/doctor",
+	)
+}
+
+func TestWebGetOneDoctor(t *testing.T) {
+	testInternal(
+		t,
+		[]testCase{
+			{name: "request", authToken: webValidAuthToken, expected: http.StatusOK},
+		},
+		"GET",
+		"/web/api/doctor/"+strconv.Itoa(existing2DoctorId),
+	)
+	testInternal(
+		t,
+		[]testCase{
+			{name: "request to nonexist doctor", authToken: webValidAuthToken, expected: http.StatusNotFound},
+		},
+		"GET",
+		"/web/api/doctor/9999",
 	)
 }
 
@@ -103,25 +132,6 @@ func TestWebCreateDoctor(t *testing.T) {
 		},
 		"POST",
 		"/web/api/doctor",
-	)
-}
-
-func TestWebGetOneDoctor(t *testing.T) {
-	testInternal(
-		t,
-		[]testCase{
-			{name: "request", authToken: webValidAuthToken, expected: http.StatusOK},
-		},
-		"GET",
-		"/web/api/doctor/1",
-	)
-	testInternal(
-		t,
-		[]testCase{
-			{name: "request to nonexist doctor", authToken: webValidAuthToken, expected: http.StatusNotFound},
-		},
-		"GET",
-		"/web/api/doctor/9999",
 	)
 }
 
@@ -173,6 +183,14 @@ func TestWebUpdateDoctor(t *testing.T) {
 	testInternal(
 		t,
 		[]testCase{
+			{name: "request to nonexist doctor", authToken: webValidAuthToken, requestBody: validRequest, expected: http.StatusNotFound},
+		},
+		"PUT",
+		"/web/api/doctor/99999",
+	)
+	testInternal(
+		t,
+		[]testCase{
 			{name: "request with valid input", authToken: webValidAuthToken, requestBody: validRequest, expected: http.StatusOK},
 			{name: "request with valid input no middlename", authToken: webValidAuthToken, requestBody: validRequestNoMn, expected: http.StatusOK},
 		},
@@ -204,5 +222,87 @@ func TestWebDeleteDoctor(t *testing.T) {
 		},
 		"DELETE",
 		"/web/api/doctor/"+strconv.Itoa(toBeDeletedDoctorId),
+	)
+}
+
+func TestWebGetAllPatient(t *testing.T) {
+	testInternal(
+		t,
+		[]testCase{{name: "request", authToken: webValidAuthToken, expected: http.StatusOK}},
+		"GET",
+		"/web/api/patient",
+	)
+}
+
+func TestWebGetOnePatient(t *testing.T) {
+	testInternal(
+		t,
+		[]testCase{
+			{name: "request", authToken: webValidAuthToken, expected: http.StatusOK},
+		},
+		"GET",
+		"/web/api/patient/"+strconv.Itoa(existing1PatientId),
+	)
+	testInternal(
+		t,
+		[]testCase{
+			{name: "request to nonexist doctor", authToken: webValidAuthToken, expected: http.StatusNotFound},
+		},
+		"GET",
+		"/web/api/patient/9999",
+	)
+}
+
+func TestWebCreatePatient(t *testing.T) {
+	badRequest := []byte(`{
+	"hnss" : "asd",
+	"firstName" : "testfn",
+	"middleName" : "testmn",
+	"lastName": "testln",
+	"email" : "xdxd@tmail.com",
+  	"phone" : "0900001122",
+  	"verified": true}`)
+	dupEntryRequest := []byte(`{
+	"hn" : "mt1",
+	"firstName" : "testfn",
+	"middleName" : "testmn",
+	"lastName": "testln",
+	"email" : "xdxd@tmail.com",
+  	"phone" : "0900001122",
+  	"verified": true}`)
+	validRequest := []byte(`{
+	"hn" : "webtest1",
+	"firstName" : "testfn",
+	"middleName" : "testmn",
+	"lastName": "testln",
+	"email" : "xdxd@tmail.com",
+  	"phone" : "0900001122",
+  	"verified": true}`)
+	validRequestNoVerified := []byte(`{
+	"hn" : "webtest2",
+	"firstName" : "testfn",
+	"middleName" : "testmn",
+	"lastName": "testln",
+	"email" : "xdxd@tmail.com",
+  	"phone" : "0900001122"
+  	}`)
+	validRequestNoMn := []byte(`{
+	"hn" : "webtest3",
+	"firstName" : "testfn",
+	"lastName": "testln",
+	"email" : "xdxd@tmail.com",
+  	"phone" : "0900001122"
+  	}`)
+	testInternal(
+		t,
+		[]testCase{
+			{name: "request with bad input", authToken: webValidAuthToken, requestBody: badRequest, expected: http.StatusBadRequest},
+			{name: "request with duplicate username", authToken: webValidAuthToken, requestBody: dupEntryRequest, expected: http.StatusConflict},
+			{name: "request with valid input", authToken: webValidAuthToken, requestBody: validRequest, expected: http.StatusCreated},
+			{name: "request with valid input but not verified", authToken: webValidAuthToken, requestBody: validRequestNoVerified, expected: http.StatusCreated},
+			{name: "request with valid input but no middlename", authToken: webValidAuthToken, requestBody: validRequestNoMn, expected: http.StatusCreated},
+		},
+		"POST",
+		"/web/api/patient",
 	)
 }

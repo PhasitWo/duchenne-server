@@ -59,7 +59,7 @@ func (w *WebHandler) CreateDoctor(c *gin.Context) {
 	})
 	if err != nil {
 		if errors.Unwrap(err) == repository.ErrDuplicateEntry {
-			c.Status(http.StatusConflict)
+			c.JSON(http.StatusConflict, gin.H{"error": "duplicate username"})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -80,6 +80,15 @@ func (w *WebHandler) UpdateDoctor(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	_, err = w.Repo.GetDoctorById(id) // check if this id exist
+	if err != nil {
+		if errors.Unwrap(err) == sql.ErrNoRows { // no rows found
+			c.Status(http.StatusNotFound)
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	err = w.Repo.UpdateDoctor(model.Doctor{
 		Id:         id,
 		FirstName:  input.FirstName,
@@ -91,7 +100,7 @@ func (w *WebHandler) UpdateDoctor(c *gin.Context) {
 	})
 	if err != nil {
 		if errors.Unwrap(err) == repository.ErrDuplicateEntry {
-			c.Status(http.StatusConflict)
+			c.JSON(http.StatusConflict, gin.H{"error": "duplicate username"})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

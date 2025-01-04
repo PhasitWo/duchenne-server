@@ -15,7 +15,7 @@ func (m *MobileHandler) GetProfile(c *gin.Context) {
 		return
 	}
 	// fetch patient from database
-	p, err := m.Repo.GetPatient(id)
+	p, err := m.Repo.GetPatientById(id)
 	if err != nil {
 		if errors.Unwrap(err) == sql.ErrNoRows { // no rows found
 			c.Status(http.StatusNotFound)

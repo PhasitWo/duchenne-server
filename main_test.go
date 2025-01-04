@@ -73,12 +73,14 @@ var toBeDeletedQuestionId int
 var existing1DoctorId int
 var existing2DoctorId int
 var toBeDeletedDoctorId int
+var existing1PatientId int = 1234
+var existing2PatientId int = 4321
 
 func setupDBdata(db *sql.DB, tx *sql.Tx) {
-	// verified account
+	// verified patient account
 	db.Exec(`insert into patient (id, hn, first_name, middle_name, last_name, email, phone, verified) 
 	values (1234 , "mt1", "fnmt1", "mnmt1", "lnmt1", "mt@test.com", "9193929", 1)`)
-	// unverified account
+	// unverified patient account
 	db.Exec(`insert into patient (id, hn, first_name, middle_name, last_name, email, phone, verified) 
 	values (4321 , "mt2", "fnmt2", NULL, "lnmt2", NULL, NULL, 0)`)
 	db.Exec(`insert into patient (id, hn, first_name, middle_name, last_name, email, phone, verified) 
