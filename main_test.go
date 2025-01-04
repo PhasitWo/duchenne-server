@@ -70,6 +70,9 @@ var toBeDeletedAppointmentId int
 var selfQuestionId int
 var otherPatientQuestionId int
 var toBeDeletedQuestionId int
+var existing1DoctorId int
+var existing2DoctorId int
+var toBeDeletedDoctorId int
 
 func setupDBdata(db *sql.DB, tx *sql.Tx) {
 	// verified account
@@ -91,7 +94,9 @@ func setupDBdata(db *sql.DB, tx *sql.Tx) {
 	otherPatientQuestionId, _ = r.CreateQuestion(4, "haha xdxd", "asdasdsa", 555)
 	// doctor
 	// to test duplicate username
-	r.CreateDoctor(model.Doctor{FirstName: "main_test", LastName: "main_test", Username: "main_test_duplicate", Password: "1234", Role: model.ADMIN})
+	existing1DoctorId, _ = r.CreateDoctor(model.Doctor{FirstName: "main_test", LastName: "main_test", Username: "main_test_duplicate", Password: "1234", Role: model.ADMIN})
+	existing2DoctorId, _ = r.CreateDoctor(model.Doctor{FirstName: "main_test", LastName: "main_test", Username: "main_test", Password: "1234", Role: model.ADMIN})
+	toBeDeletedDoctorId, _ = r.CreateDoctor(model.Doctor{FirstName: "main_test", LastName: "main_test", Username: "main_test_delete", Password: "1234", Role: model.ADMIN})
 }
 
 func testInternal(t *testing.T, testCases []testCase, method string, url string) {

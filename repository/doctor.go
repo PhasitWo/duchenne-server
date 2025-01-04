@@ -21,7 +21,7 @@ func (r *Repo) GetDoctorByUsername(username string) (model.Doctor, error) {
 
 const getDoctorByIdQuery = "SELECT id, first_name, middle_name, last_name, username, password, role FROM doctor WHERE id = ?"
 
-func (r *Repo) GetDoctorById(id int) (model.Doctor, error) {
+func (r *Repo) GetDoctorById(id any) (model.Doctor, error) {
 	var d model.Doctor
 	row := r.db.QueryRow(getDoctorByIdQuery, id)
 	if err := row.Scan(&d.Id, &d.FirstName, &d.MiddleName, &d.LastName, &d.Username, &d.Password, &d.Role); err != nil {
@@ -81,6 +81,23 @@ const updateDoctorQuery = "UPDATE doctor SET first_name = ?, middle_name=?, last
 func (r *Repo) UpdateDoctor(doctor model.Doctor) error {
 	// update should be idempotent -> error occur when this handler is called consecutively with same input -> err no affected row
 	_, err := r.db.Exec(updateDoctorQuery, doctor.FirstName, doctor.MiddleName, doctor.LastName, doctor.Username, doctor.Password, doctor.Role, doctor.Id)
+	if err != nil {
+		var mysqlErr *mysql.MySQLError
+		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
+			return fmt.Errorf("exec : %w", ErrDuplicateEntry)
+		}
+		return fmt.Errorf("exec : %w", err)
+	}
+	return nil
+}
+
+const deleteDoctorQuery =  `
+DELETE FROM doctor
+WHERE id = ?;
+`
+
+func (r *Repo) DeleteDoctorById(id any) error {
+	_, err := r.db.Exec(deleteDoctorQuery, id)
 	if err != nil {
 		return fmt.Errorf("exec : %w", err)
 	}
