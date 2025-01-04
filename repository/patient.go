@@ -108,3 +108,16 @@ func (r *Repo) UpdatePatient(patient model.Patient) error {
 	}
 	return nil
 }
+
+const deletePatientrQuery =  `
+DELETE FROM patient
+WHERE id = ?;
+`
+
+func (r *Repo) DeletePatientById(id any) error {
+	_, err := r.db.Exec(deletePatientrQuery, id)
+	if err != nil {
+		return fmt.Errorf("exec : %w", err)
+	}
+	return nil
+}

@@ -3,6 +3,7 @@ package web
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -112,18 +113,19 @@ func (w *WebHandler) UpdatePatient(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-// // DeleteDoctor is idempotent
-// func (w *WebHandler) DeleteDoctor(c *gin.Context) {
-// 	i := c.Param("id")
-// 	id, err := strconv.Atoi(i)
-// 	if err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-// 		return
-// 	}
-// 	err = w.Repo.DeleteDoctorById(id)
-// 	if err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-// 		return
-// 	}
-// 	c.Status(http.StatusNoContent)
-// }
+// DeleteDoctor is idempotent
+func (w *WebHandler) DeletePatient(c *gin.Context) {
+	i := c.Param("id")
+	id, err := strconv.Atoi(i)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	err = w.Repo.DeletePatientById(id)
+	if err != nil {
+		fmt.Println(err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.Status(http.StatusNoContent)
+}

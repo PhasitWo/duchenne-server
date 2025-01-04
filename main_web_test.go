@@ -421,3 +421,30 @@ func TestWebUpdatePatient(t *testing.T) {
 		"/web/api/patient/"+strconv.Itoa(existing1PatientId),
 	)
 }
+
+func TestWebDeletePatient(t *testing.T) {
+	testInternal(
+		t,
+		[]testCase{
+			{name: "request with bad url", authToken: webValidAuthToken, expected: http.StatusBadRequest},
+		},
+		"DELETE",
+		"/web/api/patient/asd",
+	)
+	testInternal(
+		t,
+		[]testCase{
+			{name: "request to nonexist patient", authToken: webValidAuthToken, expected: http.StatusNoContent},
+		},
+		"DELETE",
+		"/web/api/patient/9999",
+	)
+	testInternal(
+		t,
+		[]testCase{
+			{name: "request to existing patient", authToken: webValidAuthToken, expected: http.StatusNoContent},
+		},
+		"DELETE",
+		"/web/api/patient/"+strconv.Itoa(existing1PatientId),
+	)
+}

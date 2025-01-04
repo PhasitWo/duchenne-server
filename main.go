@@ -41,7 +41,7 @@ GET /patient ok
 POST /patient ok
 GET /patient/:id ok
 PUT /patient/:id ok
-DELETE /patient/:id
+DELETE /patient/:id ok
 
 GET /appointment?owner={me|all}&type={incoming | history}&limit=0&offset=5
 
@@ -120,6 +120,7 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, rd
 			webProtected.POST("/patient", w.CreatePatient)
 			webProtected.GET("/patient/:id", w.GetPatient)
 			webProtected.PUT("/patient/:id", w.UpdatePatient)
+			webProtected.DELETE("/patient/:id", w.DeletePatient)
 		}
 	}
 }
