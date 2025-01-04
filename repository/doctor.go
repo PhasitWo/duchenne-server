@@ -76,7 +76,9 @@ func (r *Repo) CreateDoctor(doctor model.Doctor) (int, error) {
 	return lastId, nil
 }
 
-const updateDoctorQuery = "UPDATE doctor SET first_name = ?, middle_name=?, last_name=?, username=?, password=?, role=?  WHERE id = ?"
+const updateDoctorQuery = `
+UPDATE doctor SET first_name = ?, middle_name=?, last_name=?, username=?, password=?, role=?
+WHERE id = ?`
 
 func (r *Repo) UpdateDoctor(doctor model.Doctor) error {
 	// update should be idempotent -> error occur when this handler is called consecutively with same input -> err no affected row

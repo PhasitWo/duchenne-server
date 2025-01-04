@@ -38,7 +38,7 @@ type doctorInput struct {
 	FirstName  string     `json:"firstName" binding:"required"`
 	MiddleName *string    `json:"middleName"`
 	LastName   string     `json:"lastName" binding:"required"`
-	Username   string     `json:"username" binding:"required"`
+	Username   string     `json:"username" binding:"required,max=20"`
 	Password   string     `json:"password" binding:"required"`
 	Role       model.Role `json:"role" binding:"required"`
 }

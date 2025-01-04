@@ -22,20 +22,20 @@ CREATE TABLE question (
 
 CREATE TABLE doctor (
   id int NOT NULL PRIMARY KEY AUTO_INCREMENT,
-  first_name varchar(100) NOT NULL,
-  middle_name varchar(100),
-  last_name varchar(100) NOT NULL,
+  first_name varchar(255) NOT NULL,
+  middle_name varchar(255),
+  last_name varchar(255) NOT NULL,
   username varchar(20) UNIQUE NOT NULL,
-  password varchar(100) NOT NULL,
+  password varchar(255) NOT NULL,
   role varchar(10) NOT NULL
 );
 
 CREATE TABLE patient (
   id int PRIMARY KEY AUTO_INCREMENT,
   hn varchar(15) UNIQUE NOT NULL,
-  first_name varchar(100) NOT NULL,
-  middle_name varchar(100),
-  last_name varchar(100) NOT NULL,
+  first_name varchar(255) NOT NULL,
+  middle_name varchar(255),
+  last_name varchar(255) NOT NULL,
   email varchar(255),
   phone varchar(15),
   verified bool NOT NULL DEFAULT 0

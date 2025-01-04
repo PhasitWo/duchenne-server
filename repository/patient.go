@@ -51,23 +51,6 @@ func (r *Repo) GetAllPatient() ([]model.Patient, error) {
 	return res, nil
 }
 
-const updatePatientQuery = `
-UPDATE patient SET hn=? ,first_name = ?, middle_name=?, last_name=?, email=?, phone=?, verified=?  WHERE id = ?
-`
-
-func (r *Repo) UpdatePatient(patient model.Patient) error {
-	// update should be idempotent -> error occur when this handler is called consecutively with same input -> err no affected row
-	_, err := r.db.Exec(updatePatientQuery, patient.Hn, patient.FirstName, patient.MiddleName, patient.LastName, patient.Email, patient.Phone, patient.Verified, patient.Id)
-	if err != nil {
-		var mysqlErr *mysql.MySQLError
-		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
-			return fmt.Errorf("exec : %w", ErrDuplicateEntry)
-		}
-		return fmt.Errorf("exec : %w", err)
-	}
-	return nil
-}
-
 const createPatientQuery = `
 INSERT INTO patient (hn ,first_name, middle_name, last_name, email, phone, verified)
 VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -75,7 +58,15 @@ VALUES (?, ?, ?, ?, ?, ?, ?)
 
 // return last inserted id
 func (r *Repo) CreatePatient(patient model.Patient) (int, error) {
-	result, err := r.db.Exec(createPatientQuery, patient.Hn, patient.FirstName, patient.MiddleName, patient.LastName, patient.Email, patient.Phone, patient.Verified)
+	result, err := r.db.Exec(
+		createPatientQuery,
+		patient.Hn,
+		patient.FirstName,
+		patient.MiddleName,
+		patient.LastName,
+		patient.Email,
+		patient.Phone,
+		patient.Verified)
 	if err != nil {
 		var mysqlErr *mysql.MySQLError
 		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
@@ -91,17 +82,29 @@ func (r *Repo) CreatePatient(patient model.Patient) (int, error) {
 	return lastId, nil
 }
 
-// func (r *Repo) VerifyPatient(id int) error {
-// 	result, err := r.db.Exec("UPDATE patient SET verified = 1 WHERE id = ?", id)
-// 	if err != nil {
-// 		return fmt.Errorf("exec : %w", err)
-// 	}
-// 	rows, err := result.RowsAffected()
-// 	if err != nil {
-// 		return fmt.Errorf("exec : %w", err)
-// 	}
-// 	if rows != 1 {
-// 		return fmt.Errorf("exec : no affected row")
-// 	}
-// 	return nil
-// }
+const updatePatientQuery = `
+UPDATE patient SET hn=? ,first_name = ?, middle_name=?, last_name=?, email=?, phone=?, verified=?
+WHERE id = ?
+`
+
+func (r *Repo) UpdatePatient(patient model.Patient) error {
+	// update should be idempotent -> error occur when this handler is called consecutively with same input -> err no affected row
+	_, err := r.db.Exec(
+		updatePatientQuery,
+		patient.Hn,
+		patient.FirstName,
+		patient.MiddleName,
+		patient.LastName,
+		patient.Email,
+		patient.Phone,
+		patient.Verified,
+		patient.Id)
+	if err != nil {
+		var mysqlErr *mysql.MySQLError
+		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
+			return fmt.Errorf("exec : %w", ErrDuplicateEntry)
+		}
+		return fmt.Errorf("exec : %w", err)
+	}
+	return nil
+}

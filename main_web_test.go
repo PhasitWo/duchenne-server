@@ -102,6 +102,13 @@ func TestWebCreateDoctor(t *testing.T) {
 	"username" : "xdxd",
   	"password" : "1234",
   	"role": "admin"}`)
+	exceedUsernameRequest := []byte(`{
+	"firstNamess" : "testfn",
+	"middleName" : "testmn",
+	"lastName": "testln",
+	"username" : "1234567890123456789011123123",
+  	"password" : "1234",
+  	"role": "admin"}`)
 	dupEntryRequest := []byte(`{
 	"firstName" : "testfn",
 	"middleName" : "testmn",
@@ -126,6 +133,7 @@ func TestWebCreateDoctor(t *testing.T) {
 		t,
 		[]testCase{
 			{name: "request with bad input", authToken: webValidAuthToken, requestBody: badRequest, expected: http.StatusBadRequest},
+			{name: "request with exceeding username length", authToken: webValidAuthToken, requestBody: exceedUsernameRequest, expected: http.StatusBadRequest},
 			{name: "request with duplicate username", authToken: webValidAuthToken, requestBody: dupEntryRequest, expected: http.StatusConflict},
 			{name: "request with valid input", authToken: webValidAuthToken, requestBody: validRequest, expected: http.StatusCreated},
 			{name: "request with valid input but no middlename", authToken: webValidAuthToken, requestBody: validRequestNoMn, expected: http.StatusCreated},
@@ -141,6 +149,13 @@ func TestWebUpdateDoctor(t *testing.T) {
 	"middleName" : "testmn",
 	"lastName": "testln",
 	"username" : "xdxd",
+  	"password" : "1234",
+  	"role": "admin"}`)
+	exceedUsernameRequest := []byte(`{
+	"firstNamess" : "testfn",
+	"middleName" : "testmn",
+	"lastName": "testln",
+	"username" : "1234567890123456789011123123",
   	"password" : "1234",
   	"role": "admin"}`)
 	dupEntryRequest := []byte(`{
@@ -174,15 +189,6 @@ func TestWebUpdateDoctor(t *testing.T) {
 	testInternal(
 		t,
 		[]testCase{
-			{name: "request with bad input", authToken: webValidAuthToken, requestBody: badRequest, expected: http.StatusBadRequest},
-			{name: "request with duplicate username", authToken: webValidAuthToken, requestBody: dupEntryRequest, expected: http.StatusConflict},
-		},
-		"PUT",
-		"/web/api/doctor/"+strconv.Itoa(existing2DoctorId),
-	)
-	testInternal(
-		t,
-		[]testCase{
 			{name: "request to nonexist doctor", authToken: webValidAuthToken, requestBody: validRequest, expected: http.StatusNotFound},
 		},
 		"PUT",
@@ -191,11 +197,14 @@ func TestWebUpdateDoctor(t *testing.T) {
 	testInternal(
 		t,
 		[]testCase{
+			{name: "request with bad input", authToken: webValidAuthToken, requestBody: badRequest, expected: http.StatusBadRequest},
+			{name: "request with exceeding username length", authToken: webValidAuthToken, requestBody: exceedUsernameRequest, expected: http.StatusBadRequest},
+			{name: "request with duplicate username", authToken: webValidAuthToken, requestBody: dupEntryRequest, expected: http.StatusConflict},
 			{name: "request with valid input", authToken: webValidAuthToken, requestBody: validRequest, expected: http.StatusOK},
 			{name: "request with valid input no middlename", authToken: webValidAuthToken, requestBody: validRequestNoMn, expected: http.StatusOK},
 		},
 		"PUT",
-		"/web/api/doctor/"+strconv.Itoa(existing1DoctorId),
+		"/web/api/doctor/"+strconv.Itoa(existing2DoctorId),
 	)
 }
 func TestWebDeleteDoctor(t *testing.T) {
@@ -262,6 +271,22 @@ func TestWebCreatePatient(t *testing.T) {
 	"email" : "xdxd@tmail.com",
   	"phone" : "0900001122",
   	"verified": true}`)
+	exceedHNRequest := []byte(`{
+	"hn" : "asdasdjasadlkjalskjlasdjlasdjlsajdlkasj",
+	"firstName" : "testfn",
+	"middleName" : "testmn",
+	"lastName": "testln",
+	"email" : "xdxd@tmail.com",
+  	"phone" : "0900001122",
+  	"verified": true}`)
+	exceedPhoneRequest := []byte(`{
+	"hn" : "asd",
+	"firstName" : "testfn",
+	"middleName" : "testmn",
+	"lastName": "testln",
+	"email" : "xdxd@tmail.com",
+  	"phone" : "090000112231230129391-23912391-039",
+  	"verified": true}`)
 	dupEntryRequest := []byte(`{
 	"hn" : "mt1",
 	"firstName" : "testfn",
@@ -296,7 +321,9 @@ func TestWebCreatePatient(t *testing.T) {
 	testInternal(
 		t,
 		[]testCase{
-			{name: "request with bad input", authToken: webValidAuthToken, requestBody: badRequest, expected: http.StatusBadRequest},
+			{name: "request with bad input syntax", authToken: webValidAuthToken, requestBody: badRequest, expected: http.StatusBadRequest},
+			{name: "request with exceeding hn length", authToken: webValidAuthToken, requestBody: exceedHNRequest, expected: http.StatusBadRequest},
+			{name: "request with exceeding phone length", authToken: webValidAuthToken, requestBody: exceedPhoneRequest, expected: http.StatusBadRequest},
 			{name: "request with duplicate username", authToken: webValidAuthToken, requestBody: dupEntryRequest, expected: http.StatusConflict},
 			{name: "request with valid input", authToken: webValidAuthToken, requestBody: validRequest, expected: http.StatusCreated},
 			{name: "request with valid input but not verified", authToken: webValidAuthToken, requestBody: validRequestNoVerified, expected: http.StatusCreated},
@@ -304,5 +331,93 @@ func TestWebCreatePatient(t *testing.T) {
 		},
 		"POST",
 		"/web/api/patient",
+	)
+}
+
+func TestWebUpdatePatient(t *testing.T) {
+	badSyntaxRequest := []byte(`{
+	"hnss" : "asd",
+	"firstName" : "testfn",
+	"middleName" : "testmn",
+	"lastName": "testln",
+	"email" : "xdxd@tmail.com",
+  	"phone" : "0900001122",
+  	"verified": true}`)
+	exceedHNRequest := []byte(`{
+	"hn" : "asdasdjasadlkjalskjlasdjlasdjlsajdlkasj",
+	"firstName" : "testfn",
+	"middleName" : "testmn",
+	"lastName": "testln",
+	"email" : "xdxd@tmail.com",
+  	"phone" : "0900001122",
+  	"verified": true}`)
+	exceedPhoneRequest := []byte(`{
+	"hn" : "asd",
+	"firstName" : "testfn",
+	"middleName" : "testmn",
+	"lastName": "testln",
+	"email" : "xdxd@tmail.com",
+  	"phone" : "090000112231230129391-23912391-039",
+  	"verified": true}`)
+	dupEntryRequest := []byte(`{
+	"hn" : "mt2",
+	"firstName" : "testfn",
+	"middleName" : "testmn",
+	"lastName": "testln",
+	"email" : "xdxd@tmail.com",
+  	"phone" : "0900001122",
+  	"verified": true}`)
+	validRequest := []byte(`{
+	"hn" : "mt1",
+	"firstName" : "testfn",
+	"middleName" : "testmn",
+	"lastName": "testln",
+	"email" : "xdxd@tmail.com",
+  	"phone" : "0900001122",
+  	"verified": true}`) // hn is the same as original
+	validRequestNoVerified := []byte(`{
+	"hn" : "webtest2",
+	"firstName" : "testfn",
+	"middleName" : "testmn",
+	"lastName": "testln",
+	"email" : "xdxd@tmail.com",
+  	"phone" : "0900001122"
+  	}`)
+	validRequestNoMn := []byte(`{
+	"hn" : "webtest3",
+	"firstName" : "testfn",
+	"lastName": "testln",
+	"email" : "xdxd@tmail.com",
+  	"phone" : "0900001122"
+  	}`)
+	testInternal(
+		t,
+		[]testCase{
+			{name: "request with bad url", authToken: webValidAuthToken, requestBody: badSyntaxRequest, expected: http.StatusBadRequest},
+		},
+		"PUT",
+		"/web/api/patient/asd",
+	)
+	testInternal(
+		t,
+		[]testCase{
+			{name: "request to nonexist patient", authToken: webValidAuthToken, requestBody: badSyntaxRequest, expected: http.StatusBadRequest},
+		},
+		"PUT",
+		"/web/api/patient/99999",
+	)
+	testInternal(
+		t,
+		[]testCase{
+			{name: "request with bad input syntax", authToken: webValidAuthToken, requestBody: badSyntaxRequest, expected: http.StatusBadRequest},
+			{name: "request with exceeding hn length", authToken: webValidAuthToken, requestBody: exceedHNRequest, expected: http.StatusBadRequest},
+			{name: "request with exceeding phone length", authToken: webValidAuthToken, requestBody: exceedPhoneRequest, expected: http.StatusBadRequest},
+			{name: "request with duplicate username", authToken: webValidAuthToken, requestBody: dupEntryRequest, expected: http.StatusConflict},
+			{name: "request with valid input", authToken: webValidAuthToken, requestBody: validRequest, expected: http.StatusOK},
+			{name: "request with valid input but not verified", authToken: webValidAuthToken, requestBody: validRequestNoVerified, expected: http.StatusOK},
+			{name: "request with valid input but no middlename", authToken: webValidAuthToken, requestBody: validRequestNoMn, expected: http.StatusOK},
+		},
+		"PUT",
+		"/web/api/patient/"+strconv.Itoa(existing1PatientId),
 	)
 }
