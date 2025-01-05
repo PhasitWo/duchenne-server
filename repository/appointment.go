@@ -2,6 +2,8 @@ package repository
 
 import (
 	"fmt"
+	"strconv"
+
 	"github.com/PhasitWo/duchenne-server/model"
 )
 
@@ -76,9 +78,9 @@ INNER JOIN doctor ON appointment.doctor_id = doctor.id
 `
 
 // Get all appointments with following criteria
-func (r *Repo) GetAllAppointment(criteria ...Criteria) ([]model.Appointment, error) {
+func (r *Repo) GetAllAppointment(limit int, offset int, criteria ...Criteria) ([]model.Appointment, error) {
 	queryString := attachCriteria(allAppointmentQuery, criteria...)
-	rows, err := r.db.Query(queryString  + " ORDER BY date ASC LIMIT 15")
+	rows, err := r.db.Query(queryString + " ORDER BY date ASC LIMIT " + strconv.Itoa(limit) + " OFFSET " + strconv.Itoa(offset))
 	if err != nil {
 		return nil, fmt.Errorf("query : %w", err)
 	}

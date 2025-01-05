@@ -74,7 +74,6 @@ var existing1DoctorId int
 var existing2DoctorId int
 var toBeDeletedDoctorId int
 var existing1PatientId int = 1234
-var existing2PatientId int = 4321
 
 func setupDBdata(db *sql.DB, tx *sql.Tx) {
 	// verified patient account

@@ -376,7 +376,7 @@ func TestWebUpdatePatient(t *testing.T) {
   	"phone" : "0900001122",
   	"verified": true}`) // hn is the same as original
 	validRequestNoVerified := []byte(`{
-	"hn" : "webtest2",
+	"hn" : "webtest5",
 	"firstName" : "testfn",
 	"middleName" : "testmn",
 	"lastName": "testln",
@@ -384,7 +384,7 @@ func TestWebUpdatePatient(t *testing.T) {
   	"phone" : "0900001122"
   	}`)
 	validRequestNoMn := []byte(`{
-	"hn" : "webtest3",
+	"hn" : "webtest6",
 	"firstName" : "testfn",
 	"lastName": "testln",
 	"email" : "xdxd@tmail.com",

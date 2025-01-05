@@ -17,7 +17,6 @@ type Repo struct {
 	db DBTX
 }
 
-
 // Constructor
 func New(db DBTX) *Repo {
 	return &Repo{db: db}
@@ -26,28 +25,34 @@ func New(db DBTX) *Repo {
 // ERROR
 var ErrDuplicateEntry = errors.New("duplicate entry")
 
-
 // CRITERIA
 type Criteria struct {
 	QueryCriteria ColumnCriteria
-	Value any
+	Value         any
 }
 
 func (c *Criteria) ToString() string {
+	if c.Value == nil {
+		return fmt.Sprintf(" %s ", c.QueryCriteria)
+	}
 	return fmt.Sprintf(" %s %v ", c.QueryCriteria, c.Value)
 }
 
 type ColumnCriteria string
 
 const (
-	PATIENTID ColumnCriteria = "patient_id = "
-	DOCTORID  ColumnCriteria = "doctor_id = "
-	NONE      ColumnCriteria = ""
+	PATIENTID            ColumnCriteria = "patient_id = "
+	DOCTORID             ColumnCriteria = "doctor_id = "
+	ANSWERAT_ISNULL      ColumnCriteria = "answer_at IS NULL"
+	ANSWERAT_ISNOTNULL   ColumnCriteria = "answer_at IS NOT NULL"
+	DATE_GREATERTHAN     ColumnCriteria = "date > "
+	DATE_LESSTHAN        ColumnCriteria = "date < "
+	CREATEAT_GREATERTHAN ColumnCriteria = "create_at > "
 )
 
 func attachCriteria(queryString string, criteria ...Criteria) string {
 	if len(criteria) == 0 {
-		return  queryString
+		return queryString
 	}
 	for index, c := range criteria {
 		if index == 0 {
