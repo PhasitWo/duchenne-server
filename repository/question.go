@@ -3,6 +3,7 @@ package repository
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/PhasitWo/duchenne-server/model"
 )
@@ -147,52 +148,6 @@ func (r *Repo) GetAllQuestion(limit int, offset int, criteria ...Criteria) ([]mo
 	return res, nil
 }
 
-// var allQuestionTopicQuery = `
-// SELECT
-// question.id,
-// topic,
-// create_at,
-// answer_at
-// FROM question
-// `
-
-// // Get all questions with following criteria
-// func (r *Repo) GetAllQuestionTopic(id int, criteria QueryCriteria) ([]model.QuestionTopic, error) {
-// 	var queryString string
-// 	switch criteria {
-// 	case PATIENTID:
-// 		queryString = allQuestionTopicQuery + " " + string(PATIENTID) + strconv.Itoa(id)
-// 	case DOCTORID:
-// 		queryString = allQuestionTopicQuery + " " + string(DOCTORID) + strconv.Itoa(id)
-// 	case NONE:
-// 		queryString = allQuestionTopicQuery
-// 	default:
-// 		return nil, fmt.Errorf("query : invalid criteria")
-// 	}
-// 	rows, err := r.db.Query(queryString + " ORDER BY create_at DESC")
-// 	if err != nil {
-// 		return nil, fmt.Errorf("query : %w", err)
-// 	}
-// 	defer rows.Close()
-// 	res := []model.QuestionTopic{}
-// 	for rows.Next() {
-// 		var q model.QuestionTopic
-// 		if err := rows.Scan(
-// 			&q.Id,
-// 			&q.Topic,
-// 			&q.CreateAt,
-// 			&q.AnswerAt,
-// 		); err != nil {
-// 			return nil, fmt.Errorf("query : %w", err)
-// 		}
-// 		res = append(res, q)
-// 	}
-// 	if err := rows.Err(); err != nil {
-// 		return nil, fmt.Errorf("query : %w", err)
-// 	}
-// 	return res, nil
-// }
-
 var createQuestionQuery = `
 INSERT INTO question (patient_id, topic, question, create_at)
 VALUES (?, ?, ?, ?)
@@ -209,6 +164,19 @@ func (r *Repo) CreateQuestion(patientId int, topic string, question string, crea
 	}
 	lastId := int(i)
 	return lastId, nil
+}
+
+const updateQuestionQuery = `
+UPDATE question SET answer = ?, answer_at = ?, doctor_id = ?
+WHERE id = ?
+`
+
+func (r *Repo) UpdateQuestionAnswer(questionId any, answer string, doctorId any) error {
+	_, err := r.db.Exec(updateQuestionQuery, answer, time.Now().Unix(), doctorId, questionId)
+	if err != nil {
+		return fmt.Errorf("exec : %w", err)
+	}
+	return nil
 }
 
 var deleteQuestionQuery = `

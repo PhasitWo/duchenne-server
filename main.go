@@ -46,8 +46,8 @@ DELETE /patient/:id ok
 GET /appointment? ok
 
 GET /question? ok
-GET /question/:id
-POST /question/:id/answer
+GET /question/:id ok
+PUT /question/:id/answer ok
 */
 var mainLogger = log.New(os.Stdout, "[MAIN] ", log.LstdFlags)
 
@@ -123,6 +123,8 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, rd
 			webProtected.DELETE("/patient/:id", w.DeletePatient)
 			webProtected.GET("/appointment", w.GetAllAppointment)
 			webProtected.GET("/question", w.GetAllQuestion)
+			webProtected.GET("/question/:id", w.GetQuestion)
+			webProtected.PUT("/question/:id/answer", w.AnswerQuestion)
 		}
 	}
 }
