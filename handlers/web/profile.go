@@ -17,7 +17,7 @@ func (w *WebHandler) GetProfile(c *gin.Context) {
 		return
 	}
 	doctorId := id.(int)
-	// fetch patient from database
+	// fetch doctor from database
 	d, err := w.Repo.GetDoctorById(doctorId)
 	if err != nil {
 		if errors.Unwrap(err) == sql.ErrNoRows { // no rows found

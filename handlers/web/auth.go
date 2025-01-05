@@ -20,7 +20,7 @@ func (w *WebHandler) Login(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	// fetch patient from database
+	// fetch doctor from database
 	storedDoctor, err := w.Repo.GetDoctorByUsername(input.Username)
 	if err != nil {
 		if errors.Unwrap(err) == sql.ErrNoRows { // no rows found
