@@ -24,31 +24,6 @@ import (
 	"github.com/go-sql-driver/mysql"
 )
 
-/*
-DOCTOR WEBSITE
-POST /login ok
-
-GET /profile ok
-PUT /profile ok
-
-GET /doctor ok
-POST /doctor ok
-GET /doctor/:id ok
-PUT /doctor/:id ok
-DELETE /doctor/:id ok
-
-GET /patient ok
-POST /patient ok
-GET /patient/:id ok
-PUT /patient/:id ok
-DELETE /patient/:id ok
-
-GET /appointment? ok
-
-GET /question? ok
-GET /question/:id ok
-PUT /question/:id/answer ok
-*/
 var mainLogger = log.New(os.Stdout, "[MAIN] ", log.LstdFlags)
 
 func main() {
@@ -112,15 +87,15 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, rd
 			webProtected.GET("/profile", w.GetProfile)
 			webProtected.PUT("/profile", w.UpdateProfile)
 			webProtected.GET("/doctor", w.GetAllDoctor)
-			webProtected.POST("/doctor", w.CreateDoctor)
+			webProtected.POST("/doctor", middleware.WebRBACMiddleware(middleware.CreateDoctorPermission), w.CreateDoctor)
 			webProtected.GET("/doctor/:id", w.GetDoctor)
-			webProtected.PUT("/doctor/:id", w.UpdateDoctor)
-			webProtected.DELETE("/doctor/:id", w.DeleteDoctor)
+			webProtected.PUT("/doctor/:id", middleware.WebRBACMiddleware(middleware.UpdateDoctorPermission), w.UpdateDoctor)
+			webProtected.DELETE("/doctor/:id", middleware.WebRBACMiddleware(middleware.DeleteDoctorPermission), w.DeleteDoctor)
 			webProtected.GET("/patient", w.GetAllPatient)
-			webProtected.POST("/patient", w.CreatePatient)
+			webProtected.POST("/patient", middleware.WebRBACMiddleware(middleware.CreatePatientPermission), w.CreatePatient)
 			webProtected.GET("/patient/:id", w.GetPatient)
-			webProtected.PUT("/patient/:id", w.UpdatePatient)
-			webProtected.DELETE("/patient/:id", w.DeletePatient)
+			webProtected.PUT("/patient/:id", middleware.WebRBACMiddleware(middleware.UpdatePatientPermission), w.UpdatePatient)
+			webProtected.DELETE("/patient/:id", middleware.WebRBACMiddleware(middleware.DeletePatientPermission), w.DeletePatient)
 			webProtected.GET("/appointment", w.GetAllAppointment)
 			webProtected.GET("/question", w.GetAllQuestion)
 			webProtected.GET("/question/:id", w.GetQuestion)
