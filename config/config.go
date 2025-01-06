@@ -18,6 +18,7 @@ type config struct {
 	JWT_KEY            string
 	MAX_DEVICE         int
 	NOTIFY_IN_RANGE    int
+	SERVER_DOMAIN      string
 }
 
 // shared config across packages
@@ -51,6 +52,11 @@ func LoadConfig() {
 		}
 		fmt.Printf("\t%-15s\t=>\t%-10v\n", fieldName, f.Field(i).Interface())
 	}
+	if AppConfig.MODE == "dev" {
+		AppConfig.SERVER_DOMAIN = "127.0.0.1"
+	}
+
 	configLogger.Printf("Config Loaded\n")
 	configLogger.Printf("Server is running in mode `%v`\n\n", AppConfig.MODE)
+	configLogger.Printf("Server Domain -> `%v`\n\n", AppConfig.SERVER_DOMAIN)
 }

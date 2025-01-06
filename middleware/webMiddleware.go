@@ -11,11 +11,12 @@ import (
 )
 
 func WebAuthMiddleware(c *gin.Context) {
-	cookie, err := c.Cookie("web_auth_cookie")
+	cookie, err := c.Cookie("web_auth_token")
 	if err != nil {
-		// assume that the err is http.ErrNoCookie
+		// assume that the err is http.ErrNoCookie or expired
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "cannot get cookie from request"})
 		c.Abort()
+		return
 	}
 
 	// parse token

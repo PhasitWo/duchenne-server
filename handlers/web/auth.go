@@ -4,8 +4,10 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/PhasitWo/duchenne-server/auth"
+	"github.com/PhasitWo/duchenne-server/config"
 	"github.com/gin-gonic/gin"
 )
 
@@ -41,6 +43,8 @@ func (w *WebHandler) Login(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	// set cookie
+	c.SetCookie("web_auth_token", token, 30*int(time.Minute), "/", config.AppConfig.SERVER_DOMAIN, false, true)
 	c.JSON(http.StatusOK, gin.H{"token": token})
 }
 
