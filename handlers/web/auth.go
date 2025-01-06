@@ -43,3 +43,19 @@ func (w *WebHandler) Login(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"token": token})
 }
+
+func (w *WebHandler) GetAuthState(c *gin.Context) {
+	id, exists := c.Get("doctorId")
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "no 'doctorId' from auth middleware"})
+		c.Abort()
+		return
+	}
+	role, exists := c.Get("doctorRole")
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "no 'doctorRole' from auth middleware"})
+		c.Abort()
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"doctorId": id, "role": role})
+}

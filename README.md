@@ -1,6 +1,8 @@
 ### DOCTOR WEBSITE
 POST /login ok
 
+GET /authState ok
+
 GET /profile ok
 PUT /profile ok
 

@@ -11,15 +11,16 @@ import (
 )
 
 func WebAuthMiddleware(c *gin.Context) {
-	tokenString := c.GetHeader("Authorization")
-	if tokenString == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "No authorization header provided"})
-		c.Abort() // stop the chain of middlewares
-		return
+	cookie, err := c.Cookie("web_auth_cookie")
+	if err != nil {
+		// assume that the err is http.ErrNoCookie
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "cannot get cookie from request"})
+		c.Abort()
 	}
+
 	// parse token
 	claims := &auth.DoctorClaims{DoctorId: -1}
-	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(cookie, claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(config.AppConfig.JWT_KEY), nil
 	})
 	if err != nil {

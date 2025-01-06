@@ -84,6 +84,7 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, rd
 		webProtected := web.Group("/api")
 		webProtected.Use(middleware.WebAuthMiddleware)
 		{
+			webProtected.GET("/authState", w.GetAuthState)
 			webProtected.GET("/profile", w.GetProfile)
 			webProtected.PUT("/profile", w.UpdateProfile)
 			webProtected.GET("/doctor", w.GetAllDoctor)

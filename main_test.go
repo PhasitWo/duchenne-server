@@ -105,9 +105,16 @@ func testInternal(t *testing.T, testCases []testCase, method string, url string)
 		t.Run(tc.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
 			req, _ := http.NewRequest(method, url, bytes.NewBuffer(tc.requestBody))
+			var cookie http.Cookie
 			if tc.authToken != "" {
 				req.Header.Set("Authorization", tc.authToken)
 			}
+			// add cookie for web api test
+			cookie = http.Cookie{
+				Name:  "web_auth_cookie",
+				Value: tc.authToken,
+				Path:  "/"}
+			req.AddCookie(&cookie)
 			router.ServeHTTP(w, req)
 			assert.Equal(t, tc.expected, w.Code)
 		})
