@@ -116,4 +116,5 @@ func (w *WebHandler) AnswerQuestion(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	c.Status(http.StatusOK)
 }

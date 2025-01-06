@@ -49,6 +49,10 @@ func (w *WebHandler) CreateDoctor(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	if input.Role != model.ADMIN && input.Role != model.ROOT && input.Role != model.USER {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid role value"})
+		return
+	}
 	insertedId, err := w.Repo.CreateDoctor(model.Doctor{
 		FirstName:  input.FirstName,
 		MiddleName: input.MiddleName,
@@ -72,6 +76,10 @@ func (w *WebHandler) UpdateDoctor(c *gin.Context) {
 	var input doctorInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if input.Role != model.ADMIN && input.Role != model.ROOT && input.Role != model.USER {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid role value"})
 		return
 	}
 	i := c.Param("id")
