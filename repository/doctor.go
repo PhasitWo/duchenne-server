@@ -30,7 +30,7 @@ func (r *Repo) GetDoctorById(id any) (model.Doctor, error) {
 	return d, nil
 }
 
-var allDoctorQuery = "SELECT id, first_name, middle_name, last_name FROM doctor"
+var allDoctorQuery = "SELECT id, first_name, middle_name, last_name, role FROM doctor"
 
 func (r *Repo) GetAllDoctor() ([]model.TrimDoctor, error) {
 	rows, err := r.db.Query(allDoctorQuery)
@@ -42,7 +42,7 @@ func (r *Repo) GetAllDoctor() ([]model.TrimDoctor, error) {
 	var res []model.TrimDoctor
 	for rows.Next() {
 		var d model.TrimDoctor
-		if err := rows.Scan(&d.Id, &d.FirstName, &d.MiddleName, &d.LastName); err != nil {
+		if err := rows.Scan(&d.Id, &d.FirstName, &d.MiddleName, &d.LastName, &d.Role); err != nil {
 			return nil, fmt.Errorf("query : %w", err)
 		}
 		res = append(res, d)

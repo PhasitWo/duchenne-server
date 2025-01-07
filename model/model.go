@@ -37,6 +37,7 @@ type TrimDoctor struct {
 	FirstName  string  `json:"firstName"`
 	MiddleName *string `json:"middleName"` // nullable
 	LastName   string  `json:"lastName"`
+	Role       Role    `json:"role"`
 }
 
 type Appointment struct {
