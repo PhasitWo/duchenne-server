@@ -11,19 +11,23 @@ import (
 )
 
 func WebAuthMiddleware(c *gin.Context) {
-	cookie, err := c.Cookie("web_auth_token")
+	cookie, err := c.Cookie(config.Constants.WEB_ACCESS_COOKIE_NAME)
 	if err != nil {
 		// assume that the err is http.ErrNoCookie or expired
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "cannot get cookie from request"})
 		c.Abort()
 		return
 	}
-
 	// parse token
 	claims := &auth.DoctorClaims{DoctorId: -1}
 	token, err := jwt.ParseWithClaims(cookie, claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(config.AppConfig.JWT_KEY), nil
 	})
+	if err == jwt.ErrTokenExpired {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "expired access token"})
+		c.Abort()
+		return
+	}
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		c.Abort()

@@ -60,3 +60,13 @@ func LoadConfig() {
 	configLogger.Printf("Server is running in mode `%v`\n\n", AppConfig.MODE)
 	configLogger.Printf("Server Domain -> `%v`\n\n", AppConfig.SERVER_DOMAIN)
 }
+
+type constants struct {
+	WEB_ACCESS_COOKIE_NAME string
+	WEB_REFRESH_COOKIE_NAME string
+}
+
+var Constants = constants{
+	WEB_ACCESS_COOKIE_NAME: "web_access_token",
+	WEB_REFRESH_COOKIE_NAME: "web_refresh_token",
+}

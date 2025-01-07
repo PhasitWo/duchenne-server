@@ -111,7 +111,7 @@ func testInternal(t *testing.T, testCases []testCase, method string, url string)
 			}
 			// add cookie for web api test
 			cookie = http.Cookie{
-				Name:  "web_auth_token",
+				Name:  config.Constants.WEB_ACCESS_COOKIE_NAME,
 				Value: tc.authToken,
 				Path:  "/"}
 			req.AddCookie(&cookie)

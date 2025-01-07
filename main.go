@@ -6,6 +6,7 @@ import (
 	"crypto/tls"
 	"database/sql"
 	"log"
+	"net/http"
 	"os"
 	"time"
 
@@ -17,6 +18,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/robfig/cron"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
 	// "github.com/PhasitWo/duchenne-server/repository"
@@ -76,15 +78,20 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, rd
 		}
 	}
 	web := r.Group("/web")
+	r.Static("/static", "./assets")
+	r.GET("/", func(c *gin.Context) {
+		c.Redirect(http.StatusMovedPermanently, "/static")
+	})
 	{
 		webAuth := web.Group("/auth")
 		{
 			webAuth.POST("/login", w.Login)
+			webAuth.POST("/logout", w.Logout)
 		}
 		webProtected := web.Group("/api")
 		webProtected.Use(middleware.WebAuthMiddleware)
 		{
-			webProtected.GET("/authState", w.GetAuthState)
+			webProtected.GET("/userData", w.GetUserData)
 			webProtected.GET("/profile", w.GetProfile)
 			webProtected.PUT("/profile", w.UpdateProfile)
 			webProtected.GET("/doctor", w.GetAllDoctor)
@@ -136,6 +143,10 @@ func setupDB() *sql.DB {
 func setupRouter() *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowCredentials = true
+	corsConfig.AllowOrigins = []string{"http://localhost:5173", "http://localhost:4173", "https://duchenne-web.onrender.com/"}
+	r.Use(cors.New(corsConfig))
 	return r
 }
 

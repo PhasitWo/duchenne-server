@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
-	"time"
 
 	"github.com/PhasitWo/duchenne-server/auth"
 	"github.com/PhasitWo/duchenne-server/config"
@@ -44,11 +43,18 @@ func (w *WebHandler) Login(c *gin.Context) {
 		return
 	}
 	// set cookie
-	c.SetCookie("web_auth_token", token, 30*int(time.Minute), "/", config.AppConfig.SERVER_DOMAIN, false, true)
+	c.SetSameSite(http.SameSiteNoneMode)
+	c.SetCookie(config.Constants.WEB_ACCESS_COOKIE_NAME, token, 60*60*10, "/", config.AppConfig.SERVER_DOMAIN, true, true)
 	c.JSON(http.StatusOK, gin.H{"token": token})
 }
 
-func (w *WebHandler) GetAuthState(c *gin.Context) {
+func (w *WebHandler) Logout(c *gin.Context) {
+	c.SetSameSite(http.SameSiteNoneMode)
+	c.SetCookie(config.Constants.WEB_ACCESS_COOKIE_NAME, "", 1, "/", config.AppConfig.SERVER_DOMAIN, true, true)
+	c.Status(http.StatusOK)
+}
+
+func (w *WebHandler) GetUserData(c *gin.Context) {
 	id, exists := c.Get("doctorId")
 	if !exists {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "no 'doctorId' from auth middleware"})
