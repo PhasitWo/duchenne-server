@@ -49,8 +49,8 @@ CREATE TABLE device (
   patient_id int NOT NULL
 );
 
-ALTER TABLE appointment ADD CONSTRAINT appointment_doctor_id_fk FOREIGN KEY (doctor_id) REFERENCES doctor (id);
-ALTER TABLE appointment ADD CONSTRAINT appointment_patient_id_fk FOREIGN KEY (patient_id) REFERENCES patient (id);
-ALTER TABLE question ADD CONSTRAINT question_doctor_id_fk FOREIGN KEY (doctor_id) REFERENCES doctor (id);
-ALTER TABLE question ADD CONSTRAINT question_patient_id_fk FOREIGN KEY (patient_id) REFERENCES patient (id);
+ALTER TABLE appointment ADD CONSTRAINT appointment_doctor_id_fk FOREIGN KEY (doctor_id) REFERENCES doctor (id) ON DELETE CASCADE;
+ALTER TABLE appointment ADD CONSTRAINT appointment_patient_id_fk FOREIGN KEY (patient_id) REFERENCES patient (id) ON DELETE CASCADE;
+ALTER TABLE question ADD CONSTRAINT question_doctor_id_fk FOREIGN KEY (doctor_id) REFERENCES doctor (id) ON DELETE SET NULL;
+ALTER TABLE question ADD CONSTRAINT question_patient_id_fk FOREIGN KEY (patient_id) REFERENCES patient (id) ON DELETE CASCADE;
 ALTER TABLE device ADD CONSTRAINT device_patient_id_fk FOREIGN KEY (patient_id) REFERENCES patient (id) ON DELETE CASCADE;

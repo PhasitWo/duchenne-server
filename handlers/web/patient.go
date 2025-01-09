@@ -41,7 +41,7 @@ type patientInput struct {
 	MiddleName *string `json:"middleName"`
 	LastName   string  `json:"lastName" binding:"required"`
 	Email      *string `json:"email"`
-	Phone      *string `json:"phone" binding:"max=15"`
+	Phone      *string `json:"phone"`
 	Verified   bool    `json:"verified"`
 }
 
