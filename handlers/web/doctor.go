@@ -1,7 +1,6 @@
 package web
 
 import (
-	"database/sql"
 	"errors"
 	"net/http"
 	"strconv"
@@ -9,13 +8,14 @@ import (
 	"github.com/PhasitWo/duchenne-server/model"
 	"github.com/PhasitWo/duchenne-server/repository"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func (w *WebHandler) GetDoctor(c *gin.Context) {
 	id := c.Param("id")
 	doctor, err := w.Repo.GetDoctorById(id)
 	if err != nil {
-		if errors.Unwrap(err) == sql.ErrNoRows { // no rows found
+		if errors.Unwrap(err) == gorm.ErrRecordNotFound { // no rows found
 			c.Status(http.StatusNotFound)
 			return
 		}
@@ -90,7 +90,7 @@ func (w *WebHandler) UpdateDoctor(c *gin.Context) {
 	}
 	_, err = w.Repo.GetDoctorById(id) // check if this id exist
 	if err != nil {
-		if errors.Unwrap(err) == sql.ErrNoRows { // no rows found
+		if errors.Unwrap(err) == gorm.ErrRecordNotFound { // no rows found
 			c.Status(http.StatusNotFound)
 			return
 		}
@@ -98,7 +98,7 @@ func (w *WebHandler) UpdateDoctor(c *gin.Context) {
 		return
 	}
 	err = w.Repo.UpdateDoctor(model.Doctor{
-		Id:         id,
+		ID:         id,
 		FirstName:  input.FirstName,
 		MiddleName: input.MiddleName,
 		LastName:   input.LastName,

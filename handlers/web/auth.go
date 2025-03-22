@@ -1,13 +1,13 @@
 package web
 
 import (
-	"database/sql"
 	"errors"
 	"net/http"
 
 	"github.com/PhasitWo/duchenne-server/auth"
 	"github.com/PhasitWo/duchenne-server/config"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type login struct {
@@ -24,7 +24,7 @@ func (w *WebHandler) Login(c *gin.Context) {
 	// fetch doctor from database
 	storedDoctor, err := w.Repo.GetDoctorByUsername(input.Username)
 	if err != nil {
-		if errors.Unwrap(err) == sql.ErrNoRows { // no rows found
+		if errors.Unwrap(err) == gorm.ErrRecordNotFound { // no rows found
 			c.Status(http.StatusNotFound)
 			return
 		}
@@ -37,7 +37,7 @@ func (w *WebHandler) Login(c *gin.Context) {
 		return
 	}
 	// generate token
-	token, err := auth.GenerateDoctorToken(storedDoctor.Id, storedDoctor.Role)
+	token, err := auth.GenerateDoctorToken(storedDoctor.ID, storedDoctor.Role)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

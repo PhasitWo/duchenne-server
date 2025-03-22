@@ -1,7 +1,6 @@
 package mobile
 
 import (
-	"database/sql"
 	"errors"
 	"net/http"
 	"time"
@@ -10,6 +9,7 @@ import (
 	"github.com/PhasitWo/duchenne-server/config"
 	"github.com/PhasitWo/duchenne-server/repository"
 	"github.com/golang-jwt/jwt/v4"
+	"gorm.io/gorm"
 
 	"github.com/PhasitWo/duchenne-server/model"
 
@@ -33,7 +33,7 @@ func (m *MobileHandler) Login(c *gin.Context) {
 	// fetch patient from database
 	storedPatient, err := m.Repo.GetPatientByHN(input.Hn)
 	if err != nil {
-		if errors.Unwrap(err) == sql.ErrNoRows { // no rows found
+		if errors.Unwrap(err) == gorm.ErrRecordNotFound { // no rows found
 			c.Status(http.StatusNotFound)
 			return
 		}
@@ -50,33 +50,33 @@ func (m *MobileHandler) Login(c *gin.Context) {
 		return
 	}
 	// save this device for notification stuff
-	criteria := repository.Criteria{QueryCriteria: repository.PATIENTID, Value: storedPatient.Id}
+	criteria := repository.Criteria{QueryCriteria: repository.PATIENTID, Value: storedPatient.ID}
 	devices, err := m.Repo.GetAllDevice(criteria)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	newDevice := model.Device{
-		Id:         -1,
 		LoginAt:    int(time.Now().Unix()),
 		DeviceName: input.DeviceName,
 		ExpoToken:  input.ExpoToken,
-		PatientId:  storedPatient.Id,
+		PatientId:  storedPatient.ID,
 	}
-	tx, err := m.DBConn.Begin()
-	if err != nil {
+	tx := m.DBConn.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	defer func() {
-		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "tx can't rollback"})
-		}
-	}()
+
 	repoWithTx := repository.New(tx)
 	if len(devices) >= config.AppConfig.MAX_DEVICE {
 		// remove the oldest login device
-		toRemoveDeviceId := devices[0].Id
+		toRemoveDeviceId := devices[0].ID
 		err = repoWithTx.DeleteDevice(toRemoveDeviceId)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -90,13 +90,13 @@ func (m *MobileHandler) Login(c *gin.Context) {
 		return
 	}
 	// generate token
-	token, err := auth.GeneratePatientToken(storedPatient.Id, deviceId)
+	token, err := auth.GeneratePatientToken(storedPatient.ID, deviceId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	// commit tx
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit().Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Tx can't commit"})
 		return
 	}
@@ -121,7 +121,7 @@ func (m *MobileHandler) Signup(c *gin.Context) {
 	// fetch patient from database
 	storedPatient, err := m.Repo.GetPatientByHN(s.Hn)
 	if err != nil {
-		if errors.Unwrap(err) == sql.ErrNoRows { // no rows found
+		if errors.Unwrap(err) == gorm.ErrRecordNotFound { // no rows found
 			c.Status(http.StatusNotFound)
 			return
 		}
@@ -148,7 +148,7 @@ func (m *MobileHandler) Signup(c *gin.Context) {
 	// update patient info and mark patient as verified
 	err = m.Repo.UpdatePatient(
 		model.Patient{
-			Id:         storedPatient.Id,
+			ID:         storedPatient.ID,
 			Hn:         storedPatient.Hn,
 			FirstName:  storedPatient.FirstName,
 			MiddleName: storedPatient.MiddleName,

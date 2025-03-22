@@ -12,8 +12,8 @@ const (
 )
 
 type Patient struct {
-	Id         int     `json:"id"`
-	Hn         string  `json:"hn"`
+	ID         int     `json:"id"`
+	Hn         string  `json:"hn" gorm:"unique"`
 	FirstName  string  `json:"firstName"`
 	MiddleName *string `json:"middleName"` // nullable
 	LastName   string  `json:"lastName"`
@@ -23,17 +23,17 @@ type Patient struct {
 }
 
 type Doctor struct {
-	Id         int     `json:"id"`
+	ID         int     `json:"id"`
 	FirstName  string  `json:"firstName"`
 	MiddleName *string `json:"middleName"` // nullable
 	LastName   string  `json:"lastName"`
-	Username   string  `json:"username"`
+	Username   string  `json:"username" gorm:"unique"`
 	Password   string  `json:"password"`
 	Role       Role    `json:"role"`
 }
 
 type TrimDoctor struct {
-	Id         int     `json:"id"`
+	ID         int     `json:"id"`
 	FirstName  string  `json:"firstName"`
 	MiddleName *string `json:"middleName"` // nullable
 	LastName   string  `json:"lastName"`
@@ -41,35 +41,51 @@ type TrimDoctor struct {
 }
 
 type Appointment struct {
-	Id       int        `json:"id"`
-	CreateAt int        `json:"createAt"`
-	Date     int        `json:"date"`
-	Patient  Patient    `json:"patient"`
-	Doctor   TrimDoctor `json:"doctor"`
+	ID        int     `json:"id"`
+	CreateAt  int     `json:"createAt"`
+	Date      int     `json:"date"`
+	PatientID int     `json:"-"`
+	Patient   Patient `json:"patient"`
+	DoctorID  int     `json:"-"`
+	Doctor    Doctor  `json:"doctor"`
+}
+
+type SafeAppointment struct {
+	Appointment
+	Doctor TrimDoctor `json:"doctor"`
 }
 
 type Question struct {
-	Id       int         `json:"id"`
-	Topic    string      `json:"topic"`
-	Question string      `json:"question"`
-	CreateAt int         `json:"createAt"`
-	Answer   *string     `json:"answer"`   // nullable
-	AnswerAt *int        `json:"answerAt"` // nullable
-	Patient  Patient     `json:"patient"`
-	Doctor   *TrimDoctor `json:"doctor"` // nullable
+	ID        int     `json:"id"`
+	Topic     string  `json:"topic"`
+	Question  string  `json:"question"`
+	CreateAt  int     `json:"createAt"`
+	Answer    *string `json:"answer"`   // nullable
+	AnswerAt  *int    `json:"answerAt"` // nullable
+	PatientID int     `json:"-"`
+	Patient   Patient `json:"patient"`
+	DoctorID  *int    `json:"-"`
+	Doctor    *Doctor `json:"doctor"` // nullable
+}
+
+type SafeQuestion struct {
+	Question
+	Doctor TrimDoctor `json:"doctor"`
 }
 
 type QuestionTopic struct {
-	Id       int         `json:"id"`
-	Topic    string      `json:"topic"`
-	CreateAt int         `json:"createAt"`
-	AnswerAt *int        `json:"answerAt"` // nullable
-	Doctor   *TrimDoctor `json:"doctor"`   // nullable
-	Patient  Patient     `json:"patient"`
+	ID        int         `json:"id"`
+	Topic     string      `json:"topic"`
+	CreateAt  int         `json:"createAt"`
+	AnswerAt  *int        `json:"answerAt"` // nullable
+	PatientID int         `json:"-"`
+	Patient   Patient     `json:"patient"`
+	DoctorID  int         `json:"-"`
+	Doctor    *TrimDoctor `json:"doctor"` // nullable
 }
 
 type Device struct {
-	Id         int    `json:"id"`
+	ID         int    `json:"id"`
 	LoginAt    int    `json:"loginAt"`
 	DeviceName string `json:"deviceName"`
 	ExpoToken  string `json:"expoToken"`

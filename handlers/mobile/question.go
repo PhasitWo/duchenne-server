@@ -1,7 +1,6 @@
 package mobile
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	"time"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/PhasitWo/duchenne-server/repository"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func (m *MobileHandler) GetAllPatientQuestion(c *gin.Context) {
@@ -39,7 +39,7 @@ func (m *MobileHandler) GetQuestion(c *gin.Context) {
 	id := c.Param("id")
 	q, err := m.Repo.GetQuestion(id)
 	if err != nil {
-		if errors.Unwrap(err) == sql.ErrNoRows { // no rows found
+		if errors.Unwrap(err) == gorm.ErrRecordNotFound { // no rows found
 			c.Status(http.StatusNotFound)
 			return
 		}
@@ -47,7 +47,7 @@ func (m *MobileHandler) GetQuestion(c *gin.Context) {
 		return
 	}
 	// check if this question belongs to the patient
-	if patientId != q.Patient.Id {
+	if patientId != q.Patient.ID {
 		c.Status(http.StatusUnauthorized)
 		return
 	}
@@ -105,14 +105,14 @@ func (m *MobileHandler) DeleteQuestion(c *gin.Context) {
 	// check if this question belongs to the patient
 	q, err := m.Repo.GetQuestion(id)
 	if err != nil {
-		if errors.Unwrap(err) == sql.ErrNoRows { // no row found
+		if errors.Unwrap(err) == gorm.ErrRecordNotFound { // no row found
 			c.Status(http.StatusNotFound)
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	if patientId != q.Patient.Id {
+	if patientId != q.Patient.ID {
 		c.Status(http.StatusUnauthorized)
 		return
 	}
