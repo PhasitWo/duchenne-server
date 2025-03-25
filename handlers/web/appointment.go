@@ -1,12 +1,15 @@
 package web
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 	"time"
 
+	"github.com/PhasitWo/duchenne-server/model"
 	"github.com/PhasitWo/duchenne-server/repository"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func (w *WebHandler) GetAllAppointment(c *gin.Context) {
@@ -62,4 +65,90 @@ func (w *WebHandler) GetAllAppointment(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, aps)
+}
+
+func (w *WebHandler) GetAppointment(c *gin.Context) {
+	id := c.Param("id")
+	apm, err := w.Repo.GetAppointment(id)
+	if err != nil {
+		if errors.Unwrap(err) == gorm.ErrRecordNotFound { // no rows found
+			c.Status(http.StatusNotFound)
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, apm)
+}
+
+type appointmentInput struct {
+	Date      int  `json:"date" binding:"required"`
+	PatientId int  `json:"patientId" binding:"required"`
+	DoctorId  int  `json:"doctorId" binding:"required"`
+	ApproveAt *int `json:"approveAt"`
+}
+
+func (w *WebHandler) CreateAppointment(c *gin.Context) {
+	// binding request body
+	var input appointmentInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	// validate input.date
+	now := int(time.Now().Unix())
+	if input.Date < now {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "'Date' is before current time"})
+		return
+	}
+	// create new appointment
+	insertedId, err := w.Repo.CreateAppointment(model.Appointment{
+		Date:      input.Date,
+		PatientID: input.PatientId,
+		DoctorID:  input.DoctorId,
+		ApproveAt: input.ApproveAt,
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, gin.H{"id": insertedId})
+}
+
+func (w *WebHandler) UpdateAppointment(c *gin.Context) {
+	var input appointmentInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	i := c.Param("id")
+	id, err := strconv.Atoi(i)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	// update
+	err = w.Repo.UpdateAppointment(model.Appointment{
+		ID:        id,
+		Date:      input.Date,
+		PatientID: input.PatientId,
+		DoctorID:  input.DoctorId,
+		ApproveAt: input.ApproveAt,
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.Status(http.StatusOK)
+}
+
+func (w *WebHandler) DeleteAppointment(c *gin.Context) {
+	id := c.Param("id")
+	// delete appointment
+	err := w.Repo.DeleteAppointment(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.Status(http.StatusNoContent)
 }

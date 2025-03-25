@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/PhasitWo/duchenne-server/model"
 	"github.com/PhasitWo/duchenne-server/repository"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -84,7 +85,12 @@ func (m *MobileHandler) CreateAppointment(c *gin.Context) {
 		return
 	}
 	// create new appointment
-	insertedId, err := m.Repo.CreateAppointment(int(time.Now().Unix()), input.Date, patientId, input.DoctorId)
+	insertedId, err := m.Repo.CreateAppointment(model.Appointment{
+		Date: input.Date,
+		PatientID: patientId,
+		DoctorID: input.DoctorId,
+		ApproveAt: nil,
+	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

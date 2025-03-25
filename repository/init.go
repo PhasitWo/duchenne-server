@@ -26,6 +26,7 @@ func New(db *gorm.DB) *Repo {
 
 // ERROR
 var ErrDuplicateEntry = errors.New("duplicate entry")
+var ErrForeignKeyFail = errors.New("foreign key error")
 
 // CRITERIA
 type Criteria struct {

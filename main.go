@@ -47,6 +47,7 @@ func main() {
 	// CRON
 	c := InitCronScheduler(db)
 	defer c.Stop()
+	mainLogger.Println("Server is live! 🎉")
 	r.Run() // listen and serve on 0.0.0.0:8080
 }
 
@@ -108,6 +109,10 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, rd
 			webProtected.PUT("/patient/:id", middleware.WebRBACMiddleware(middleware.UpdatePatientPermission), w.UpdatePatient)
 			webProtected.DELETE("/patient/:id", middleware.WebRBACMiddleware(middleware.DeletePatientPermission), w.DeletePatient)
 			webProtected.GET("/appointment", w.GetAllAppointment)
+			webProtected.GET("/appointment/:id", w.GetAppointment)
+			webProtected.POST("/appointment", w.CreateAppointment)
+			webProtected.PUT("/appointment/:id", w.UpdateAppointment)
+			webProtected.DELETE("/appointment/:id", w.DeleteAppointment)
 			webProtected.GET("/question", w.GetAllQuestion)
 			webProtected.GET("/question/:id", w.GetQuestion)
 			webProtected.PUT("/question/:id/answer", w.AnswerQuestion)
@@ -138,6 +143,9 @@ func setupDB() *gorm.DB {
 	}
 
 	sqlDB, err := db.DB()
+	if err != nil {
+		mainLogger.Panicf("Can't setup connection config : %v", err.Error())
+	}
 
 	// SetMaxIdleConns sets the maximum number of connections in the idle connection pool.
 	sqlDB.SetMaxIdleConns(10)
