@@ -85,7 +85,7 @@ type appointmentInput struct {
 	Date      int  `json:"date" binding:"required"`
 	PatientId int  `json:"patientId" binding:"required"`
 	DoctorId  int  `json:"doctorId" binding:"required"`
-	ApproveAt *int `json:"approveAt"`
+	Approve   bool `json:"approve"`
 }
 
 func (w *WebHandler) CreateAppointment(c *gin.Context) {
@@ -102,11 +102,15 @@ func (w *WebHandler) CreateAppointment(c *gin.Context) {
 		return
 	}
 	// create new appointment
+	var approveAt *int = nil
+	if input.Approve {
+		approveAt = &now
+	}
 	insertedId, err := w.Repo.CreateAppointment(model.Appointment{
 		Date:      input.Date,
 		PatientID: input.PatientId,
 		DoctorID:  input.DoctorId,
-		ApproveAt: input.ApproveAt,
+		ApproveAt: approveAt,
 	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -127,13 +131,23 @@ func (w *WebHandler) UpdateAppointment(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	// validate input.date
+	now := int(time.Now().Unix())
+	if input.Date < now {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "'Date' is before current time"})
+		return
+	}
 	// update
+	var approveAt *int = nil
+	if input.Approve {
+		approveAt = &now
+	}
 	err = w.Repo.UpdateAppointment(model.Appointment{
 		ID:        id,
 		Date:      input.Date,
 		PatientID: input.PatientId,
 		DoctorID:  input.DoctorId,
-		ApproveAt: input.ApproveAt,
+		ApproveAt: approveAt,
 	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

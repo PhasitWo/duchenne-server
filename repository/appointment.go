@@ -47,7 +47,7 @@ func (r *Repo) CreateAppointment(appointment model.Appointment) (int, error) {
 }
 
 func (r *Repo) UpdateAppointment(appointment model.Appointment) error {
-	result := r.db.Omit("create_at").Updates(&appointment)
+	result := r.db.Select("*").Omit("create_at").Updates(&appointment)
 	err := result.Error
 	if err != nil {
 		var mysqlErr *mysql.MySQLError
