@@ -189,7 +189,7 @@ func setupRouter() *gin.Engine {
 	r := gin.Default()
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowCredentials = true
-	corsConfig.AllowOrigins = []string{"http://localhost:5173", "http://localhost:4173", "https://duchenne-web.onrender.com/"}
+	corsConfig.AllowOrigins = []string{"http://localhost:5173", "http://localhost:4173", "https://duchenne-web.onrender.com"}
 	r.Use(cors.New(corsConfig))
 	return r
 }
