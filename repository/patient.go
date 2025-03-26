@@ -6,6 +6,7 @@ import (
 
 	"github.com/PhasitWo/duchenne-server/model"
 	"github.com/go-sql-driver/mysql"
+	"gorm.io/datatypes"
 )
 
 var GetPatientByIdQuery = `SELECT id, hn, first_name, middle_name, last_name, email, phone, verified FROM patient WHERE id=?`
@@ -53,12 +54,34 @@ func (r *Repo) CreatePatient(patient model.Patient) (int, error) {
 }
 
 func (r *Repo) UpdatePatient(patient model.Patient) error {
-	err := r.db.Updates(&patient).Error
+	err := r.db.Select("*").Omit("vaccine_history", "medicine").Updates(&patient).Error
 	if err != nil {
 		var mysqlErr *mysql.MySQLError
 		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
 			return fmt.Errorf("exec : %w", ErrDuplicateEntry)
 		}
+		return fmt.Errorf("exec : %w", err)
+	}
+	return nil
+}
+
+func (r *Repo) UpdatePatientVaccineHistory(patientId int, vaccineHistory []model.VaccineHistory) error {
+	err := r.db.Select("vaccine_history").Updates(&model.Patient{
+		ID:             patientId,
+		VaccineHistory: datatypes.NewJSONSlice(vaccineHistory),
+	}).Error
+	if err != nil {
+		return fmt.Errorf("exec : %w", err)
+	}
+	return nil
+}
+
+func (r *Repo) UpdatePatientMedicine(patientId int, medicines []model.Medicine) error {
+	err := r.db.Select("medicine").Updates(&model.Patient{
+		ID:       patientId,
+		Medicine: datatypes.NewJSONSlice(medicines),
+	}).Error
+	if err != nil {
 		return fmt.Errorf("exec : %w", err)
 	}
 	return nil

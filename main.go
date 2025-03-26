@@ -95,7 +95,6 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, rd
 		webProtected := web.Group("/api")
 		webProtected.Use(middleware.WebAuthMiddleware)
 		{
-			webProtected.POST("/test", w.Test)
 			webProtected.GET("/userData", w.GetUserData)
 			webProtected.GET("/profile", w.GetProfile)
 			webProtected.PUT("/profile", w.UpdateProfile)
@@ -108,6 +107,8 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, rd
 			webProtected.POST("/patient", middleware.WebRBACMiddleware(middleware.CreatePatientPermission), w.CreatePatient)
 			webProtected.GET("/patient/:id", w.GetPatient)
 			webProtected.PUT("/patient/:id", middleware.WebRBACMiddleware(middleware.UpdatePatientPermission), w.UpdatePatient)
+			webProtected.PUT("/patient/:id/vaccineHistory", middleware.WebRBACMiddleware(middleware.UpdatePatientPermission), w.UpdatePatientVaccineHistory)
+			webProtected.PUT("/patient/:id/medicine", middleware.WebRBACMiddleware(middleware.UpdatePatientPermission), w.UpdatePatientMedicine)
 			webProtected.DELETE("/patient/:id", middleware.WebRBACMiddleware(middleware.DeletePatientPermission), w.DeletePatient)
 			webProtected.GET("/appointment", w.GetAllAppointment)
 			webProtected.GET("/appointment/:id", w.GetAppointment)

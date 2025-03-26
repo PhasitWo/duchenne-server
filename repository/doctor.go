@@ -49,7 +49,7 @@ func (r *Repo) CreateDoctor(doctor model.Doctor) (int, error) {
 }
 
 func (r *Repo) UpdateDoctor(doctor model.Doctor) error {
-	err := r.db.Updates(&doctor).Error
+	err := r.db.Select("*").Updates(&doctor).Error
 	if err != nil {
 		var mysqlErr *mysql.MySQLError
 		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
