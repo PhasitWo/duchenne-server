@@ -36,13 +36,15 @@ func (w *WebHandler) GetAllPatient(c *gin.Context) {
 }
 
 type patientInput struct {
-	Hn         string  `json:"hn" binding:"required,max=15"`
-	FirstName  string  `json:"firstName" binding:"required"`
-	MiddleName *string `json:"middleName"`
-	LastName   string  `json:"lastName" binding:"required"`
-	Email      *string `json:"email"`
-	Phone      *string `json:"phone"`
-	Verified   bool    `json:"verified"`
+	Hn         string   `json:"hn" binding:"required,max=15"`
+	FirstName  string   `json:"firstName" binding:"required"`
+	MiddleName *string  `json:"middleName"`
+	LastName   string   `json:"lastName" binding:"required"`
+	Email      *string  `json:"email"`
+	Phone      *string  `json:"phone"`
+	Verified   bool     `json:"verified"`
+	Weight     *float32 `json:"weight"`
+	Height     *float32 `json:"height"`
 }
 
 func (w *WebHandler) CreatePatient(c *gin.Context) {
@@ -59,6 +61,8 @@ func (w *WebHandler) CreatePatient(c *gin.Context) {
 		Email:      input.Email,
 		Phone:      input.Phone,
 		Verified:   input.Verified,
+		Weight:     input.Weight,
+		Height:     input.Height,
 	})
 	if err != nil {
 		if errors.Unwrap(err) == repository.ErrDuplicateEntry {
@@ -101,6 +105,8 @@ func (w *WebHandler) UpdatePatient(c *gin.Context) {
 		Email:      input.Email,
 		Phone:      input.Phone,
 		Verified:   input.Verified,
+		Weight:     input.Weight,
+		Height:     input.Height,
 	})
 	if err != nil {
 		if errors.Unwrap(err) == repository.ErrDuplicateEntry {
@@ -131,7 +137,7 @@ func (w *WebHandler) DeletePatient(c *gin.Context) {
 }
 
 type updateVaccineHistoryInput struct {
-	Data      []model.VaccineHistory `json:"data" binding:"dive"`
+	Data []model.VaccineHistory `json:"data" binding:"dive"`
 }
 
 func (w *WebHandler) UpdatePatientVaccineHistory(c *gin.Context) {
@@ -164,7 +170,7 @@ func (w *WebHandler) UpdatePatientVaccineHistory(c *gin.Context) {
 }
 
 type updateMedicineInput struct {
-	Data      []model.Medicine `json:"data" binding:"dive"`
+	Data []model.Medicine `json:"data" binding:"dive"`
 }
 
 func (w *WebHandler) UpdatePatientMedicine(c *gin.Context) {

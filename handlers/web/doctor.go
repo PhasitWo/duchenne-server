@@ -41,6 +41,7 @@ type doctorInput struct {
 	Username   string     `json:"username" binding:"required,max=20"`
 	Password   string     `json:"password" binding:"required"`
 	Role       model.Role `json:"role" binding:"required"`
+	Specialist *string    `json:"specialist"`
 }
 
 func (w *WebHandler) CreateDoctor(c *gin.Context) {
@@ -60,6 +61,7 @@ func (w *WebHandler) CreateDoctor(c *gin.Context) {
 		Username:   input.Username,
 		Password:   input.Password,
 		Role:       input.Role,
+		Specialist: input.Specialist,
 	})
 	if err != nil {
 		if errors.Unwrap(err) == repository.ErrDuplicateEntry {
@@ -105,6 +107,7 @@ func (w *WebHandler) UpdateDoctor(c *gin.Context) {
 		Username:   input.Username,
 		Password:   input.Password,
 		Role:       input.Role,
+		Specialist: input.Specialist,
 	})
 	if err != nil {
 		if errors.Unwrap(err) == repository.ErrDuplicateEntry {

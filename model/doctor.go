@@ -16,6 +16,7 @@ type Doctor struct {
 	LastName   string  `json:"lastName" gorm:"not null"`
 	Username   string  `json:"username" gorm:"unique;not null"`
 	Password   string  `json:"password" gorm:"not null"`
+	Specialist *string `json:"specialist"`
 	Role       Role    `json:"role" gorm:"not null"`
 }
 

@@ -27,6 +27,8 @@ type Patient struct {
 	Email          *string                             `json:"email"` // nullable
 	Phone          *string                             `json:"phone"` // nullable
 	Verified       bool                                `json:"verified" gorm:"not null;default:0"`
+	Weight         *float32                            `json:"weight"`         // nullable
+	Height         *float32                            `json:"height"`         // nullable
 	VaccineHistory datatypes.JSONSlice[VaccineHistory] `json:"vaccineHistory"` // nullable
 	Medicine       datatypes.JSONSlice[Medicine]       `json:"medicine"`       // nullable
 }
