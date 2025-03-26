@@ -3,6 +3,9 @@ package main
 import (
 	// "net/http"
 	"context"
+	"crypto/tls"
+	"database/sql"
+
 	// "crypto/tls"
 	// "database/sql"
 	"log"
@@ -24,7 +27,7 @@ import (
 
 	// "github.com/PhasitWo/duchenne-server/repository"
 
-	// "github.com/go-sql-driver/mysql"
+	gomysql "github.com/go-sql-driver/mysql"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -130,18 +133,21 @@ func setupDB() *gorm.DB {
 		message = "Connected to local database"
 	}
 	// open db connection
-	// mysql.RegisterTLSConfig("tidb", &tls.Config{
-	// 	MinVersion: tls.VersionTLS12,
-	// 	ServerName: "gateway01.ap-southeast-1.prod.aws.tidbcloud.com",
-	// })
-
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-		SkipDefaultTransaction: true,
+	gomysql.RegisterTLSConfig("tidb", &tls.Config{
+		MinVersion: tls.VersionTLS12,
+		ServerName: "gateway01.ap-southeast-1.prod.aws.tidbcloud.com",
 	})
-
-	// db, err := sql.Open("mysql", dsn)
+	customDB, err := sql.Open("mysql", dsn)
 	if err != nil {
 		mainLogger.Panicf("Can't open connection to database : %v", err.Error())
+	}
+	
+	db, err := gorm.Open(mysql.New(mysql.Config{
+		Conn: customDB,
+	}), &gorm.Config{SkipDefaultTransaction: true})
+
+	if err != nil {
+		mainLogger.Panicf("GORM can't connection to database : %v", err.Error())
 	}
 
 	sqlDB, err := db.DB()
