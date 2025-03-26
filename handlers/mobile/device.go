@@ -1,8 +1,6 @@
 package mobile
 
 import (
-	"database/sql"
-	"errors"
 	"net/http"
 	"time"
 
@@ -49,7 +47,6 @@ func (m *MobileHandler) CreateDevice(c *gin.Context) {
 	}
 	// save this device for notification stuff
 	newDevice := model.Device{
-		Id:         -1,
 		LoginAt:    int(time.Now().Unix()),
 		DeviceName: dv.DeviceName,
 		ExpoToken:  dv.ExpoToken,
@@ -61,20 +58,20 @@ func (m *MobileHandler) CreateDevice(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	tx, err := m.DBConn.Begin()
-	if err != nil {
+	tx := m.DBConn.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	defer func() {
-		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "tx can't rollback"})
-		}
-	}()
 	repoWithTx := repository.New(tx)
 	if len(devices) >= config.AppConfig.MAX_DEVICE {
 		// remove the oldest login device
-		toRemoveDeviceId := devices[0].Id
+		toRemoveDeviceId := devices[0].ID
 		err = repoWithTx.DeleteDevice(toRemoveDeviceId)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -94,7 +91,7 @@ func (m *MobileHandler) CreateDevice(c *gin.Context) {
 		return
 	}
 	// commit tx
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit().Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Tx can't commit"})
 		return
 	}

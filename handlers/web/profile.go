@@ -1,13 +1,13 @@
 package web
 
 import (
-	"database/sql"
 	"errors"
 	"net/http"
 
 	"github.com/PhasitWo/duchenne-server/model"
 	"github.com/PhasitWo/duchenne-server/repository"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func (w *WebHandler) GetProfile(c *gin.Context) {
@@ -20,7 +20,7 @@ func (w *WebHandler) GetProfile(c *gin.Context) {
 	// fetch doctor from database
 	d, err := w.Repo.GetDoctorById(doctorId)
 	if err != nil {
-		if errors.Unwrap(err) == sql.ErrNoRows { // no rows found
+		if errors.Unwrap(err) == gorm.ErrRecordNotFound { // no rows found
 			c.Status(http.StatusNotFound)
 			return
 		}
@@ -59,7 +59,7 @@ func (w *WebHandler) UpdateProfile(c *gin.Context) {
 	}
 	err := w.Repo.UpdateDoctor(
 		model.Doctor{
-			Id:         id,
+			ID:         id,
 			FirstName:  input.FirstName,
 			MiddleName: input.MiddleName,
 			LastName:   input.LastName,

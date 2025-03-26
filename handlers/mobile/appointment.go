@@ -1,13 +1,14 @@
 package mobile
 
 import (
-	"database/sql"
 	"errors"
 	"net/http"
 	"time"
 
+	"github.com/PhasitWo/duchenne-server/model"
 	"github.com/PhasitWo/duchenne-server/repository"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // "fmt"
@@ -43,7 +44,7 @@ func (m *MobileHandler) GetAppointment(c *gin.Context) {
 	id := c.Param("id")
 	ap, err := m.Repo.GetAppointment(id)
 	if err != nil {
-		if errors.Unwrap(err) == sql.ErrNoRows { // no rows found
+		if errors.Unwrap(err) == gorm.ErrRecordNotFound { // no rows found
 			c.Status(http.StatusNotFound)
 			return
 		}
@@ -51,7 +52,7 @@ func (m *MobileHandler) GetAppointment(c *gin.Context) {
 		return
 	}
 	// check if this appointment belongs to the patient
-	if patientId != ap.Patient.Id {
+	if patientId != ap.Patient.ID {
 		c.Status(http.StatusUnauthorized)
 		return
 	}
@@ -84,7 +85,12 @@ func (m *MobileHandler) CreateAppointment(c *gin.Context) {
 		return
 	}
 	// create new appointment
-	insertedId, err := m.Repo.CreateAppointment(int(time.Now().Unix()), input.Date, patientId, input.DoctorId)
+	insertedId, err := m.Repo.CreateAppointment(model.Appointment{
+		Date: input.Date,
+		PatientID: patientId,
+		DoctorID: input.DoctorId,
+		ApproveAt: nil,
+	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -104,14 +110,14 @@ func (m *MobileHandler) DeleteAppointment(c *gin.Context) {
 	// check if this appointment belongs to the patient
 	ap, err := m.Repo.GetAppointment(id)
 	if err != nil {
-		if errors.Unwrap(err) == sql.ErrNoRows { // no rows found
+		if errors.Unwrap(err) == gorm.ErrRecordNotFound { // no rows found
 			c.Status(http.StatusNotFound)
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	if patientId != ap.Patient.Id {
+	if patientId != ap.Patient.ID {
 		c.Status(http.StatusUnauthorized)
 		return
 	}

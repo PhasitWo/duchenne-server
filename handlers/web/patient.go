@@ -1,7 +1,6 @@
 package web
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
@@ -10,13 +9,14 @@ import (
 	"github.com/PhasitWo/duchenne-server/model"
 	"github.com/PhasitWo/duchenne-server/repository"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func (w *WebHandler) GetPatient(c *gin.Context) {
 	id := c.Param("id")
 	patient, err := w.Repo.GetPatientById(id)
 	if err != nil {
-		if errors.Unwrap(err) == sql.ErrNoRows { // no rows found
+		if errors.Unwrap(err) == gorm.ErrRecordNotFound { // no rows found
 			c.Status(http.StatusNotFound)
 			return
 		}
@@ -85,7 +85,7 @@ func (w *WebHandler) UpdatePatient(c *gin.Context) {
 	}
 	_, err = w.Repo.GetPatientById(id) // check if this id exist
 	if err != nil {
-		if errors.Unwrap(err) == sql.ErrNoRows { // no rows found
+		if errors.Unwrap(err) == gorm.ErrRecordNotFound { // no rows found
 			c.Status(http.StatusNotFound)
 			return
 		}
@@ -93,7 +93,7 @@ func (w *WebHandler) UpdatePatient(c *gin.Context) {
 		return
 	}
 	err = w.Repo.UpdatePatient(model.Patient{
-		Id:         id,
+		ID:         id,
 		Hn:         input.Hn,
 		FirstName:  input.FirstName,
 		MiddleName: input.MiddleName,
@@ -128,4 +128,70 @@ func (w *WebHandler) DeletePatient(c *gin.Context) {
 		return
 	}
 	c.Status(http.StatusNoContent)
+}
+
+type updateVaccineHistoryInput struct {
+	Data      []model.VaccineHistory `json:"data" binding:"dive"`
+}
+
+func (w *WebHandler) UpdatePatientVaccineHistory(c *gin.Context) {
+	var input updateVaccineHistoryInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	i := c.Param("id")
+	id, err := strconv.Atoi(i)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	_, err = w.Repo.GetPatientById(id) // check if this id exist
+	if err != nil {
+		if errors.Unwrap(err) == gorm.ErrRecordNotFound { // no rows found
+			c.Status(http.StatusNotFound)
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	err = w.Repo.UpdatePatientVaccineHistory(id, input.Data)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.Status(http.StatusOK)
+}
+
+type updateMedicineInput struct {
+	Data      []model.Medicine `json:"data" binding:"dive"`
+}
+
+func (w *WebHandler) UpdatePatientMedicine(c *gin.Context) {
+	var input updateMedicineInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	i := c.Param("id")
+	id, err := strconv.Atoi(i)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	_, err = w.Repo.GetPatientById(id) // check if this id exist
+	if err != nil {
+		if errors.Unwrap(err) == gorm.ErrRecordNotFound { // no rows found
+			c.Status(http.StatusNotFound)
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	err = w.Repo.UpdatePatientMedicine(id, input.Data)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.Status(http.StatusOK)
 }

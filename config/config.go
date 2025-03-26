@@ -57,7 +57,7 @@ func LoadConfig() {
 	}
 
 	configLogger.Printf("Config Loaded\n")
-	configLogger.Printf("Server is running in mode `%v`\n\n", AppConfig.MODE)
+	configLogger.Printf("Server is running in mode `%v`\n", AppConfig.MODE)
 	configLogger.Printf("Server Domain -> `%v`\n\n", AppConfig.SERVER_DOMAIN)
 }
 

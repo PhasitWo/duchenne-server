@@ -1,13 +1,13 @@
 package web
 
 import (
-	"database/sql"
 	"errors"
 	"net/http"
 	"strconv"
 
 	"github.com/PhasitWo/duchenne-server/repository"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func (w *WebHandler) GetAllQuestion(c *gin.Context) {
@@ -69,7 +69,7 @@ func (w *WebHandler) GetQuestion(c *gin.Context) {
 	id := c.Param("id")
 	q, err := w.Repo.GetQuestion(id)
 	if err != nil {
-		if errors.Unwrap(err) == sql.ErrNoRows { // no rows found
+		if errors.Unwrap(err) == gorm.ErrRecordNotFound { // no rows found
 			c.Status(http.StatusNotFound)
 			return
 		}
@@ -87,7 +87,7 @@ func (w *WebHandler) AnswerQuestion(c *gin.Context) {
 	id := c.Param("id")
 	q, err := w.Repo.GetQuestion(id)
 	if err != nil {
-		if errors.Unwrap(err) == sql.ErrNoRows { // no rows found
+		if errors.Unwrap(err) == gorm.ErrRecordNotFound { // no rows found
 			c.Status(http.StatusNotFound)
 			return
 		}
@@ -105,13 +105,19 @@ func (w *WebHandler) AnswerQuestion(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	doctorId, exists := c.Get("doctorId")
+	dId, exists := c.Get("doctorId")
 	if !exists {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "no 'doctorId' from auth middleware"})
 		return
 	}
+	doctorId := dId.(int)
 	// query
-	err = w.Repo.UpdateQuestionAnswer(id, input.Answer, doctorId)
+	questionId, err := strconv.Atoi(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+	err = w.Repo.UpdateQuestionAnswer(questionId, input.Answer, doctorId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

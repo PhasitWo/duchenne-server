@@ -1,145 +1,66 @@
 package repository
 
 import (
+	"errors"
 	"fmt"
-	"strconv"
+	"time"
+
+	// "strconv"
 
 	"github.com/PhasitWo/duchenne-server/model"
+	"github.com/go-sql-driver/mysql"
 )
 
-var appointmentQuery = `
-SELECT
-appointment.id,
-create_at,
-date,
-patient_id,
-patient.hn,
-patient.first_name,
-patient.middle_name,
-patient.last_name,
-patient.email,
-patient.phone,
-patient.verified,
-doctor_id,
-doctor.first_name,
-doctor.middle_name,
-doctor.last_name
-FROM appointment
-INNER JOIN patient ON appointment.patient_id = patient.id 
-INNER JOIN doctor ON appointment.doctor_id = doctor.id
-WHERE appointment.id = ?
-`
-
-func (r *Repo) GetAppointment(appointmentId any) (model.Appointment, error) {
-	var ap model.Appointment
-	row := r.db.QueryRow(appointmentQuery, appointmentId)
-	if err := row.Scan(
-		&ap.Id,
-		&ap.CreateAt,
-		&ap.Date,
-		&ap.Patient.Id,
-		&ap.Patient.Hn,
-		&ap.Patient.FirstName,
-		&ap.Patient.MiddleName,
-		&ap.Patient.LastName,
-		&ap.Patient.Email,
-		&ap.Patient.Phone,
-		&ap.Patient.Verified,
-		&ap.Doctor.Id,
-		&ap.Doctor.FirstName,
-		&ap.Doctor.MiddleName,
-		&ap.Doctor.LastName,
-	); err != nil {
-		return ap, fmt.Errorf("query : %w", err)
+func (r *Repo) GetAppointment(appointmentId any) (model.SafeAppointment, error) {
+	var ap model.SafeAppointment
+	err := r.db.Model(&model.Appointment{}).Joins("Doctor").Preload("Patient").Where("Appointments.id = ?", appointmentId).First(&ap).Error
+	if err != nil {
+		return ap, fmt.Errorf("exec : %w", err)
 	}
 	return ap, nil
 }
 
-var allAppointmentQuery = `
-SELECT
-appointment.id,
-create_at,
-date,
-patient_id,
-patient.hn,
-patient.first_name,
-patient.middle_name,
-patient.last_name,
-patient.email,
-patient.phone,
-patient.verified,
-doctor_id,
-doctor.first_name,
-doctor.middle_name,
-doctor.last_name
-FROM appointment
-INNER JOIN patient ON appointment.patient_id = patient.id 
-INNER JOIN doctor ON appointment.doctor_id = doctor.id
-`
-
 // Get all appointments with following criteria
-func (r *Repo) GetAllAppointment(limit int, offset int, criteria ...Criteria) ([]model.Appointment, error) {
-	queryString := attachCriteria(allAppointmentQuery, criteria...)
-	rows, err := r.db.Query(queryString + " ORDER BY date ASC LIMIT " + strconv.Itoa(limit) + " OFFSET " + strconv.Itoa(offset))
+func (r *Repo) GetAllAppointment(limit int, offset int, criteria ...Criteria) ([]model.SafeAppointment, error) {
+	res := []model.SafeAppointment{}
+	db := attachCriteria(r.db, criteria...)
+	err := db.Model(&model.Appointment{}).Joins("Doctor").Preload("Patient").Limit(limit).Offset(offset).Order("date ASC").Find(&res).Error
 	if err != nil {
-		return nil, fmt.Errorf("query : %w", err)
-	}
-	defer rows.Close()
-	res := []model.Appointment{}
-	for rows.Next() {
-		var ap model.Appointment
-		if err := rows.Scan(
-			&ap.Id,
-			&ap.CreateAt,
-			&ap.Date,
-			&ap.Patient.Id,
-			&ap.Patient.Hn,
-			&ap.Patient.FirstName,
-			&ap.Patient.MiddleName,
-			&ap.Patient.LastName,
-			&ap.Patient.Email,
-			&ap.Patient.Phone,
-			&ap.Patient.Verified,
-			&ap.Doctor.Id,
-			&ap.Doctor.FirstName,
-			&ap.Doctor.MiddleName,
-			&ap.Doctor.LastName,
-		); err != nil {
-			return nil, fmt.Errorf("query : %w", err)
-		}
-		res = append(res, ap)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("query : %w", err)
+		return res, fmt.Errorf("exec : %w", err)
 	}
 	return res, nil
 }
 
-var createAppointmentQuery = `
-INSERT INTO appointment (create_at, date, patient_id, doctor_id)
-VALUES (?, ?, ?, ?)
-`
-
-func (r *Repo) CreateAppointment(createAt int, date int, patientId int, doctorId int) (int, error) {
-	result, err := r.db.Exec(createAppointmentQuery, createAt, date, patientId, doctorId)
+func (r *Repo) CreateAppointment(appointment model.Appointment) (int, error) {
+	now := int(time.Now().Unix())
+	appointment.CreateAt = now
+	appointment.UpdateAt = now
+	err := r.db.Create(&appointment).Error
 	if err != nil {
+		var mysqlErr *mysql.MySQLError
+		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1452 {
+			return -1, fmt.Errorf("exec : %w", ErrForeignKeyFail)
+		}
 		return -1, fmt.Errorf("exec : %w", err)
 	}
-	i, err := result.LastInsertId()
-	if err != nil {
-		return -1, fmt.Errorf("exec : %w", err)
-	}
-	lastId := int(i)
-	return lastId, nil
+	return appointment.ID, nil
 }
 
-var deleteAppointmentQuery = `
-DELETE FROM appointment
-WHERE id = ?;
-`
+func (r *Repo) UpdateAppointment(appointment model.Appointment) error {
+	result := r.db.Select("*").Omit("create_at").Updates(&appointment)
+	err := result.Error
+	if err != nil {
+		var mysqlErr *mysql.MySQLError
+		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1452 {
+			return fmt.Errorf("exec : %w", ErrForeignKeyFail)
+		}
+		return fmt.Errorf("exec : %w", err)
+	}
+	return nil
+}
 
 func (r *Repo) DeleteAppointment(appointmentId any) error {
-	_, err := r.db.Exec(deleteAppointmentQuery, appointmentId)
+	err := r.db.Where("id = ?", appointmentId).Delete(&model.Appointment{}).Error
 	if err != nil {
 		return fmt.Errorf("exec : %w", err)
 	}

@@ -12,12 +12,14 @@ import (
 	"github.com/PhasitWo/duchenne-server/config"
 	"github.com/PhasitWo/duchenne-server/model"
 	expo "github.com/PhasitWo/duchenne-server/notification/expo/exponent-server-sdk-golang-master/sdk"
+	"gorm.io/gorm"
 )
 
 var NotiLogger = log.New(os.Stdout, "[NOTI] ", log.LstdFlags)
 
-func MockupScheduleNotifications(db *sql.DB, sendRequestFunc func([]expo.PushMessage)) {
+func MockupScheduleNotifications(g *gorm.DB, sendRequestFunc func([]expo.PushMessage)) {
 	// query
+	db, _ := g.DB()
 	res, err := queryDB(db)
 	if err != nil {
 		NotiLogger.Println("Notification: Can't query database")

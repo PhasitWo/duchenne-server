@@ -5,6 +5,9 @@ import (
 	"context"
 	"crypto/tls"
 	"database/sql"
+
+	// "crypto/tls"
+	// "database/sql"
 	"log"
 	"net/http"
 	"os"
@@ -14,6 +17,7 @@ import (
 	"github.com/PhasitWo/duchenne-server/handlers/mobile"
 	"github.com/PhasitWo/duchenne-server/handlers/web"
 	"github.com/PhasitWo/duchenne-server/middleware"
+	"github.com/PhasitWo/duchenne-server/model"
 	"github.com/PhasitWo/duchenne-server/notification"
 	"github.com/redis/go-redis/v9"
 	"github.com/robfig/cron"
@@ -23,7 +27,10 @@ import (
 
 	// "github.com/PhasitWo/duchenne-server/repository"
 
-	"github.com/go-sql-driver/mysql"
+	gomysql "github.com/go-sql-driver/mysql"
+
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 var mainLogger = log.New(os.Stdout, "[MAIN] ", log.LstdFlags)
@@ -33,7 +40,6 @@ func main() {
 	config.LoadConfig()
 	// Setup database connection
 	db := setupDB()
-	defer db.Close()
 	// Setup redis
 	rdc := setupRedisClient()
 	// Setup router and handler
@@ -44,6 +50,7 @@ func main() {
 	// CRON
 	c := InitCronScheduler(db)
 	defer c.Stop()
+	mainLogger.Println("Server is live! 🎉")
 	r.Run() // listen and serve on 0.0.0.0:8080
 }
 
@@ -103,8 +110,14 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, rd
 			webProtected.POST("/patient", middleware.WebRBACMiddleware(middleware.CreatePatientPermission), w.CreatePatient)
 			webProtected.GET("/patient/:id", w.GetPatient)
 			webProtected.PUT("/patient/:id", middleware.WebRBACMiddleware(middleware.UpdatePatientPermission), w.UpdatePatient)
+			webProtected.PUT("/patient/:id/vaccineHistory", middleware.WebRBACMiddleware(middleware.UpdatePatientPermission), w.UpdatePatientVaccineHistory)
+			webProtected.PUT("/patient/:id/medicine", middleware.WebRBACMiddleware(middleware.UpdatePatientPermission), w.UpdatePatientMedicine)
 			webProtected.DELETE("/patient/:id", middleware.WebRBACMiddleware(middleware.DeletePatientPermission), w.DeletePatient)
 			webProtected.GET("/appointment", w.GetAllAppointment)
+			webProtected.GET("/appointment/:id", w.GetAppointment)
+			webProtected.POST("/appointment", w.CreateAppointment)
+			webProtected.PUT("/appointment/:id", w.UpdateAppointment)
+			webProtected.DELETE("/appointment/:id", w.DeleteAppointment)
 			webProtected.GET("/question", w.GetAllQuestion)
 			webProtected.GET("/question/:id", w.GetQuestion)
 			webProtected.PUT("/question/:id/answer", w.AnswerQuestion)
@@ -112,31 +125,62 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, rd
 	}
 }
 
-func setupDB() *sql.DB {
+func setupDB() *gorm.DB {
 	dsn := config.AppConfig.DATABASE_DSN
 	message := "Connected to remote database"
-	if config.AppConfig.MODE != "test" {
+	if config.AppConfig.MODE == "dev" {
 		dsn = config.AppConfig.DATABASE_DSN_LOCAL
 		message = "Connected to local database"
 	}
 	// open db connection
-	mysql.RegisterTLSConfig("tidb", &tls.Config{
+	gomysql.RegisterTLSConfig("tidb", &tls.Config{
 		MinVersion: tls.VersionTLS12,
 		ServerName: "gateway01.ap-southeast-1.prod.aws.tidbcloud.com",
 	})
-
-	db, err := sql.Open("mysql", dsn)
+	customDB, err := sql.Open("mysql", dsn)
 	if err != nil {
 		mainLogger.Panicf("Can't open connection to database : %v", err.Error())
 	}
-	mainLogger.Println(message)
-	db.SetConnMaxLifetime(time.Minute * 3)
-	db.SetMaxOpenConns(10)
-	db.SetMaxIdleConns(10)
-	// ping db
-	if err = db.Ping(); err != nil {
-		mainLogger.Panic("Can't connect to database")
+	
+	db, err := gorm.Open(mysql.New(mysql.Config{
+		Conn: customDB,
+	}), &gorm.Config{SkipDefaultTransaction: true})
+
+	if err != nil {
+		mainLogger.Panicf("GORM can't connection to database : %v", err.Error())
 	}
+
+	sqlDB, err := db.DB()
+	if err != nil {
+		mainLogger.Panicf("Can't setup connection config : %v", err.Error())
+	}
+
+	// SetMaxIdleConns sets the maximum number of connections in the idle connection pool.
+	sqlDB.SetMaxIdleConns(10)
+
+	// SetMaxOpenConns sets the maximum number of open connections to the database.
+	sqlDB.SetMaxOpenConns(100)
+
+	// SetConnMaxLifetime sets the maximum amount of time a connection may be reused.
+	sqlDB.SetConnMaxLifetime(time.Hour)
+
+	// Migrate
+	db.AutoMigrate(
+		&model.Appointment{},
+		&model.Device{},
+		&model.Doctor{},
+		&model.Patient{},
+		&model.Question{},
+	)
+
+	mainLogger.Println(message)
+	// db.SetConnMaxLifetime(time.Minute * 3)
+	// db.SetMaxOpenConns(10)
+	// db.SetMaxIdleConns(10)
+	// // ping db
+	// if err = db.Ping(); err != nil {
+	// 	mainLogger.Panic("Can't connect to database")
+	// }
 	return db
 }
 
@@ -150,7 +194,7 @@ func setupRouter() *gin.Engine {
 	return r
 }
 
-func InitCronScheduler(db *sql.DB) *cron.Cron {
+func InitCronScheduler(db *gorm.DB) *cron.Cron {
 	c := cron.New()
 	// everyday on 10.00 (GMT +7) -> spec : "00 00 03 * * *"
 	c.AddFunc("00 00 03 * * *", func() {

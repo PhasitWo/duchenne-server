@@ -2,190 +2,51 @@ package repository
 
 import (
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/PhasitWo/duchenne-server/model"
 )
 
-var questionQuery = `
-SELECT
-question.id,
-topic,
-question,
-create_at,
-answer,
-answer_at,
-patient_id,
-patient.hn,
-patient.first_name,
-patient.middle_name,
-patient.last_name,
-patient.email,
-patient.phone,
-patient.verified,
-doctor_id,
-doctor.first_name,
-doctor.middle_name,
-doctor.last_name
-FROM question
-INNER JOIN patient ON question.patient_id = patient.id 
-LEFT JOIN doctor ON question.doctor_id = doctor.id
-WHERE question.id = ?
-`
-
-type interDoctor struct {
-	doctorId         *int
-	doctorFirstName  *string
-	doctorMiddleName *string
-	doctorLastName   *string
-}
-
-func (r *Repo) GetQuestion(questionId any) (model.Question, error) {
-	var q model.Question
-	var i interDoctor
-	row := r.db.QueryRow(questionQuery, questionId)
-
-	if err := row.Scan(
-		&q.Id,
-		&q.Topic,
-		&q.Question,
-		&q.CreateAt,
-		&q.Answer,
-		&q.AnswerAt,
-		&q.Patient.Id,
-		&q.Patient.Hn,
-		&q.Patient.FirstName,
-		&q.Patient.MiddleName,
-		&q.Patient.LastName,
-		&q.Patient.Email,
-		&q.Patient.Phone,
-		&q.Patient.Verified,
-		&i.doctorId,
-		&i.doctorFirstName,
-		&i.doctorMiddleName,
-		&i.doctorLastName,
-	); err != nil {
-		return q, fmt.Errorf("query : %w", err)
-	}
-	if i.doctorId != nil {
-		q.Doctor = &model.TrimDoctor{}
-		q.Doctor.Id = *i.doctorId
-		q.Doctor.FirstName = *i.doctorFirstName
-		q.Doctor.MiddleName = i.doctorMiddleName
-		q.Doctor.LastName = *i.doctorLastName
+func (r *Repo) GetQuestion(questionId any) (model.SafeQuestion, error) {
+	var q model.SafeQuestion
+	err := r.db.Model(&model.Question{}).Joins("Doctor").Preload("Patient").Where("questions.id = ?", questionId).First(&q).Error
+	if err != nil {
+		return q, fmt.Errorf("exec : %w", err)
 	}
 	return q, nil
 }
 
-var allQuestionQuery = `
-SELECT
-question.id,
-topic,
-create_at,
-answer_at,
-patient_id,
-patient.hn,
-patient.first_name,
-patient.middle_name,
-patient.last_name,
-patient.email,
-patient.phone,
-patient.verified,
-doctor_id,
-doctor.first_name,
-doctor.middle_name,
-doctor.last_name
-FROM question
-INNER JOIN patient ON question.patient_id = patient.id 
-LEFT JOIN doctor ON question.doctor_id = doctor.id
-`
-
 // Get all questions with following criteria
 func (r *Repo) GetAllQuestion(limit int, offset int, criteria ...Criteria) ([]model.QuestionTopic, error) {
-	queryString := attachCriteria(allQuestionQuery, criteria...)
-	rows, err := r.db.Query(queryString + " ORDER BY CASE WHEN answer_at IS NOT NULL THEN answer_at ELSE create_at END DESC LIMIT " + strconv.Itoa(limit) + " OFFSET " + strconv.Itoa(offset))
-	if err != nil {
-		return nil, fmt.Errorf("query : %w", err)
-	}
-	defer rows.Close()
 	res := []model.QuestionTopic{}
-	for rows.Next() {
-		var q model.QuestionTopic
-		var i interDoctor
-		if err := rows.Scan(
-			&q.Id,
-			&q.Topic,
-			&q.CreateAt,
-			&q.AnswerAt,
-			&q.Patient.Id,
-			&q.Patient.Hn,
-			&q.Patient.FirstName,
-			&q.Patient.MiddleName,
-			&q.Patient.LastName,
-			&q.Patient.Email,
-			&q.Patient.Phone,
-			&q.Patient.Verified,
-			&i.doctorId,
-			&i.doctorFirstName,
-			&i.doctorMiddleName,
-			&i.doctorLastName,
-		); err != nil {
-			return nil, fmt.Errorf("query : %w", err)
-		}
-		if i.doctorId != nil {
-			q.Doctor = &model.TrimDoctor{}
-			q.Doctor.Id = *i.doctorId
-			q.Doctor.FirstName = *i.doctorFirstName
-			q.Doctor.MiddleName = i.doctorMiddleName
-			q.Doctor.LastName = *i.doctorLastName
-		}
-		res = append(res, q)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("query : %w", err)
+	db := attachCriteria(r.db, criteria...)
+	err := db.Model(&model.Question{}).Joins("Doctor").Preload("Patient").Limit(limit).Offset(offset).Order("COALESCE(answer_at, create_at)  DESC").Find(&res).Error
+	if err != nil {
+		return res, fmt.Errorf("exec : %w", err)
 	}
 	return res, nil
 }
 
-var createQuestionQuery = `
-INSERT INTO question (patient_id, topic, question, create_at)
-VALUES (?, ?, ?, ?)
-`
-
 func (r *Repo) CreateQuestion(patientId int, topic string, question string, createAt int) (int, error) {
-	result, err := r.db.Exec(createQuestionQuery, patientId, topic, question, createAt)
+	q := &model.Question{PatientID: patientId, Topic: topic, Question: question, CreateAt: createAt, DoctorID: nil}
+	err := r.db.Create(&q).Error
 	if err != nil {
 		return -1, fmt.Errorf("exec : %w", err)
 	}
-	i, err := result.LastInsertId()
-	if err != nil {
-		return -1, fmt.Errorf("exec : %w", err)
-	}
-	lastId := int(i)
-	return lastId, nil
+	return q.ID, nil
 }
 
-const updateQuestionQuery = `
-UPDATE question SET answer = ?, answer_at = ?, doctor_id = ?
-WHERE id = ?
-`
-
-func (r *Repo) UpdateQuestionAnswer(questionId any, answer string, doctorId any) error {
-	_, err := r.db.Exec(updateQuestionQuery, answer, time.Now().Unix(), doctorId, questionId)
+func (r *Repo) UpdateQuestionAnswer(questionId int, answer string, doctorId int) error {
+	now := int(time.Now().Unix())
+	err := r.db.Updates(&model.Question{ID: questionId, Answer: &answer, DoctorID: &doctorId, AnswerAt: &now}).Error
 	if err != nil {
 		return fmt.Errorf("exec : %w", err)
 	}
 	return nil
 }
 
-var deleteQuestionQuery = `
-DELETE FROM question
-WHERE id = ?;
-`
-
 func (r *Repo) DeleteQuestion(questionId any) error {
-	_, err := r.db.Exec(deleteQuestionQuery, questionId)
+	err := r.db.Where("id = ?", questionId).Delete(&model.Question{}).Error
 	if err != nil {
 		return fmt.Errorf("exec : %w", err)
 	}

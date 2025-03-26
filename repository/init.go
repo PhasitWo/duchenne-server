@@ -1,29 +1,32 @@
 package repository
 
 import (
-	"database/sql"
+	// "database/sql"
 	"errors"
 	"fmt"
+
+	"gorm.io/gorm"
 )
 
 // repository.New can accept both sql.DB or sql.Tx
-type DBTX interface {
-	Exec(query string, args ...any) (sql.Result, error)
-	Query(query string, args ...any) (*sql.Rows, error)
-	QueryRow(query string, args ...any) *sql.Row
-}
+// type DBTX interface {
+// 	Exec(query string, args ...any) (sql.Result, error)
+// 	Query(query string, args ...any) (*sql.Rows, error)
+// 	QueryRow(query string, args ...any) *sql.Row
+// }
 
 type Repo struct {
-	db DBTX
+	db *gorm.DB
 }
 
 // Constructor
-func New(db DBTX) *Repo {
+func New(db *gorm.DB) *Repo {
 	return &Repo{db: db}
 }
 
 // ERROR
 var ErrDuplicateEntry = errors.New("duplicate entry")
+var ErrForeignKeyFail = errors.New("foreign key error")
 
 // CRITERIA
 type Criteria struct {
@@ -50,16 +53,12 @@ const (
 	CREATEAT_GREATERTHAN ColumnCriteria = "create_at > "
 )
 
-func attachCriteria(queryString string, criteria ...Criteria) string {
+func attachCriteria(db *gorm.DB, criteria ...Criteria) *gorm.DB {
 	if len(criteria) == 0 {
-		return queryString
+		return db
 	}
-	for index, c := range criteria {
-		if index == 0 {
-			queryString += " WHERE" + c.ToString()
-			continue
-		}
-		queryString += " AND" + c.ToString()
+	for _, c := range criteria {
+		db = db.Where(c.ToString())
 	}
-	return queryString
+	return db
 }

@@ -1,11 +1,11 @@
 package mobile
 
 import (
-	"database/sql"
 	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func (m *MobileHandler) GetProfile(c *gin.Context) {
@@ -17,7 +17,7 @@ func (m *MobileHandler) GetProfile(c *gin.Context) {
 	// fetch patient from database
 	p, err := m.Repo.GetPatientById(id)
 	if err != nil {
-		if errors.Unwrap(err) == sql.ErrNoRows { // no rows found
+		if errors.Unwrap(err) == gorm.ErrRecordNotFound { // no rows found
 			c.Status(http.StatusNotFound)
 			return
 		}
