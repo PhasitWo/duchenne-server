@@ -19,6 +19,7 @@ type config struct {
 	MAX_DEVICE         int
 	NOTIFY_IN_RANGE    int
 	SERVER_DOMAIN      string
+	CORS_ALLOW		   []string
 }
 
 // shared config across packages
@@ -47,6 +48,8 @@ func LoadConfig() {
 			field.SetInt(int64(viper.GetInt(fieldName)))
 		case bool:
 			field.SetBool(viper.GetBool(fieldName))
+		case []string:
+			field.Set(reflect.ValueOf(viper.GetStringSlice(fieldName)))
 		default:
 			panic("invalid config type")
 		}

@@ -85,9 +85,12 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, rd
 		}
 	}
 	web := r.Group("/web")
-	r.Static("/static", "./assets")
+	// r.Static("/static", "./assets")
+	// r.GET("/", func(c *gin.Context) {
+	// 	c.Redirect(http.StatusMovedPermanently, "/static")
+	// })
 	r.GET("/", func(c *gin.Context) {
-		c.Redirect(http.StatusMovedPermanently, "/static")
+		c.JSON(http.StatusOK, "Duchenne Server API")
 	})
 	{
 		webAuth := web.Group("/auth")
@@ -189,7 +192,7 @@ func setupRouter() *gin.Engine {
 	r := gin.Default()
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowCredentials = true
-	corsConfig.AllowOrigins = []string{"http://localhost:5173", "http://localhost:4173", "https://duchenne-web.onrender.com"}
+	corsConfig.AllowOrigins = config.AppConfig.CORS_ALLOW
 	r.Use(cors.New(corsConfig))
 	return r
 }
