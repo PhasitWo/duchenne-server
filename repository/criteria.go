@@ -1,34 +1,12 @@
 package repository
 
 import (
-	// "database/sql"
-	"errors"
 	"fmt"
 
 	"gorm.io/gorm"
 )
 
-// repository.New can accept both sql.DB or sql.Tx
-// type DBTX interface {
-// 	Exec(query string, args ...any) (sql.Result, error)
-// 	Query(query string, args ...any) (*sql.Rows, error)
-// 	QueryRow(query string, args ...any) *sql.Row
-// }
 
-type Repo struct {
-	db *gorm.DB
-}
-
-// Constructor
-func New(db *gorm.DB) *Repo {
-	return &Repo{db: db}
-}
-
-// ERROR
-var ErrDuplicateEntry = errors.New("duplicate entry")
-var ErrForeignKeyFail = errors.New("foreign key error")
-
-// CRITERIA
 type Criteria struct {
 	QueryCriteria ColumnCriteria
 	Value         any

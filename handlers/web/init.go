@@ -9,7 +9,7 @@ import (
 )
 
 type WebHandler struct {
-	Repo   *repository.Repo
+	Repo   repository.IRepo
 	DBConn *gorm.DB
 }
 

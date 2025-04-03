@@ -12,7 +12,10 @@ require (
 	golang.org/x/crypto v0.31.0
 )
 
-require github.com/google/uuid v1.6.0 // indirect
+require (
+	github.com/google/uuid v1.6.0 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
+)
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect

@@ -169,7 +169,7 @@ func formatTimeOutput(dueTimestamp int, nowTimestamp int) string {
 	return baseStr + output
 }
 
-func SendNotiByPatientId(id int, title string, body string, repo *repository.Repo) error {
+func SendNotiByPatientId(id int, title string, body string, repo repository.IRepo) error {
 	devices, err := repo.GetAllDevice(repository.Criteria{QueryCriteria: repository.PATIENTID, Value: id})
 	if err != nil {
 		NotiLogger.Println("Error can't get devices to push notifications")
