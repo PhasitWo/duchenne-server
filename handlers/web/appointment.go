@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/PhasitWo/duchenne-server/model"
+	"github.com/PhasitWo/duchenne-server/notification"
 	"github.com/PhasitWo/duchenne-server/repository"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -116,6 +117,7 @@ func (w *WebHandler) CreateAppointment(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	go notification.SendNotiByPatientId(input.PatientId, "คุณมีนัดหมายใหม่!", "ดูข้อมูลในแอปพลิเคชัน", w.Repo)
 	c.JSON(http.StatusCreated, gin.H{"id": insertedId})
 }
 
@@ -153,16 +155,23 @@ func (w *WebHandler) UpdateAppointment(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	go notification.SendNotiByPatientId(input.PatientId, "นัดหมายของคุณมีการเปลี่ยนแปลง!", "เช็คสถานะในแอปพลิเคชัน", w.Repo)
 	c.Status(http.StatusOK)
 }
 
 func (w *WebHandler) DeleteAppointment(c *gin.Context) {
 	id := c.Param("id")
+	apm, err := w.Repo.GetAppointment(id)
+	if err != nil {
+		c.Status(http.StatusNotFound)
+		return
+	}
 	// delete appointment
-	err := w.Repo.DeleteAppointment(id)
+	err = w.Repo.DeleteAppointment(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	go notification.SendNotiByPatientId(apm.PatientID, "นัดหมายของคุณถูกลบ!", "คุณหมอลบนัดหมายของคุณ", w.Repo)
 	c.Status(http.StatusNoContent)
 }

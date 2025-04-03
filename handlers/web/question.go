@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/PhasitWo/duchenne-server/notification"
 	"github.com/PhasitWo/duchenne-server/repository"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -122,5 +123,6 @@ func (w *WebHandler) AnswerQuestion(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	go notification.SendNotiByPatientId(q.PatientID, "คุณหมอตอบคำถามของคุณแล้ว!", "ดูคำตอบในแอปพลิเคชัน", w.Repo)
 	c.Status(http.StatusOK)
 }

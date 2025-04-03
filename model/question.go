@@ -1,5 +1,7 @@
 package model
 
+import "gorm.io/plugin/soft_delete"
+
 type Question struct {
 	ID        int     `json:"id"`
 	Topic     string  `json:"topic" gorm:"not null"`
@@ -11,6 +13,7 @@ type Question struct {
 	Patient   Patient `json:"patient"`
 	DoctorID  *int    `json:"-"`
 	Doctor    *Doctor `json:"doctor"` // nullable
+	DeletedAt soft_delete.DeletedAt
 }
 
 type SafeQuestion struct {

@@ -1,5 +1,7 @@
 package model
 
+import "gorm.io/plugin/soft_delete"
+
 type Appointment struct {
 	ID        int     `json:"id"`
 	CreateAt  int     `json:"createAt" gorm:"not null"`
@@ -10,6 +12,7 @@ type Appointment struct {
 	DoctorID  int     `json:"-" gorm:"not null"`
 	Doctor    Doctor  `json:"doctor"`
 	ApproveAt *int    `json:"approveAt"` // nullable
+	DeletedAt soft_delete.DeletedAt
 }
 
 type SafeAppointment struct {
