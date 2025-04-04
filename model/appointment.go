@@ -19,3 +19,10 @@ type SafeAppointment struct {
 	Appointment
 	Doctor TrimDoctor `json:"doctor"`
 }
+
+type CreateAppointmentRequest struct {
+	Date      int  `json:"date" binding:"required"`
+	PatientId int  `json:"patientId" binding:"required"`
+	DoctorId  int  `json:"doctorId" binding:"required"`
+	Approve   bool `json:"approve"`
+}

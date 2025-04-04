@@ -13,12 +13,12 @@ import (
 	"github.com/PhasitWo/duchenne-server/config"
 	"github.com/PhasitWo/duchenne-server/model"
 	expo "github.com/PhasitWo/duchenne-server/notification/expo/exponent-server-sdk-golang-master/sdk"
-	"github.com/PhasitWo/duchenne-server/repository"
 	"gorm.io/gorm"
 )
 
 var NotiLogger = log.New(os.Stdout, "[NOTI] ", log.LstdFlags)
 var ErrDevicesNotFound = errors.New("Error not found any devices")
+
 func MockupScheduleNotifications(g *gorm.DB, sendRequestFunc func([]expo.PushMessage)) {
 	// query
 	db, _ := g.DB()
@@ -167,22 +167,4 @@ func formatTimeOutput(dueTimestamp int, nowTimestamp int) string {
 		output = fmt.Sprintf("%d day(s) %d hour(s)", day, hour%24)
 	}
 	return baseStr + output
-}
-
-func SendNotiByPatientId(id int, title string, body string, repo repository.IRepo) error {
-	devices, err := repo.GetAllDevice(repository.Criteria{QueryCriteria: repository.PATIENTID, Value: id})
-	if err != nil {
-		NotiLogger.Println("Error can't get devices to push notifications")
-		return err
-	}
-	if len(devices) == 0 { 
-		NotiLogger.Println("Error no devices to push notifications")
-		return ErrDevicesNotFound
-	}
-	msg := expo.PushMessage{To: []expo.ExponentPushToken{}, Title: title, Body: body, Sound: "default", Priority: expo.HighPriority}
-	for _, d := range devices {
-		msg.To = append(msg.To, expo.ExponentPushToken(d.ExpoToken))
-	}
-	SendRequest([]expo.PushMessage{msg})
-	return nil
 }
