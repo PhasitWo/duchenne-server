@@ -35,7 +35,7 @@ func (w *WebHandler) GetAllAppointment(c *gin.Context) {
 	if d, exist := c.GetQuery("doctorId"); exist {
 		doctorId, err := strconv.Atoi(d)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "cannot parse offset value"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "cannot parse doctorId value"})
 			return
 		}
 		criteriaList = append(criteriaList, repository.Criteria{QueryCriteria: repository.DOCTORID, Value: doctorId})
@@ -43,7 +43,7 @@ func (w *WebHandler) GetAllAppointment(c *gin.Context) {
 	if p, exist := c.GetQuery("patientId"); exist {
 		patientId, err := strconv.Atoi(p)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "cannot parse offset value"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "cannot parse patientId value"})
 			return
 		}
 		criteriaList = append(criteriaList, repository.Criteria{QueryCriteria: repository.PATIENTID, Value: patientId})
@@ -156,7 +156,11 @@ func (w *WebHandler) DeleteAppointment(c *gin.Context) {
 	id := c.Param("id")
 	apm, err := w.Repo.GetAppointment(id)
 	if err != nil {
-		c.Status(http.StatusNotFound)
+		if errors.Unwrap(err) == gorm.ErrRecordNotFound { // no rows found
+			c.Status(http.StatusNotFound)
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	// delete appointment

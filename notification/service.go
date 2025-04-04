@@ -10,17 +10,17 @@ type INotificationService interface {
 	SendNotiByPatientId(id int, title string, body string) error
 }
 
-type NotificationService struct {
+type Service struct {
 	Repo repository.IRepo
 }
 
-func NewService(db *gorm.DB) *NotificationService {
-	return &NotificationService{
+func NewService(db *gorm.DB) *Service {
+	return &Service{
 		Repo: repository.New(db),
 	}
 }
 
-func (n *NotificationService) SendNotiByPatientId(id int, title string, body string) error {
+func (n *Service) SendNotiByPatientId(id int, title string, body string) error {
 	devices, err := n.Repo.GetAllDevice(repository.Criteria{QueryCriteria: repository.PATIENTID, Value: id})
 	if err != nil {
 		NotiLogger.Println("Error can't get devices to push notifications")

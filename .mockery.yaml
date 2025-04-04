@@ -15,4 +15,4 @@ packages:
       INotificationService:
         config:
           filename: service_mock.go
-          mockname: MockNotificationService
+          mockname: MockService

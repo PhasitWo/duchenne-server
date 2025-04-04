@@ -56,9 +56,6 @@ func main() {
 
 func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, rdc *middleware.RedisClient) {
 	mobile := r.Group("/mobile")
-	mobile.POST("/testnoti", func(c *gin.Context) {
-		notification.MockupScheduleNotifications(m.DBConn, notification.SendRequest)
-	})
 	{
 		mobileAuth := mobile.Group("/auth")
 		{
@@ -124,6 +121,10 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, rd
 			webProtected.GET("/question", w.GetAllQuestion)
 			webProtected.GET("/question/:id", w.GetQuestion)
 			webProtected.PUT("/question/:id/answer", w.AnswerQuestion)
+			webProtected.POST("/sendDailyNotifications", func(c *gin.Context) {
+				notification.SendDailyNotifications(m.DBConn, notification.SendRequest)
+				c.Status(200)
+			})
 		}
 	}
 }
@@ -202,7 +203,7 @@ func InitCronScheduler(db *gorm.DB) *cron.Cron {
 	// everyday on 10.00 (GMT +7) -> spec : "00 00 03 * * *"
 	c.AddFunc("00 00 03 * * *", func() {
 		mainLogger.Println("Executing Push Notifications..")
-		notification.MockupScheduleNotifications(db, notification.SendRequest)
+		notification.SendDailyNotifications(db, notification.SendRequest)
 	})
 	c.Start()
 	mainLogger.Println("Cron scheduler initialized")
