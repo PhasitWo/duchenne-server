@@ -25,7 +25,10 @@ type-safe method replace .On
 RunAndReturn to dynamically set a return value based on the input to the mock's call
 */
 
+// $ gotest -v ./tests/web
+
 func TestGetAllAppointment(t *testing.T) {
+	gin.SetMode(gin.TestMode)
 	t.Run("success", func(t *testing.T) {
 		// setup mock
 		repo := repository.NewMockRepo(t)
