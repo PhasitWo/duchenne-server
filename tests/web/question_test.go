@@ -127,6 +127,22 @@ func TestGetOneQuestion(t *testing.T) {
 
 		assert.Equal(t, 500, recorder.Code)
 	})
+	t.Run("success", func(t *testing.T) {
+		// setup mock
+		repo := repository.NewMockRepo(t)
+		webH := web.WebHandler{Repo: repo}
+
+		repo.EXPECT().GetQuestion("1").Return(model.SafeQuestion{}, nil).Once()
+
+		req := httptest.NewRequest(http.MethodGet, "/1", nil)
+		recorder := httptest.NewRecorder()
+		_, router := gin.CreateTestContext(recorder)
+
+		router.GET("/:id", webH.GetQuestion)
+		router.ServeHTTP(recorder, req)
+
+		assert.Equal(t, 200, recorder.Code)
+	})
 }
 
 func TestAnswerQuestion(t *testing.T) {
