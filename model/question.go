@@ -31,3 +31,8 @@ type QuestionTopic struct {
 	DoctorID  int         `json:"-"`
 	Doctor    *TrimDoctor `json:"doctor"` // nullable
 }
+
+
+type QuestionAnswerRequest struct {
+	Answer string `json:"answer" binding:"required,max=500"`
+}

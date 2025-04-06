@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/PhasitWo/duchenne-server/model"
 	"github.com/PhasitWo/duchenne-server/repository"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -79,12 +80,13 @@ func (w *WebHandler) GetQuestion(c *gin.Context) {
 	c.JSON(http.StatusOK, q)
 }
 
-type questionAnswer struct {
-	Answer string `json:"answer" binding:"required,max=500"`
-}
-
 func (w *WebHandler) AnswerQuestion(c *gin.Context) {
 	id := c.Param("id")
+	questionId, err := strconv.Atoi(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
 	q, err := w.Repo.GetQuestion(id)
 	if err != nil {
 		if errors.Unwrap(err) == gorm.ErrRecordNotFound { // no rows found
@@ -100,7 +102,7 @@ func (w *WebHandler) AnswerQuestion(c *gin.Context) {
 		return
 	}
 	// input
-	var input questionAnswer
+	var input model.QuestionAnswerRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -112,11 +114,6 @@ func (w *WebHandler) AnswerQuestion(c *gin.Context) {
 	}
 	doctorId := dId.(int)
 	// query
-	questionId, err := strconv.Atoi(id)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
-		return
-	}
 	err = w.Repo.UpdateQuestionAnswer(questionId, input.Answer, doctorId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
