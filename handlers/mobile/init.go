@@ -9,8 +9,8 @@ import (
 )
 
 type MobileHandler struct {
-	Repo   *repository.Repo
-	DBConn *gorm.DB
+	Repo   repository.IRepo
+	DBConn repository.IGorm
 }
 
 func Init(db *gorm.DB) *MobileHandler {
