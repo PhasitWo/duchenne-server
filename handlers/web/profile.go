@@ -30,14 +30,6 @@ func (w *WebHandler) GetProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, d)
 }
 
-type profile struct {
-	FirstName  string  `json:"firstName" binding:"required"`
-	MiddleName *string `json:"middleName"`
-	LastName   string  `json:"lastName" binding:"required"`
-	Username   string  `json:"username" binding:"required"`
-	Password   string  `json:"password" binding:"required"`
-}
-
 func (w *WebHandler) UpdateProfile(c *gin.Context) {
 	i, exists := c.Get("doctorId")
 	if !exists {
@@ -52,7 +44,7 @@ func (w *WebHandler) UpdateProfile(c *gin.Context) {
 	}
 	role := r.(model.Role)
 	// input
-	var input profile
+	var input model.UpdateProfileRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -65,6 +57,7 @@ func (w *WebHandler) UpdateProfile(c *gin.Context) {
 			LastName:   input.LastName,
 			Username:   input.Username,
 			Password:   input.Password,
+			Specialist: input.Specialist,
 			Role:       role,
 		})
 	if err != nil {

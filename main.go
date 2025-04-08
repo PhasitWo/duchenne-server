@@ -66,7 +66,6 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, rd
 		mobileProtected := mobile.Group("/api")
 		mobileProtected.Use(middleware.MobileAuthMiddleware)
 		{
-			mobileProtected.GET("/test", m.Test)
 			mobileProtected.GET("/profile", m.GetProfile)
 			mobileProtected.GET("/appointment", rdc.UseRedisMiddleware(m.GetAllPatientAppointment)...)
 			mobileProtected.GET("/appointment/:id", m.GetAppointment)
@@ -121,8 +120,12 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, rd
 			webProtected.GET("/question", w.GetAllQuestion)
 			webProtected.GET("/question/:id", w.GetQuestion)
 			webProtected.PUT("/question/:id/answer", w.AnswerQuestion)
+			g, ok := m.DBConn.(*gorm.DB)
+			if !ok {
+				panic("can't cast to *gorm.DB")
+			}
 			webProtected.POST("/sendDailyNotifications", func(c *gin.Context) {
-				notification.SendDailyNotifications(m.DBConn, notification.SendRequest)
+				notification.SendDailyNotifications(g, notification.SendRequest)
 				c.Status(200)
 			})
 		}

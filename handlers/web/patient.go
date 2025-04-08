@@ -2,7 +2,6 @@ package web
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -35,20 +34,8 @@ func (w *WebHandler) GetAllPatient(c *gin.Context) {
 	c.JSON(http.StatusOK, patients)
 }
 
-type patientInput struct {
-	Hn         string   `json:"hn" binding:"required,max=15"`
-	FirstName  string   `json:"firstName" binding:"required"`
-	MiddleName *string  `json:"middleName"`
-	LastName   string   `json:"lastName" binding:"required"`
-	Email      *string  `json:"email"`
-	Phone      *string  `json:"phone"`
-	Verified   bool     `json:"verified"`
-	Weight     *float32 `json:"weight"`
-	Height     *float32 `json:"height"`
-}
-
 func (w *WebHandler) CreatePatient(c *gin.Context) {
-	var input patientInput
+	var input model.CreatePatientRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -76,7 +63,7 @@ func (w *WebHandler) CreatePatient(c *gin.Context) {
 }
 
 func (w *WebHandler) UpdatePatient(c *gin.Context) {
-	var input patientInput
+	var input model.CreatePatientRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -129,19 +116,14 @@ func (w *WebHandler) DeletePatient(c *gin.Context) {
 	}
 	err = w.Repo.DeletePatientById(id)
 	if err != nil {
-		fmt.Println(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	c.Status(http.StatusNoContent)
 }
 
-type updateVaccineHistoryInput struct {
-	Data []model.VaccineHistory `json:"data" binding:"dive"`
-}
-
 func (w *WebHandler) UpdatePatientVaccineHistory(c *gin.Context) {
-	var input updateVaccineHistoryInput
+	var input model.UpdateVaccineHistoryRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -169,12 +151,8 @@ func (w *WebHandler) UpdatePatientVaccineHistory(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-type updateMedicineInput struct {
-	Data []model.Medicine `json:"data" binding:"dive"`
-}
-
 func (w *WebHandler) UpdatePatientMedicine(c *gin.Context) {
-	var input updateMedicineInput
+	var input model.UpdateMedicineRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

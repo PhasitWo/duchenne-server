@@ -2,6 +2,7 @@ package repository
 
 import (
 	// "database/sql"
+	"database/sql"
 	"errors"
 
 	"github.com/PhasitWo/duchenne-server/model"
@@ -18,11 +19,16 @@ func New(db *gorm.DB) *Repo {
 	return &Repo{db: db}
 }
 
+func (r *Repo) New(db *gorm.DB) IRepo {
+	return &Repo{db: db}
+}
+
 // ERROR
 var ErrDuplicateEntry = errors.New("duplicate entry")
 var ErrForeignKeyFail = errors.New("foreign key error")
 
 type IRepo interface {
+	New(db *gorm.DB) IRepo
 	GetAppointment(appointmentId any) (model.SafeAppointment, error)
 	GetAllAppointment(limit int, offset int, criteria ...Criteria) ([]model.SafeAppointment, error)
 	CreateAppointment(appointment model.Appointment) (int, error)
@@ -51,4 +57,10 @@ type IRepo interface {
 	CreateQuestion(patientId int, topic string, question string, createAt int) (int, error)
 	UpdateQuestionAnswer(questionId int, answer string, doctorId int) error
 	DeleteQuestion(questionId any) error
+}
+
+type IGorm interface {
+	Begin(opts ...*sql.TxOptions) *gorm.DB
+	Rollback() *gorm.DB
+	Commit() *gorm.DB
 }
