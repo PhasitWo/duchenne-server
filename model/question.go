@@ -36,3 +36,8 @@ type QuestionTopic struct {
 type QuestionAnswerRequest struct {
 	Answer string `json:"answer" binding:"required,max=500"`
 }
+
+type CreateQuestionRequest struct {
+	Topic    string `json:"topic" binding:"required"`
+	Question string `json:"question" binding:"required"`
+}

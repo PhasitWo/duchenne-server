@@ -217,4 +217,147 @@ func TestLogin(t *testing.T) {
 
 		assert.Equal(t, 500, recorder.Code)
 	})
+	t.Run("deleteDeviceInternalError", func(t *testing.T) {
+		input := gin.H{
+			"hn":         "test",
+			"firstName":  "fn",
+			"lastName":   "ln",
+			"DeviceName": "goTest",
+			"expoToken":  "expo",
+		}
+		rawInput, err := json.Marshal(&input)
+		assert.NoError(t, err)
+
+		patient := model.Patient{
+			FirstName: "fn",
+			LastName:  "ln",
+			Verified: true,
+		}
+		mg := &gorm.DB{}
+		// setup mock
+		repo := repository.NewMockRepo(t)
+		g := repository.NewMockGorm(t)
+		mobileH := mobile.MobileHandler{Repo: repo, DBConn: g}
+
+		repoTX := repository.NewMockRepo(t)
+		repoTX.EXPECT().DeleteDevice(mock.Anything).Return(errors.New("err"))
+
+		g.EXPECT().Begin().Return(mg)
+		repo.EXPECT().GetPatientByHN("test").Return(patient, nil)
+		repo.EXPECT().GetAllDevice(mock.Anything).Return([]model.Device{
+			{ID: 1},
+			{ID: 2},
+			{ID: 3},
+			{ID: 4},
+		}, nil)
+		repo.EXPECT().New(mg).Return(repoTX)
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(rawInput))
+		recorder := httptest.NewRecorder()
+		_, router := gin.CreateTestContext(recorder)
+
+		router.POST("/", mobileH.Login)
+		router.ServeHTTP(recorder, req)
+
+		assert.Equal(t, 500, recorder.Code)
+	})
+	t.Run("createDeviceInternalError", func(t *testing.T) {
+		input := gin.H{
+			"hn":         "test",
+			"firstName":  "fn",
+			"lastName":   "ln",
+			"DeviceName": "goTest",
+			"expoToken":  "expo",
+		}
+		rawInput, err := json.Marshal(&input)
+		assert.NoError(t, err)
+
+		patient := model.Patient{
+			FirstName: "fn",
+			LastName:  "ln",
+			Verified: true,
+		}
+		mg := &gorm.DB{}
+		// setup mock
+		repo := repository.NewMockRepo(t)
+		g := repository.NewMockGorm(t)
+		mobileH := mobile.MobileHandler{Repo: repo, DBConn: g}
+
+		repoTX := repository.NewMockRepo(t)
+		repoTX.EXPECT().DeleteDevice(mock.Anything).Return(nil)
+		repoTX.EXPECT().CreateDevice(mock.Anything).Return(-1, errors.New("err"))
+
+		g.EXPECT().Begin().Return(mg)
+		repo.EXPECT().GetPatientByHN("test").Return(patient, nil)
+		repo.EXPECT().GetAllDevice(mock.Anything).Return([]model.Device{
+			{ID: 1},
+			{ID: 2},
+			{ID: 3},
+			{ID: 4},
+		}, nil)
+		repo.EXPECT().New(mg).Return(repoTX)
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(rawInput))
+		recorder := httptest.NewRecorder()
+		_, router := gin.CreateTestContext(recorder)
+
+		router.POST("/", mobileH.Login)
+		router.ServeHTTP(recorder, req)
+
+		assert.Equal(t, 500, recorder.Code)
+	})
+	t.Run("commitError", func(t *testing.T) {
+		input := gin.H{
+			"hn":         "test",
+			"firstName":  "fn",
+			"lastName":   "ln",
+			"DeviceName": "goTest",
+			"expoToken":  "expo",
+		}
+		rawInput, err := json.Marshal(&input)
+		assert.NoError(t, err)
+
+		patient := model.Patient{
+			ID: 85,
+			FirstName: "fn",
+			LastName:  "ln",
+			Verified: true,
+		}
+		mg := &gorm.DB{
+			Config:       &gorm.Config{},
+			Error:        err,
+			RowsAffected: 0,
+			Statement:    &gorm.Statement{},
+		}
+		// setup mock
+		repo := repository.NewMockRepo(t)
+		g := repository.NewMockGorm(t)
+		mobileH := mobile.MobileHandler{Repo: repo, DBConn: g}
+
+		repoTX := repository.NewMockRepo(t)
+		repoTX.EXPECT().DeleteDevice(mock.Anything).Return(nil)
+		repoTX.EXPECT().CreateDevice(mock.Anything).RunAndReturn(func(d model.Device) (int, error) {
+			mg.Error = errors.New("err")
+			return 115, nil
+		})
+
+		g.EXPECT().Begin().Return(mg)
+		repo.EXPECT().GetPatientByHN("test").Return(patient, nil)
+		repo.EXPECT().GetAllDevice(mock.Anything).Return([]model.Device{
+			{ID: 1},
+			{ID: 2},
+			{ID: 3},
+			{ID: 4},
+		}, nil)
+		repo.EXPECT().New(mg).Return(repoTX)
+
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(rawInput))
+		recorder := httptest.NewRecorder()
+		_, router := gin.CreateTestContext(recorder)
+
+		router.POST("/", mobileH.Login)
+		router.ServeHTTP(recorder, req)
+
+		assert.Equal(t, 500, recorder.Code)
+	})
 }

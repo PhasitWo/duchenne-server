@@ -8,6 +8,7 @@ import (
 	// "github.com/PhasitWo/duchenne-server/repository"
 	"net/http"
 
+	"github.com/PhasitWo/duchenne-server/model"
 	"github.com/PhasitWo/duchenne-server/repository"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -54,11 +55,6 @@ func (m *MobileHandler) GetQuestion(c *gin.Context) {
 	c.JSON(http.StatusOK, q)
 }
 
-type questionInput struct {
-	Topic    string `json:"topic" binding:"required"`
-	Question string `json:"question" binding:"required"`
-}
-
 const MAX_TOPIC_LENGTH = 50
 const MAX_QUESTION_LENGTH = 700
 
@@ -71,7 +67,7 @@ func (m *MobileHandler) CreateQuestion(c *gin.Context) {
 	}
 	patientId := i.(int)
 	// binding request body
-	var input questionInput
+	var input model.CreateQuestionRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -94,8 +90,6 @@ func (m *MobileHandler) CreateQuestion(c *gin.Context) {
 }
 
 func (m *MobileHandler) DeleteQuestion(c *gin.Context) {
-	// prepare param from url and auth middleware
-	id := c.Param("id")
 	i, exists := c.Get("patientId")
 	if !exists {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "no 'patientId' from auth middleware"})
@@ -103,6 +97,7 @@ func (m *MobileHandler) DeleteQuestion(c *gin.Context) {
 	}
 	patientId := i.(int)
 	// check if this question belongs to the patient
+	id := c.Param("id")
 	q, err := m.Repo.GetQuestion(id)
 	if err != nil {
 		if errors.Unwrap(err) == gorm.ErrRecordNotFound { // no row found
