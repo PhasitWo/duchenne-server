@@ -25,3 +25,13 @@ type TrimDoctor struct {
 	Username *string `json:"username" gorm:"-"`
 	Password *string `json:"password" gorm:"-"`
 }
+
+type CreateDoctorRequest struct {
+	FirstName  string  `json:"firstName" binding:"required"`
+	MiddleName *string `json:"middleName"`
+	LastName   string  `json:"lastName" binding:"required"`
+	Username   string  `json:"username" binding:"required,max=20"`
+	Password   string  `json:"password" binding:"required"`
+	Role       Role    `json:"role" binding:"required"`
+	Specialist *string `json:"specialist"`
+}
