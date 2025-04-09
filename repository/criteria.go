@@ -6,7 +6,6 @@ import (
 	"gorm.io/gorm"
 )
 
-
 type Criteria struct {
 	QueryCriteria ColumnCriteria
 	Value         any
@@ -29,6 +28,7 @@ const (
 	DATE_GREATERTHAN     ColumnCriteria = "date > "
 	DATE_LESSTHAN        ColumnCriteria = "date < "
 	CREATEAT_GREATERTHAN ColumnCriteria = "create_at > "
+	IS_PUBLISHED         ColumnCriteria = "is_published = "
 )
 
 func attachCriteria(db *gorm.DB, criteria ...Criteria) *gorm.DB {
