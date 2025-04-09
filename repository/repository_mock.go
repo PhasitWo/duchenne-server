@@ -77,6 +77,62 @@ func (_c *MockRepo_CreateAppointment_Call) RunAndReturn(run func(model.Appointme
 	return _c
 }
 
+// CreateContent provides a mock function with given fields: content
+func (_m *MockRepo) CreateContent(content model.Content) (int, error) {
+	ret := _m.Called(content)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateContent")
+	}
+
+	var r0 int
+	var r1 error
+	if rf, ok := ret.Get(0).(func(model.Content) (int, error)); ok {
+		return rf(content)
+	}
+	if rf, ok := ret.Get(0).(func(model.Content) int); ok {
+		r0 = rf(content)
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+
+	if rf, ok := ret.Get(1).(func(model.Content) error); ok {
+		r1 = rf(content)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockRepo_CreateContent_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateContent'
+type MockRepo_CreateContent_Call struct {
+	*mock.Call
+}
+
+// CreateContent is a helper method to define mock.On call
+//   - content model.Content
+func (_e *MockRepo_Expecter) CreateContent(content interface{}) *MockRepo_CreateContent_Call {
+	return &MockRepo_CreateContent_Call{Call: _e.mock.On("CreateContent", content)}
+}
+
+func (_c *MockRepo_CreateContent_Call) Run(run func(content model.Content)) *MockRepo_CreateContent_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(model.Content))
+	})
+	return _c
+}
+
+func (_c *MockRepo_CreateContent_Call) Return(_a0 int, _a1 error) *MockRepo_CreateContent_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockRepo_CreateContent_Call) RunAndReturn(run func(model.Content) (int, error)) *MockRepo_CreateContent_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateDevice provides a mock function with given fields: d
 func (_m *MockRepo) CreateDevice(d model.Device) (int, error) {
 	ret := _m.Called(d)
@@ -350,6 +406,52 @@ func (_c *MockRepo_DeleteAppointment_Call) RunAndReturn(run func(interface{}) er
 	return _c
 }
 
+// DeleteContent provides a mock function with given fields: contentID
+func (_m *MockRepo) DeleteContent(contentID interface{}) error {
+	ret := _m.Called(contentID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteContent")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(interface{}) error); ok {
+		r0 = rf(contentID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockRepo_DeleteContent_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteContent'
+type MockRepo_DeleteContent_Call struct {
+	*mock.Call
+}
+
+// DeleteContent is a helper method to define mock.On call
+//   - contentID interface{}
+func (_e *MockRepo_Expecter) DeleteContent(contentID interface{}) *MockRepo_DeleteContent_Call {
+	return &MockRepo_DeleteContent_Call{Call: _e.mock.On("DeleteContent", contentID)}
+}
+
+func (_c *MockRepo_DeleteContent_Call) Run(run func(contentID interface{})) *MockRepo_DeleteContent_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(interface{}))
+	})
+	return _c
+}
+
+func (_c *MockRepo_DeleteContent_Call) Return(_a0 error) *MockRepo_DeleteContent_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockRepo_DeleteContent_Call) RunAndReturn(run func(interface{}) error) *MockRepo_DeleteContent_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteDevice provides a mock function with given fields: deviceId
 func (_m *MockRepo) DeleteDevice(deviceId interface{}) error {
 	ret := _m.Called(deviceId)
@@ -604,6 +706,80 @@ func (_c *MockRepo_GetAllAppointment_Call) Return(_a0 []model.SafeAppointment, _
 }
 
 func (_c *MockRepo_GetAllAppointment_Call) RunAndReturn(run func(int, int, ...Criteria) ([]model.SafeAppointment, error)) *MockRepo_GetAllAppointment_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetAllContent provides a mock function with given fields: limit, offset, criteria
+func (_m *MockRepo) GetAllContent(limit int, offset int, criteria ...Criteria) ([]model.Content, error) {
+	_va := make([]interface{}, len(criteria))
+	for _i := range criteria {
+		_va[_i] = criteria[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, limit, offset)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAllContent")
+	}
+
+	var r0 []model.Content
+	var r1 error
+	if rf, ok := ret.Get(0).(func(int, int, ...Criteria) ([]model.Content, error)); ok {
+		return rf(limit, offset, criteria...)
+	}
+	if rf, ok := ret.Get(0).(func(int, int, ...Criteria) []model.Content); ok {
+		r0 = rf(limit, offset, criteria...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]model.Content)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(int, int, ...Criteria) error); ok {
+		r1 = rf(limit, offset, criteria...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockRepo_GetAllContent_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAllContent'
+type MockRepo_GetAllContent_Call struct {
+	*mock.Call
+}
+
+// GetAllContent is a helper method to define mock.On call
+//   - limit int
+//   - offset int
+//   - criteria ...Criteria
+func (_e *MockRepo_Expecter) GetAllContent(limit interface{}, offset interface{}, criteria ...interface{}) *MockRepo_GetAllContent_Call {
+	return &MockRepo_GetAllContent_Call{Call: _e.mock.On("GetAllContent",
+		append([]interface{}{limit, offset}, criteria...)...)}
+}
+
+func (_c *MockRepo_GetAllContent_Call) Run(run func(limit int, offset int, criteria ...Criteria)) *MockRepo_GetAllContent_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]Criteria, len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(Criteria)
+			}
+		}
+		run(args[0].(int), args[1].(int), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockRepo_GetAllContent_Call) Return(_a0 []model.Content, _a1 error) *MockRepo_GetAllContent_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockRepo_GetAllContent_Call) RunAndReturn(run func(int, int, ...Criteria) ([]model.Content, error)) *MockRepo_GetAllContent_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -919,6 +1095,62 @@ func (_c *MockRepo_GetAppointment_Call) Return(_a0 model.SafeAppointment, _a1 er
 }
 
 func (_c *MockRepo_GetAppointment_Call) RunAndReturn(run func(interface{}) (model.SafeAppointment, error)) *MockRepo_GetAppointment_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetContent provides a mock function with given fields: contentID
+func (_m *MockRepo) GetContent(contentID interface{}) (model.Content, error) {
+	ret := _m.Called(contentID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetContent")
+	}
+
+	var r0 model.Content
+	var r1 error
+	if rf, ok := ret.Get(0).(func(interface{}) (model.Content, error)); ok {
+		return rf(contentID)
+	}
+	if rf, ok := ret.Get(0).(func(interface{}) model.Content); ok {
+		r0 = rf(contentID)
+	} else {
+		r0 = ret.Get(0).(model.Content)
+	}
+
+	if rf, ok := ret.Get(1).(func(interface{}) error); ok {
+		r1 = rf(contentID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockRepo_GetContent_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetContent'
+type MockRepo_GetContent_Call struct {
+	*mock.Call
+}
+
+// GetContent is a helper method to define mock.On call
+//   - contentID interface{}
+func (_e *MockRepo_Expecter) GetContent(contentID interface{}) *MockRepo_GetContent_Call {
+	return &MockRepo_GetContent_Call{Call: _e.mock.On("GetContent", contentID)}
+}
+
+func (_c *MockRepo_GetContent_Call) Run(run func(contentID interface{})) *MockRepo_GetContent_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(interface{}))
+	})
+	return _c
+}
+
+func (_c *MockRepo_GetContent_Call) Return(_a0 model.Content, _a1 error) *MockRepo_GetContent_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockRepo_GetContent_Call) RunAndReturn(run func(interface{}) (model.Content, error)) *MockRepo_GetContent_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1293,6 +1525,52 @@ func (_c *MockRepo_UpdateAppointment_Call) Return(_a0 error) *MockRepo_UpdateApp
 }
 
 func (_c *MockRepo_UpdateAppointment_Call) RunAndReturn(run func(model.Appointment) error) *MockRepo_UpdateAppointment_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateContent provides a mock function with given fields: content
+func (_m *MockRepo) UpdateContent(content model.Content) error {
+	ret := _m.Called(content)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateContent")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(model.Content) error); ok {
+		r0 = rf(content)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockRepo_UpdateContent_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateContent'
+type MockRepo_UpdateContent_Call struct {
+	*mock.Call
+}
+
+// UpdateContent is a helper method to define mock.On call
+//   - content model.Content
+func (_e *MockRepo_Expecter) UpdateContent(content interface{}) *MockRepo_UpdateContent_Call {
+	return &MockRepo_UpdateContent_Call{Call: _e.mock.On("UpdateContent", content)}
+}
+
+func (_c *MockRepo_UpdateContent_Call) Run(run func(content model.Content)) *MockRepo_UpdateContent_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(model.Content))
+	})
+	return _c
+}
+
+func (_c *MockRepo_UpdateContent_Call) Return(_a0 error) *MockRepo_UpdateContent_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockRepo_UpdateContent_Call) RunAndReturn(run func(model.Content) error) *MockRepo_UpdateContent_Call {
 	_c.Call.Return(run)
 	return _c
 }

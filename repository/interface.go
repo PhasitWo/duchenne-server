@@ -9,7 +9,6 @@ import (
 	"gorm.io/gorm"
 )
 
-
 type Repo struct {
 	db *gorm.DB
 }
@@ -57,6 +56,11 @@ type IRepo interface {
 	CreateQuestion(patientId int, topic string, question string, createAt int) (int, error)
 	UpdateQuestionAnswer(questionId int, answer string, doctorId int) error
 	DeleteQuestion(questionId any) error
+	GetContent(contentID any) (model.Content, error)
+	GetAllContent(limit int, offset int, criteria ...Criteria) ([]model.Content, error)
+	CreateContent(content model.Content) (int, error)
+	UpdateContent(content model.Content) error
+	DeleteContent(contentID any) error
 }
 
 type IGorm interface {

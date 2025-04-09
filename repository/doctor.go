@@ -6,6 +6,7 @@ import (
 
 	"github.com/PhasitWo/duchenne-server/model"
 	"github.com/go-sql-driver/mysql"
+	"gorm.io/gorm"
 )
 
 func (r *Repo) GetDoctorByUsername(username string) (model.Doctor, error) {
@@ -61,9 +62,26 @@ func (r *Repo) UpdateDoctor(doctor model.Doctor) error {
 }
 
 func (r *Repo) DeleteDoctorById(id any) error {
-	err := r.db.Where("id = ?", id).Delete(&model.Doctor{}).Error
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		// soft delete appointment
+		err := tx.Where("doctor_id = ?", id).Delete(&model.Appointment{}).Error
+		if err != nil {
+			return err
+		}
+		// set question's doctorId as null
+		err = tx.Model(&model.Question{}).Where("doctor_id = ?", id).Update("doctor_id", nil).Error
+		if err != nil {
+			return err
+		}
+		// soft delete doctor
+		err = r.db.Where("id = ?", id).Delete(&model.Doctor{}).Error
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 	if err != nil {
 		return fmt.Errorf("exec : %w", err)
 	}
-	return nil
+	return err
 }

@@ -2,6 +2,7 @@ package model
 
 import (
 	"gorm.io/datatypes"
+	"gorm.io/plugin/soft_delete"
 )
 
 type VaccineHistory struct {
@@ -31,6 +32,7 @@ type Patient struct {
 	Height         *float32                            `json:"height"`         // nullable
 	VaccineHistory datatypes.JSONSlice[VaccineHistory] `json:"vaccineHistory"` // nullable
 	Medicine       datatypes.JSONSlice[Medicine]       `json:"medicine"`       // nullable
+	DeletedAt      soft_delete.DeletedAt               `gorm:"default:0"`
 }
 
 type CreatePatientRequest struct {

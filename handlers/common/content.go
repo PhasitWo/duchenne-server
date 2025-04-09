@@ -1,0 +1,52 @@
+package common
+
+import (
+	"errors"
+	"net/http"
+	"strconv"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+)
+
+func (c *CommonHandler) GetAllContent(ctx *gin.Context) {
+	limit := 9999
+	offset := 0
+	var err error
+	// get url query param
+	if l, exist := ctx.GetQuery("limit"); exist {
+		limit, err = strconv.Atoi(l)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "cannot parse limit value"})
+			return
+		}
+	}
+	if of, exist := ctx.GetQuery("offset"); exist {
+		offset, err = strconv.Atoi(of)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "cannot parse offset value"})
+			return
+		}
+	}
+	// query
+	contents, err := c.Repo.GetAllContent(limit, offset)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, contents)
+}
+
+func (c *CommonHandler) GetOneContent(ctx *gin.Context) {
+	id := ctx.Param("id")
+	content, err := c.Repo.GetContent(id)
+	if err != nil {
+		if errors.Unwrap(err) == gorm.ErrRecordNotFound { // no rows found
+			ctx.Status(http.StatusNotFound)
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, content)
+}

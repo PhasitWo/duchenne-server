@@ -7,9 +7,8 @@ import (
 	"github.com/PhasitWo/duchenne-server/model"
 	"github.com/go-sql-driver/mysql"
 	"gorm.io/datatypes"
+	"gorm.io/gorm"
 )
-
-var GetPatientByIdQuery = `SELECT id, hn, first_name, middle_name, last_name, email, phone, verified FROM patient WHERE id=?`
 
 func (r *Repo) GetPatientById(id any) (model.Patient, error) {
 	var p model.Patient
@@ -19,8 +18,6 @@ func (r *Repo) GetPatientById(id any) (model.Patient, error) {
 	}
 	return p, nil
 }
-
-var GetPatientByHNQuery = `SELECT id, hn, first_name, middle_name, last_name, email, phone, verified FROM patient WHERE hn=?`
 
 func (r *Repo) GetPatientByHN(hn string) (model.Patient, error) {
 	var p model.Patient
@@ -88,7 +85,34 @@ func (r *Repo) UpdatePatientMedicine(patientId int, medicines []model.Medicine) 
 }
 
 func (r *Repo) DeletePatientById(id any) error {
-	err := r.db.Where("id = ?", id).Delete(&model.Patient{}).Error
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		// soft delete appointment
+		err := tx.Where("patient_id = ?", id).Delete(&model.Appointment{}).Error
+		if err != nil {
+			return err
+		}
+		// soft delete question
+		err = tx.Where("patient_id = ?", id).Delete(&model.Question{}).Error
+		if err != nil {
+			return err
+		}
+		// change hn
+		var storePatient model.Patient
+		err = tx.Where("id = ?", id).First(&storePatient).Error
+		if err != nil {
+			return err
+		}
+		err = tx.Updates(model.Patient{ID: storePatient.ID, Hn: "DEL" + storePatient.Hn}).Error
+		if err != nil {
+			return err
+		}
+		// soft delete patient
+		err = tx.Where("id = ?", id).Delete(&model.Patient{}).Error
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 	if err != nil {
 		return fmt.Errorf("exec : %w", err)
 	}
