@@ -73,7 +73,7 @@ func (m *MobileHandler) Login(c *gin.Context) {
 		return
 	}
 
-	repoWithTx := repository.New(tx)
+	repoWithTx := m.Repo.New(tx)
 	if len(devices) >= config.AppConfig.MAX_DEVICE {
 		// remove the oldest login device
 		toRemoveDeviceId := devices[0].ID

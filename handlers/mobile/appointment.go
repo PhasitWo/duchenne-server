@@ -59,11 +59,6 @@ func (m *MobileHandler) GetAppointment(c *gin.Context) {
 	c.JSON(http.StatusOK, ap)
 }
 
-type appointmentInput struct {
-	Date     int `json:"date" binding:"required"`
-	DoctorId int `json:"doctorId" binding:"required"`
-}
-
 func (m *MobileHandler) CreateAppointment(c *gin.Context) {
 	// get patientId from auth header
 	i, exists := c.Get("patientId")
@@ -73,7 +68,7 @@ func (m *MobileHandler) CreateAppointment(c *gin.Context) {
 	}
 	patientId := i.(int)
 	// binding request body
-	var input appointmentInput
+	var input model.PatientCreateAppointmentRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -128,15 +123,4 @@ func (m *MobileHandler) DeleteAppointment(c *gin.Context) {
 		return
 	}
 	c.Status(http.StatusNoContent)
-}
-
-func (m *MobileHandler) Test(c *gin.Context) {
-	// _, tx, err := m.Repo.CreateDevice(model.Device{Id: -1, LoginAt: 666666, DeviceName: "cxd phone", ExpoToken: "hhaha", PatientId: 1})
-	// defer tx.Rollback()
-	// if err != nil {
-	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-	// 	return
-	// }
-	// tx.Commit()
-	c.Status(http.StatusOK)
 }

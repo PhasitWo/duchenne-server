@@ -1,0 +1,22 @@
+with-expecter: true
+inpackage: true
+packages:
+  "github.com/PhasitWo/duchenne-server/repository":
+    # place your package-specific config here
+    config:
+    interfaces:
+      # select the interfaces you want mocked
+      IRepo:
+        config:
+          filename: repository_mock.go
+          mockname: MockRepo
+      IGorm:
+        config:
+          filename: gorm_mock.go
+          mockname: MockGorm
+  "github.com/PhasitWo/duchenne-server/notification":
+    interfaces:
+      INotificationService:
+        config:
+          filename: service_mock.go
+          mockname: MockService

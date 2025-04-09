@@ -1,5 +1,7 @@
 package model
 
+import "gorm.io/plugin/soft_delete"
+
 // Doctor roles
 type Role string
 
@@ -18,10 +20,30 @@ type Doctor struct {
 	Password   string  `json:"password" gorm:"not null"`
 	Specialist *string `json:"specialist"`
 	Role       Role    `json:"role" gorm:"not null"`
+	DeletedAt  soft_delete.DeletedAt
 }
 
 type TrimDoctor struct {
 	Doctor
 	Username *string `json:"username" gorm:"-"`
 	Password *string `json:"password" gorm:"-"`
+}
+
+type UpdateProfileRequest struct {
+	FirstName  string  `json:"firstName" binding:"required"`
+	MiddleName *string `json:"middleName"`
+	LastName   string  `json:"lastName" binding:"required"`
+	Username   string  `json:"username" binding:"required"`
+	Password   string  `json:"password" binding:"required"`
+	Specialist *string `json:"specialist"`
+}
+
+type CreateDoctorRequest struct {
+	FirstName  string  `json:"firstName" binding:"required"`
+	MiddleName *string `json:"middleName"`
+	LastName   string  `json:"lastName" binding:"required"`
+	Username   string  `json:"username" binding:"required,max=20"`
+	Password   string  `json:"password" binding:"required"`
+	Role       Role    `json:"role" binding:"required"`
+	Specialist *string `json:"specialist"`
 }

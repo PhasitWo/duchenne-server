@@ -2,6 +2,7 @@ package notification
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"math"
@@ -16,17 +17,22 @@ import (
 )
 
 var NotiLogger = log.New(os.Stdout, "[NOTI] ", log.LstdFlags)
+var ErrDevicesNotFound = errors.New("error not found any devices")
 
-func MockupScheduleNotifications(g *gorm.DB, sendRequestFunc func([]expo.PushMessage)) {
+func SendDailyNotifications(g *gorm.DB, sendRequestFunc func([]expo.PushMessage)) {
 	// query
-	db, _ := g.DB()
+	db, err := g.DB()
+	if err != nil {
+		NotiLogger.Println("Can't get sql.DB from gorm")
+		return
+	}
 	res, err := queryDB(db)
 	if err != nil {
-		NotiLogger.Println("Notification: Can't query database")
+		NotiLogger.Println("Can't query database")
 		return
 	}
 	if res == nil {
-		NotiLogger.Println("Notification: No appointment..")
+		NotiLogger.Println("No appointment..")
 		return
 	}
 	NotiLogger.Printf("Preparing messages..\n")
@@ -46,7 +52,7 @@ func MockupScheduleNotifications(g *gorm.DB, sendRequestFunc func([]expo.PushMes
 				To:       []expo.ExponentPushToken{expo.ExponentPushToken(elem.ExpoToken)},
 				Body:     formatTimeOutput(elem.Date, int(time.Now().Unix())),
 				Sound:    "default",
-				Title:    "Test Notification",
+				Title:    "อย่าลืมนัดหมายของคุณ!",
 				Priority: expo.HighPriority,
 			}
 			// special case -> if this new message is the last message
@@ -59,13 +65,13 @@ func MockupScheduleNotifications(g *gorm.DB, sendRequestFunc func([]expo.PushMes
 		prior = elem.AppointmentId
 	}
 	// log result
-	// for _, m := range messagesPool {
-	// 	fmt.Printf("Message: %v\n", m.Body)
-	// 	fmt.Println("To:")
-	// 	for _, t := range m.To {
-	// 		fmt.Printf("\t%v\n", t)
-	// 	}
-	// }
+	for _, m := range messagesPool {
+		fmt.Printf("Message: %v\n", m.Body)
+		fmt.Println("To:")
+		for _, t := range m.To {
+			fmt.Printf("\t%v\n", t)
+		}
+	}
 	// 1 request can contain up to 100 messages, for safety purpose -> 1 request should contain only up to 80 messages
 	// divide len([]message) with 80 -> split up to multiple request
 	NotiLogger.Printf("Splitting up messages to multiple request\n")
@@ -110,10 +116,10 @@ func SendRequest(messages []expo.PushMessage) {
 }
 
 var apmtQuery = `
-select appointment.id ,date, device.id, device.device_name , expo_token, appointment.patient_id from appointment 
-inner join device on appointment.patient_id = device.patient_id
-where device.expo_token != "" AND appointment.date > ? AND appointment.date < ?
-order by appointment.id asc
+select appointments.id ,date, devices.id, devices.device_name , devices.expo_token, appointments.patient_id from appointments
+inner join devices on appointments.patient_id = devices.patient_id
+where devices.expo_token != "" AND appointments.date > ? AND appointments.date < ?
+order by appointments.id asc
 `
 
 func queryDB(db *sql.DB) ([]model.AppointmentDevice, error) {
@@ -121,7 +127,8 @@ func queryDB(db *sql.DB) ([]model.AppointmentDevice, error) {
 	limit := now + config.AppConfig.NOTIFY_IN_RANGE*24*60*60
 	rows, err := db.Query(apmtQuery, now, limit)
 	if err != nil {
-		fmt.Println("queryDB : Can't query database")
+		NotiLogger.Println("queryDB : Can't query database")
+		NotiLogger.Println(err.Error())
 		return nil, err
 	}
 	defer rows.Close()
@@ -153,16 +160,16 @@ func formatTimeOutput(dueTimestamp int, nowTimestamp int) string {
 	minute := sec / 60
 	hour := minute / 60
 	day := hour / 24
-	baseStr := "You've got an appointment coming up in "
+	baseStr := "คุณมีนัดหมายในอีก "
 	var output string
 	if minute == 0 {
-		output = "several minutes"
+		output = "ไม่กี่นาที"
 	} else if hour == 0 {
-		output = fmt.Sprintf("%d minutes", minute)
+		output = fmt.Sprintf("%d นาที", minute)
 	} else if day == 0 {
-		output = fmt.Sprintf("%d hour(s) %d minute(s)", hour, minute%60)
+		output = fmt.Sprintf("%d ชั่วโมง %d นาที", hour, minute%60)
 	} else {
-		output = fmt.Sprintf("%d day(s) %d hour(s)", day, hour%24)
+		output = fmt.Sprintf("%d วัน %d ชั่วโมง", day, hour%24)
 	}
 	return baseStr + output
 }

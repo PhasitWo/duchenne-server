@@ -34,18 +34,9 @@ func (w *WebHandler) GetAllDoctor(c *gin.Context) {
 	c.JSON(http.StatusOK, doctors)
 }
 
-type doctorInput struct {
-	FirstName  string     `json:"firstName" binding:"required"`
-	MiddleName *string    `json:"middleName"`
-	LastName   string     `json:"lastName" binding:"required"`
-	Username   string     `json:"username" binding:"required,max=20"`
-	Password   string     `json:"password" binding:"required"`
-	Role       model.Role `json:"role" binding:"required"`
-	Specialist *string    `json:"specialist"`
-}
 
 func (w *WebHandler) CreateDoctor(c *gin.Context) {
-	var input doctorInput
+	var input model.CreateDoctorRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -75,7 +66,7 @@ func (w *WebHandler) CreateDoctor(c *gin.Context) {
 }
 
 func (w *WebHandler) UpdateDoctor(c *gin.Context) {
-	var input doctorInput
+	var input model.CreateDoctorRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

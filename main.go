@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/PhasitWo/duchenne-server/config"
+	"github.com/PhasitWo/duchenne-server/handlers/common"
 	"github.com/PhasitWo/duchenne-server/handlers/mobile"
 	"github.com/PhasitWo/duchenne-server/handlers/web"
 	"github.com/PhasitWo/duchenne-server/middleware"
@@ -46,19 +47,17 @@ func main() {
 	r := setupRouter()
 	m := mobile.Init(db)
 	w := web.Init(db)
-	attachHandler(r, m, w, rdc)
+	c := common.Init(db)
+	attachHandler(r, m, w, c, rdc)
 	// CRON
-	c := InitCronScheduler(db)
-	defer c.Stop()
+	cron := InitCronScheduler(db)
+	defer cron.Stop()
 	mainLogger.Println("Server is live! 🎉")
 	r.Run() // listen and serve on 0.0.0.0:8080
 }
 
-func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, rdc *middleware.RedisClient) {
+func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, c *common.CommonHandler, rdc *middleware.RedisClient) {
 	mobile := r.Group("/mobile")
-	mobile.POST("/testnoti", func(c *gin.Context) {
-		notification.MockupScheduleNotifications(m.DBConn, notification.SendRequest)
-	})
 	{
 		mobileAuth := mobile.Group("/auth")
 		{
@@ -69,7 +68,6 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, rd
 		mobileProtected := mobile.Group("/api")
 		mobileProtected.Use(middleware.MobileAuthMiddleware)
 		{
-			mobileProtected.GET("/test", m.Test)
 			mobileProtected.GET("/profile", m.GetProfile)
 			mobileProtected.GET("/appointment", rdc.UseRedisMiddleware(m.GetAllPatientAppointment)...)
 			mobileProtected.GET("/appointment/:id", m.GetAppointment)
@@ -82,6 +80,8 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, rd
 			mobileProtected.GET("/doctor", m.GetAllDoctor)
 			mobileProtected.GET("/device", m.GetAllDevice)
 			mobileProtected.POST("/device", m.CreateDevice)
+			mobileProtected.GET("/content", c.GetAllContent)
+			mobileProtected.GET("/content/:id", c.GetOneContent)
 		}
 	}
 	web := r.Group("/web")
@@ -124,8 +124,26 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, rd
 			webProtected.GET("/question", w.GetAllQuestion)
 			webProtected.GET("/question/:id", w.GetQuestion)
 			webProtected.PUT("/question/:id/answer", w.AnswerQuestion)
+			g, ok := m.DBConn.(*gorm.DB)
+			if !ok {
+				panic("can't cast to *gorm.DB")
+			}
+			webProtected.POST("/sendDailyNotifications", func(c *gin.Context) {
+				notification.SendDailyNotifications(g, notification.SendRequest)
+				c.Status(200)
+			})
+			webProtected.GET("/content", c.GetAllContent)
+			webProtected.GET("/content/:id", c.GetOneContent)
+			webProtected.POST("/content", w.CreateContent)
+			webProtected.PUT("/content/:id", w.UpdateContent)
+			webProtected.DELETE("/content/:id", w.DeleteContent)
 		}
 	}
+	// common := r.Group("/common/api").Use(middleware.CommonAuthMiddleware)
+	// {
+	// 	common.GET("/content", c.GetAllContent)
+	// 	common.GET("/content/:id", c.GetOneContent)
+	// }
 }
 
 func setupDB() *gorm.DB {
@@ -144,7 +162,7 @@ func setupDB() *gorm.DB {
 	if err != nil {
 		mainLogger.Panicf("Can't open connection to database : %v", err.Error())
 	}
-	
+
 	db, err := gorm.Open(mysql.New(mysql.Config{
 		Conn: customDB,
 	}), &gorm.Config{SkipDefaultTransaction: true})
@@ -174,6 +192,7 @@ func setupDB() *gorm.DB {
 		&model.Doctor{},
 		&model.Patient{},
 		&model.Question{},
+		&model.Content{},
 	)
 
 	mainLogger.Println(message)
@@ -202,7 +221,7 @@ func InitCronScheduler(db *gorm.DB) *cron.Cron {
 	// everyday on 10.00 (GMT +7) -> spec : "00 00 03 * * *"
 	c.AddFunc("00 00 03 * * *", func() {
 		mainLogger.Println("Executing Push Notifications..")
-		notification.MockupScheduleNotifications(db, notification.SendRequest)
+		notification.SendDailyNotifications(db, notification.SendRequest)
 	})
 	c.Start()
 	mainLogger.Println("Cron scheduler initialized")
