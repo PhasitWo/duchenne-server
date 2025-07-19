@@ -58,3 +58,10 @@ func (c *CommonHandler) GetOneContent(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, content)
 }
+
+func (c *CommonHandler) UploadImage(ctx *gin.Context) {
+	_, err := ctx.FormFile("image")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+}
