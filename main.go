@@ -141,6 +141,7 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, c 
 			webProtected.POST("/content", w.CreateContent)
 			webProtected.PUT("/content/:id", w.UpdateContent)
 			webProtected.DELETE("/content/:id", w.DeleteContent)
+			webProtected.POST("/image/upload", c.UploadImage)
 		}
 	}
 	// common := r.Group("/common/api").Use(middleware.CommonAuthMiddleware)
@@ -271,5 +272,6 @@ func setupCloudStorageClient() *storage.Client {
 	if err != nil {
 		mainLogger.Panicf("Can't create google cloud storage client : %v", err.Error())
 	}
+	mainLogger.Println("Connected to google cloud storage")
 	return gcsClient
 }

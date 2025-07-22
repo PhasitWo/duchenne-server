@@ -19,7 +19,7 @@ const bucketName = "dmd-we-care"
 var gcsLogger = log.New(os.Stdout, "[GCS] ", log.LstdFlags)
 
 type ICloudStorageService interface {
-	uploadImage(file *multipart.FileHeader) (*string, error)
+	UploadImage(file *multipart.FileHeader) (*string, error)
 }
 
 type service struct {
@@ -30,7 +30,7 @@ func NewService(gcsClient *storage.Client) *service {
 	return &service{gcsClient}
 }
 
-func (s *service) uploadImage(file *multipart.FileHeader) (*string, error) {
+func (s *service) UploadImage(file *multipart.FileHeader) (*string, error) {
 	src, err := file.Open()
 	if err != nil {
 		gcsLogger.Println("error opening file")
