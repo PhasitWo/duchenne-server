@@ -13,6 +13,7 @@ import (
 	"os"
 	"time"
 
+	"cloud.google.com/go/storage"
 	"github.com/PhasitWo/duchenne-server/config"
 	"github.com/PhasitWo/duchenne-server/handlers/common"
 	"github.com/PhasitWo/duchenne-server/handlers/mobile"
@@ -22,6 +23,7 @@ import (
 	"github.com/PhasitWo/duchenne-server/notification"
 	"github.com/redis/go-redis/v9"
 	"github.com/robfig/cron"
+	"google.golang.org/api/option"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -43,11 +45,13 @@ func main() {
 	db := setupDB()
 	// Setup redis
 	rdc := setupRedisClient()
+	// Setup google cloud storage client
+	gcsClient := setupCloudStorageClient()
 	// Setup router and handler
 	r := setupRouter()
 	m := mobile.Init(db)
 	w := web.Init(db)
-	c := common.Init(db)
+	c := common.Init(db, gcsClient)
 	attachHandler(r, m, w, c, rdc)
 	// CRON
 	cron := InitCronScheduler(db)
@@ -137,6 +141,7 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, c 
 			webProtected.POST("/content", w.CreateContent)
 			webProtected.PUT("/content/:id", w.UpdateContent)
 			webProtected.DELETE("/content/:id", w.DeleteContent)
+			webProtected.POST("/image/upload", c.UploadImage)
 		}
 	}
 	// common := r.Group("/common/api").Use(middleware.CommonAuthMiddleware)
@@ -262,21 +267,11 @@ func setupRedisClient() *middleware.RedisClient {
 	return middlewareclient
 }
 
-// func testRepo() {
-// 	db := setupDB()
-// 	repo := repository.New(db)
-// 	mn := "mid na"
-// 	res, err := repo.CreateDoctor(model.Doctor{
-// 		Id:         -1,
-// 		FirstName:  "myrepo",
-// 		MiddleName: &mn,
-// 		LastName:   "ln na",
-// 		Username:   "myrepousername",
-// 		Password:   "1234",
-// 		Role:       model.USER,
-// 	})
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	log.Println(res)
-// }
+func setupCloudStorageClient() *storage.Client {
+	gcsClient, err := storage.NewClient(context.Background(), option.WithCredentialsFile("./storage-cred.json"))
+	if err != nil {
+		mainLogger.Panicf("Can't create google cloud storage client : %v", err.Error())
+	}
+	mainLogger.Println("Connected to google cloud storage")
+	return gcsClient
+}

@@ -2,8 +2,10 @@ package common
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/PhasitWo/duchenne-server/repository"
 	"github.com/gin-gonic/gin"
@@ -57,4 +59,24 @@ func (c *CommonHandler) GetOneContent(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, content)
+}
+
+func (c *CommonHandler) UploadImage(ctx *gin.Context) {
+	file, err := ctx.FormFile("image")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	// check content type
+	contentType := file.Header.Get("Content-Type")
+	if !strings.Contains(contentType, "image") {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("invalid content type: %v", contentType)})
+		return
+	}
+	publicURL, err := c.CloudStorageService.UploadImage(file)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("error uploading file: %v", err.Error())})
+		return
+	}
+	ctx.JSON(http.StatusCreated, gin.H{"publicURL": publicURL})
 }

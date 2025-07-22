@@ -34,7 +34,7 @@ func (r *Repo) CreateContent(content model.Content) (int, error) {
 }
 
 func (r *Repo) UpdateContent(content model.Content) error {
-	result := r.db.Select("title", "body", "is_published", "order").Updates(&content)
+	result := r.db.Select("title", "body", "is_published", "order", "cover_image_url").Updates(&content)
 	err := result.Error
 	if err != nil {
 		return fmt.Errorf("exec : %w", err)
