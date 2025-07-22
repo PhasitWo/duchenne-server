@@ -16,10 +16,11 @@ func (w *WebHandler) CreateContent(c *gin.Context) {
 		return
 	}
 	insertedID, err := w.Repo.CreateContent(model.Content{
-		Title:       input.Title,
-		Body:        input.Body,
-		IsPublished: input.IsPublished,
-		Order:       input.Order,
+		Title:         input.Title,
+		Body:          input.Body,
+		IsPublished:   input.IsPublished,
+		Order:         input.Order,
+		CoverImageURL: input.CoverImageURL,
 	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -42,11 +43,12 @@ func (w *WebHandler) UpdateContent(c *gin.Context) {
 		return
 	}
 	err = w.Repo.UpdateContent(model.Content{
-		ID:          id,
-		Title:       input.Title,
-		Body:        input.Body,
-		IsPublished: input.IsPublished,
-		Order:       input.Order,
+		ID:            id,
+		Title:         input.Title,
+		Body:          input.Body,
+		IsPublished:   input.IsPublished,
+		Order:         input.Order,
+		CoverImageURL: input.CoverImageURL,
 	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
