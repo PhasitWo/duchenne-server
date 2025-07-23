@@ -10,13 +10,16 @@ type VaccineHistory struct {
 	VaccineName     string  `json:"vaccineName" binding:"required"`
 	VaccineLocation *string `json:"vaccineLocation"`
 	VaccineAt       int     `json:"vaccineAt" binding:"required"`
-	Description     *string `json:"description"` // nullable
+	Complication    *string `json:"complication"` // nullable
 }
 
 type Medicine struct {
-	Id           string  `json:"id" binding:"required"`
-	MedicineName string  `json:"medicineName" binding:"required"`
-	Description  *string `json:"description"` // nullable
+	Id              string  `json:"id" binding:"required"`
+	MedicineName    string  `json:"medicineName" binding:"required"`
+	Dose            *string `json:"dose"`            // nullable
+	FrequencyPerDay *string `json:"frequencyPerDay"` // nullable
+	Instruction     *string `json:"instruction"`     // nullable
+	Quantity        *string `json:"quantity"`        // nullable
 }
 
 type Patient struct {
