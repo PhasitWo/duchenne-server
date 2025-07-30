@@ -1,13 +1,10 @@
 package main
 
 import (
-	// "net/http"
 	"context"
 	"crypto/tls"
 	"database/sql"
 
-	// "crypto/tls"
-	// "database/sql"
 	"log"
 	"net/http"
 	"os"
@@ -20,15 +17,13 @@ import (
 	"github.com/PhasitWo/duchenne-server/handlers/web"
 	"github.com/PhasitWo/duchenne-server/middleware"
 	"github.com/PhasitWo/duchenne-server/model"
-	"github.com/PhasitWo/duchenne-server/notification"
+	"github.com/PhasitWo/duchenne-server/services/notification"
 	"github.com/redis/go-redis/v9"
 	"github.com/robfig/cron"
 	"google.golang.org/api/option"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-
-	// "github.com/PhasitWo/duchenne-server/repository"
 
 	gomysql "github.com/go-sql-driver/mysql"
 
@@ -55,8 +50,10 @@ func main() {
 	a := middleware.InitActivityLogMiddleware(db)
 	attachHandler(r, m, w, c, rdc, a)
 	// CRON
-	cron := InitCronScheduler(db)
-	defer cron.Stop()
+	if config.AppConfig.ENABLE_CRON {
+		cron := InitCronScheduler(db)
+		defer cron.Stop()
+	}
 	mainLogger.Println("Server is live! 🎉")
 	r.Run() // listen and serve on 0.0.0.0:8080
 }
@@ -217,7 +214,7 @@ func setupDB() *gorm.DB {
 
 func setupRouter() *gin.Engine {
 	if config.AppConfig.MODE == "dev" {
-		gin.SetMode(gin.DebugMode)
+		gin.SetMode(gin.TestMode)
 	} else {
 		gin.SetMode(gin.ReleaseMode)
 	}

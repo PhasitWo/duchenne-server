@@ -11,7 +11,7 @@ import (
 
 	"github.com/PhasitWo/duchenne-server/handlers/web"
 	"github.com/PhasitWo/duchenne-server/model"
-	"github.com/PhasitWo/duchenne-server/notification"
+	"github.com/PhasitWo/duchenne-server/services/notification"
 	"github.com/PhasitWo/duchenne-server/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"

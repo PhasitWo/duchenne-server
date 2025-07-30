@@ -3,7 +3,7 @@ package web
 import (
 	// "database/sql"
 
-	"github.com/PhasitWo/duchenne-server/notification"
+	"github.com/PhasitWo/duchenne-server/services/notification"
 	"github.com/PhasitWo/duchenne-server/repository"
 	_ "github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
