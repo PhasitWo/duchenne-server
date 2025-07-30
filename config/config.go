@@ -30,7 +30,12 @@ func LoadConfig() {
 	configLogger := log.New(os.Stdout, "[CONFIG] ", 0)
 	viper.SetConfigFile(".env")
 	if err := viper.ReadInConfig(); err != nil {
-		panic("Can't read config file")
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			configLogger.Println(".env file is not found, read from env variables intead")
+			viper.AutomaticEnv()
+		} else {
+			panic("Can't read config file")
+		}
 	}
 	// load config by struct field's name
 	f := reflect.ValueOf(&AppConfig).Elem()
