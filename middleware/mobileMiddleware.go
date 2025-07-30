@@ -37,6 +37,7 @@ func MobileAuthMiddleware(c *gin.Context) {
 		c.Abort()
 		return
 	}
+	c.Set("claims", claims)
 	c.Set("patientId", claims.PatientId)
 	c.Set("deviceId", claims.DeviceId)
 	c.Next()

@@ -52,7 +52,8 @@ func main() {
 	m := mobile.Init(db)
 	w := web.Init(db)
 	c := common.Init(db, gcsClient)
-	attachHandler(r, m, w, c, rdc)
+	a := middleware.InitActivityLogMiddleware(db)
+	attachHandler(r, m, w, c, rdc, a)
 	// CRON
 	cron := InitCronScheduler(db)
 	defer cron.Stop()
@@ -60,7 +61,7 @@ func main() {
 	r.Run() // listen and serve on 0.0.0.0:8080
 }
 
-func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, c *common.CommonHandler, rdc *middleware.RedisClient) {
+func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, c *common.CommonHandler, rdc *middleware.RedisClient, a *middleware.ActivityLogMiddleware) {
 	mobile := r.Group("/mobile")
 	{
 		mobileAuth := mobile.Group("/auth")
@@ -71,6 +72,7 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, c 
 		}
 		mobileProtected := mobile.Group("/api")
 		mobileProtected.Use(middleware.MobileAuthMiddleware)
+		mobileProtected.Use(a.ActivityLog)
 		{
 			mobileProtected.GET("/profile", m.GetProfile)
 			mobileProtected.GET("/appointment", rdc.UseRedisMiddleware(m.GetAllPatientAppointment)...)
@@ -104,6 +106,7 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, c 
 		}
 		webProtected := web.Group("/api")
 		webProtected.Use(middleware.WebAuthMiddleware)
+		webProtected.Use(a.ActivityLog)
 		{
 			webProtected.GET("/userData", w.GetUserData)
 			webProtected.GET("/profile", w.GetProfile)
@@ -192,6 +195,7 @@ func setupDB() *gorm.DB {
 
 	// Migrate
 	db.AutoMigrate(
+		&model.ActivityLog{},
 		&model.Appointment{},
 		&model.Device{},
 		&model.Doctor{},
@@ -212,7 +216,11 @@ func setupDB() *gorm.DB {
 }
 
 func setupRouter() *gin.Engine {
-	gin.SetMode(gin.TestMode)
+	if config.AppConfig.MODE == "dev" {
+		gin.SetMode(gin.DebugMode)
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	r := gin.Default()
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowCredentials = true
