@@ -12,7 +12,7 @@ import (
 
 	"github.com/PhasitWo/duchenne-server/config"
 	"github.com/PhasitWo/duchenne-server/model"
-	expo "github.com/PhasitWo/duchenne-server/notification/expo/exponent-server-sdk-golang-master/sdk"
+	expo "github.com/PhasitWo/duchenne-server/services/notification/expo/exponent-server-sdk-golang-master/sdk"
 	"gorm.io/gorm"
 )
 
@@ -55,15 +55,16 @@ func SendDailyNotifications(g *gorm.DB, sendRequestFunc func([]expo.PushMessage)
 				Title:    "อย่าลืมนัดหมายของคุณ!",
 				Priority: expo.HighPriority,
 			}
-			// special case -> if this new message is the last message
-			if index == len(res) - 1 {
-				messagesPool = append(messagesPool, newMessage)
-			}
 		} else {
 			newMessage.To = append(newMessage.To, expo.ExponentPushToken(elem.ExpoToken))
 		}
+		// special case -> if this new message is the last message
+		if index == len(res)-1 {
+			messagesPool = append(messagesPool, newMessage)
+		}
 		prior = elem.AppointmentId
 	}
+
 	// log result
 	for _, m := range messagesPool {
 		fmt.Printf("Message: %v\n", m.Body)
@@ -72,6 +73,7 @@ func SendDailyNotifications(g *gorm.DB, sendRequestFunc func([]expo.PushMessage)
 			fmt.Printf("\t%v\n", t)
 		}
 	}
+
 	// 1 request can contain up to 100 messages, for safety purpose -> 1 request should contain only up to 80 messages
 	// divide len([]message) with 80 -> split up to multiple request
 	NotiLogger.Printf("Splitting up messages to multiple request\n")
@@ -118,7 +120,7 @@ func SendRequest(messages []expo.PushMessage) {
 var apmtQuery = `
 select appointments.id ,date, devices.id, devices.device_name , devices.expo_token, appointments.patient_id from appointments
 inner join devices on appointments.patient_id = devices.patient_id
-where devices.expo_token != "" AND appointments.date > ? AND appointments.date < ?
+where devices.expo_token != "" AND appointments.approve_at IS NOT NULL AND appointments.date > ? AND appointments.date < ?
 order by appointments.id asc
 `
 

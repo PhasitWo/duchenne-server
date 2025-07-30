@@ -1,13 +1,10 @@
 package main
 
 import (
-	// "net/http"
 	"context"
 	"crypto/tls"
 	"database/sql"
 
-	// "crypto/tls"
-	// "database/sql"
 	"log"
 	"net/http"
 	"os"
@@ -20,15 +17,13 @@ import (
 	"github.com/PhasitWo/duchenne-server/handlers/web"
 	"github.com/PhasitWo/duchenne-server/middleware"
 	"github.com/PhasitWo/duchenne-server/model"
-	"github.com/PhasitWo/duchenne-server/notification"
+	"github.com/PhasitWo/duchenne-server/services/notification"
 	"github.com/redis/go-redis/v9"
 	"github.com/robfig/cron"
 	"google.golang.org/api/option"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-
-	// "github.com/PhasitWo/duchenne-server/repository"
 
 	gomysql "github.com/go-sql-driver/mysql"
 
@@ -52,15 +47,18 @@ func main() {
 	m := mobile.Init(db)
 	w := web.Init(db)
 	c := common.Init(db, gcsClient)
-	attachHandler(r, m, w, c, rdc)
+	a := middleware.InitActivityLogMiddleware(db)
+	attachHandler(r, m, w, c, rdc, a)
 	// CRON
-	cron := InitCronScheduler(db)
-	defer cron.Stop()
+	if config.AppConfig.ENABLE_CRON {
+		cron := InitCronScheduler(db)
+		defer cron.Stop()
+	}
 	mainLogger.Println("Server is live! 🎉")
 	r.Run() // listen and serve on 0.0.0.0:8080
 }
 
-func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, c *common.CommonHandler, rdc *middleware.RedisClient) {
+func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, c *common.CommonHandler, rdc *middleware.RedisClient, a *middleware.ActivityLogMiddleware) {
 	mobile := r.Group("/mobile")
 	{
 		mobileAuth := mobile.Group("/auth")
@@ -71,6 +69,7 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, c 
 		}
 		mobileProtected := mobile.Group("/api")
 		mobileProtected.Use(middleware.MobileAuthMiddleware)
+		mobileProtected.Use(a.ActivityLog)
 		{
 			mobileProtected.GET("/profile", m.GetProfile)
 			mobileProtected.GET("/appointment", rdc.UseRedisMiddleware(m.GetAllPatientAppointment)...)
@@ -104,6 +103,7 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, c 
 		}
 		webProtected := web.Group("/api")
 		webProtected.Use(middleware.WebAuthMiddleware)
+		webProtected.Use(a.ActivityLog)
 		{
 			webProtected.GET("/userData", w.GetUserData)
 			webProtected.GET("/profile", w.GetProfile)
@@ -192,6 +192,7 @@ func setupDB() *gorm.DB {
 
 	// Migrate
 	db.AutoMigrate(
+		&model.ActivityLog{},
 		&model.Appointment{},
 		&model.Device{},
 		&model.Doctor{},
@@ -212,7 +213,11 @@ func setupDB() *gorm.DB {
 }
 
 func setupRouter() *gin.Engine {
-	gin.SetMode(gin.TestMode)
+	if config.AppConfig.MODE == "dev" {
+		gin.SetMode(gin.TestMode)
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	r := gin.Default()
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowCredentials = true

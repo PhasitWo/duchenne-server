@@ -1,7 +1,7 @@
 package notification
 
 import (
-	expo "github.com/PhasitWo/duchenne-server/notification/expo/exponent-server-sdk-golang-master/sdk"
+	expo "github.com/PhasitWo/duchenne-server/services/notification/expo/exponent-server-sdk-golang-master/sdk"
 	"github.com/PhasitWo/duchenne-server/repository"
 	"gorm.io/gorm"
 )

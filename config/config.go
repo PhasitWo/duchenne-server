@@ -18,8 +18,9 @@ type config struct {
 	JWT_KEY            string
 	MAX_DEVICE         int
 	NOTIFY_IN_RANGE    int
+	ENABLE_CRON        bool
 	SERVER_DOMAIN      string
-	CORS_ALLOW		   []string
+	CORS_ALLOW         []string
 }
 
 // shared config across packages
@@ -65,11 +66,11 @@ func LoadConfig() {
 }
 
 type constants struct {
-	WEB_ACCESS_COOKIE_NAME string
+	WEB_ACCESS_COOKIE_NAME  string
 	WEB_REFRESH_COOKIE_NAME string
 }
 
 var Constants = constants{
-	WEB_ACCESS_COOKIE_NAME: "web_access_token",
+	WEB_ACCESS_COOKIE_NAME:  "web_access_token",
 	WEB_REFRESH_COOKIE_NAME: "web_refresh_token",
 }

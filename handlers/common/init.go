@@ -2,8 +2,8 @@ package common
 
 import (
 	"cloud.google.com/go/storage"
-	cloudstorage "github.com/PhasitWo/duchenne-server/cloud-storage"
-	"github.com/PhasitWo/duchenne-server/notification"
+	cloudstorage "github.com/PhasitWo/duchenne-server/services/cloud-storage"
+	"github.com/PhasitWo/duchenne-server/services/notification"
 	"github.com/PhasitWo/duchenne-server/repository"
 	"gorm.io/gorm"
 )
