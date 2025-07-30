@@ -273,7 +273,11 @@ func setupRedisClient() *middleware.RedisClient {
 }
 
 func setupCloudStorageClient() *storage.Client {
-	gcsClient, err := storage.NewClient(context.Background(), option.WithCredentialsFile("./storage-cred.json"))
+	var opt option.ClientOption = nil
+	if config.AppConfig.MODE == "dev" {
+		opt = option.WithCredentialsFile("./storage-cred.json")
+	}
+	gcsClient, err := storage.NewClient(context.Background(), opt)
 	if err != nil {
 		mainLogger.Panicf("Can't create google cloud storage client : %v", err.Error())
 	}
