@@ -119,6 +119,6 @@ func (w *WebHandler) AnswerQuestion(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	go w.NotiService.SendNotiByPatientId(q.PatientID, "คุณหมอตอบคำถามของคุณแล้ว!", "ดูคำตอบในแอปพลิเคชัน")
+	go w.NotiService.SendNotiByPatientId(q.PatientID, "แพทย์ตอบคำถามของคุณแล้ว!", "ดูคำตอบในแอปพลิเคชัน")
 	c.Status(http.StatusOK)
 }
