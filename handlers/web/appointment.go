@@ -169,6 +169,6 @@ func (w *WebHandler) DeleteAppointment(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	go w.NotiService.SendNotiByPatientId(apm.PatientID, "นัดหมายของคุณถูกลบ!", "คุณหมอลบนัดหมายของคุณ")
+	go w.NotiService.SendNotiByPatientId(apm.PatientID, "นัดหมายของคุณถูกลบ!", "เจ้าหน้าที่ลบนัดหมายของคุณ")
 	c.Status(http.StatusNoContent)
 }

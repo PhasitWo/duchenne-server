@@ -31,9 +31,9 @@ func (r responseBodyWriter) Write(b []byte) (int, error) {
 	r.body.Write(b)
 	return r.ResponseWriter.Write(b)
 }
-
+// UNUSED
 func (rdc *RedisClient) RedisPersonalizedCacheMiddleware(c *gin.Context) {
-	// FIXME:Setting and Getting cache will hit the performance if sever can't connect to redis
+	// Setting and Getting cache will hit the performance if sever can't connect to redis
 	// get patientId from auth header
 	i, exists := c.Get("patientId")
 	if !exists {
