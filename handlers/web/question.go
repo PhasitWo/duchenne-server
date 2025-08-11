@@ -48,11 +48,12 @@ func (w *WebHandler) GetAllQuestion(c *gin.Context) {
 		criteriaList = append(criteriaList, repository.Criteria{QueryCriteria: repository.PATIENTID, Value: patientId})
 	}
 	if t, exist := c.GetQuery("type"); exist {
-		if t == "replied" {
+		switch t {
+		case "replied":
 			criteriaList = append(criteriaList, repository.Criteria{QueryCriteria: repository.ANSWERAT_ISNOTNULL})
-		} else if t == "unreplied" {
+		case "unreplied":
 			criteriaList = append(criteriaList, repository.Criteria{QueryCriteria: repository.ANSWERAT_ISNULL})
-		} else {
+		default:
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid type value"})
 			return
 		}

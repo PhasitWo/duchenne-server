@@ -93,7 +93,7 @@ func (n *service) SendDailyNotifications(dayRange *int) error {
 			// create new message
 			newMessage = expo.PushMessage{
 				To:       []expo.ExponentPushToken{expo.ExponentPushToken(elem.ExpoToken)},
-				Body:     formatTimeOutput(elem.Date, int(time.Now().Unix())),
+				Body:     formatRemainingTime(elem.Date, int(time.Now().Unix())) + " (" + formatThaiTime(elem.Date) + ")",
 				Sound:    "default",
 				Title:    "อย่าลืมนัดหมายของคุณ!",
 				Priority: expo.HighPriority,
@@ -188,7 +188,7 @@ func queryDB(db *sql.DB, dayRange int) ([]model.AppointmentDevice, error) {
 	return res, nil
 }
 
-func formatTimeOutput(dueTimestamp int, nowTimestamp int) string {
+func formatRemainingTime(dueTimestamp int, nowTimestamp int) string {
 	sec := (dueTimestamp - nowTimestamp)
 	minute := sec / 60
 	hour := minute / 60
@@ -205,4 +205,22 @@ func formatTimeOutput(dueTimestamp int, nowTimestamp int) string {
 		output = fmt.Sprintf("%d วัน %d ชั่วโมง", day, hour%24)
 	}
 	return baseStr + output
+}
+
+var thaiMonths = []string{
+	"", // index 0 is not used
+	"มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน",
+	"พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม",
+	"กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม",
+}
+
+func formatThaiTime(dueTimestamp int) string {
+	t := time.Unix(int64(dueTimestamp), 0)
+	day := t.Day()
+	month := t.Month()
+	year := t.Year()
+	// format to thai
+	beYear := year + 543
+	thaiMonth := thaiMonths[int(month)]
+	return fmt.Sprintf("%d %s %d", day, thaiMonth, beYear)
 }
