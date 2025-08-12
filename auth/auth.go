@@ -16,7 +16,7 @@ type PatientClaims struct {
 }
 
 func GeneratePatientToken(patientId int, deviceId int) (string, error) {
-	expirationTime := time.Now().Add(90 * 24 * time.Hour)
+	expirationTime := time.Now().Add(7 * 24 * time.Hour)
 	claims := &PatientClaims{
 		PatientId: patientId,
 		DeviceId:  deviceId,
