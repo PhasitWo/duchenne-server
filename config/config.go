@@ -16,6 +16,7 @@ type config struct {
 	JWT_KEY         string
 	MAX_DEVICE      int
 	NOTIFY_IN_RANGE int
+	NOTIFY_SECRET   string
 	ENABLE_CRON     bool
 	SERVER_DOMAIN   string
 	CORS_ALLOW      []string
@@ -29,6 +30,7 @@ var defaultConfig = config{
 	JWT_KEY:         "SAMPLE_KEY",
 	MAX_DEVICE:      3,
 	NOTIFY_IN_RANGE: 3,
+	NOTIFY_SECRET:   "SAMPLE_SECRET",
 	ENABLE_CRON:     false,
 	SERVER_DOMAIN:   "127.0.0.1",
 	CORS_ALLOW:      []string{"http://localhost:5173", "http://localhost:4173", "https://duchenne-web.onrender.com"},
