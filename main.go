@@ -93,6 +93,7 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, c 
 		c.JSON(http.StatusOK, "DMD We Care API")
 	})
 	{
+		web.POST("/sendDailyNotifications", w.SendDailyNotifications)
 		webAuth := web.Group("/auth")
 		{
 			webAuth.POST("/login", w.Login)
@@ -131,8 +132,6 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, c 
 			webProtected.PUT("/content/:id", w.UpdateContent)
 			webProtected.DELETE("/content/:id", w.DeleteContent)
 			webProtected.POST("/image/upload", c.UploadImage)
-
-			webProtected.POST("/sendDailyNotifications", w.SendDailyNotifications)
 		}
 	}
 }
