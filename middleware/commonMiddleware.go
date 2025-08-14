@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 )
-
+// UNUSED
 func CommonAuthMiddleware(c *gin.Context) {
 	var err error
 	var tokenString string

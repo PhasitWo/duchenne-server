@@ -44,6 +44,7 @@ func WebAuthMiddleware(c *gin.Context) {
 		c.Abort()
 		return
 	}
+	c.Set("claims", claims)
 	c.Set("doctorId", claims.DoctorId)
 	c.Set("doctorRole", claims.Role)
 	c.Next()

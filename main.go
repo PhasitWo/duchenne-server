@@ -1,32 +1,28 @@
 package main
 
 import (
-	// "net/http"
 	"context"
 	"crypto/tls"
 	"database/sql"
 
-	// "crypto/tls"
-	// "database/sql"
 	"log"
 	"net/http"
 	"os"
 	"time"
 
+	"cloud.google.com/go/storage"
 	"github.com/PhasitWo/duchenne-server/config"
 	"github.com/PhasitWo/duchenne-server/handlers/common"
 	"github.com/PhasitWo/duchenne-server/handlers/mobile"
 	"github.com/PhasitWo/duchenne-server/handlers/web"
 	"github.com/PhasitWo/duchenne-server/middleware"
 	"github.com/PhasitWo/duchenne-server/model"
-	"github.com/PhasitWo/duchenne-server/notification"
-	"github.com/redis/go-redis/v9"
+	"github.com/PhasitWo/duchenne-server/services/notification"
 	"github.com/robfig/cron"
+	"google.golang.org/api/option"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-
-	// "github.com/PhasitWo/duchenne-server/repository"
 
 	gomysql "github.com/go-sql-driver/mysql"
 
@@ -41,22 +37,25 @@ func main() {
 	config.LoadConfig()
 	// Setup database connection
 	db := setupDB()
-	// Setup redis
-	rdc := setupRedisClient()
+	// Setup google cloud storage client
+	gcsClient := setupCloudStorageClient()
 	// Setup router and handler
 	r := setupRouter()
 	m := mobile.Init(db)
 	w := web.Init(db)
-	c := common.Init(db)
-	attachHandler(r, m, w, c, rdc)
+	c := common.Init(db, gcsClient)
+	a := middleware.InitActivityLogMiddleware(db)
+	attachHandler(r, m, w, c, a)
 	// CRON
-	cron := InitCronScheduler(db)
-	defer cron.Stop()
-	mainLogger.Println("Server is live! 🎉")
+	if config.AppConfig.ENABLE_CRON {
+		cron := InitCronScheduler(w.NotiService)
+		defer cron.Stop()
+	}
+	mainLogger.Println("Server is Live! 🎉")
 	r.Run() // listen and serve on 0.0.0.0:8080
 }
 
-func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, c *common.CommonHandler, rdc *middleware.RedisClient) {
+func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, c *common.CommonHandler, a *middleware.ActivityLogMiddleware) {
 	mobile := r.Group("/mobile")
 	{
 		mobileAuth := mobile.Group("/auth")
@@ -67,16 +66,17 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, c 
 		}
 		mobileProtected := mobile.Group("/api")
 		mobileProtected.Use(middleware.MobileAuthMiddleware)
+		mobileProtected.Use(a.ActivityLog)
 		{
 			mobileProtected.GET("/profile", m.GetProfile)
-			mobileProtected.GET("/appointment", rdc.UseRedisMiddleware(m.GetAllPatientAppointment)...)
+			mobileProtected.GET("/appointment", m.GetAllPatientAppointment)
 			mobileProtected.GET("/appointment/:id", m.GetAppointment)
-			mobileProtected.POST("/appointment", rdc.UseRedisMiddleware(m.CreateAppointment)...)
-			mobileProtected.DELETE("/appointment/:id", rdc.UseRedisMiddleware(m.DeleteAppointment)...)
-			mobileProtected.GET("/question", rdc.UseRedisMiddleware(m.GetAllPatientQuestion)...)
+			mobileProtected.POST("/appointment", m.CreateAppointment)
+			mobileProtected.DELETE("/appointment/:id", m.DeleteAppointment)
+			mobileProtected.GET("/question", m.GetAllPatientQuestion)
 			mobileProtected.GET("/question/:id", m.GetQuestion)
-			mobileProtected.POST("/question", rdc.UseRedisMiddleware(m.CreateQuestion)...)
-			mobileProtected.DELETE("/question/:id", rdc.UseRedisMiddleware(m.DeleteQuestion)...)
+			mobileProtected.POST("/question", m.CreateQuestion)
+			mobileProtected.DELETE("/question/:id", m.DeleteQuestion)
 			mobileProtected.GET("/doctor", m.GetAllDoctor)
 			mobileProtected.GET("/device", m.GetAllDevice)
 			mobileProtected.POST("/device", m.CreateDevice)
@@ -90,7 +90,7 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, c 
 	// 	c.Redirect(http.StatusMovedPermanently, "/static")
 	// })
 	r.GET("/", func(c *gin.Context) {
-		c.JSON(http.StatusOK, "Duchenne Server API")
+		c.JSON(http.StatusOK, "DMD We Care API")
 	})
 	{
 		webAuth := web.Group("/auth")
@@ -100,6 +100,7 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, c 
 		}
 		webProtected := web.Group("/api")
 		webProtected.Use(middleware.WebAuthMiddleware)
+		webProtected.Use(a.ActivityLog)
 		{
 			webProtected.GET("/userData", w.GetUserData)
 			webProtected.GET("/profile", w.GetProfile)
@@ -124,35 +125,20 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, c 
 			webProtected.GET("/question", w.GetAllQuestion)
 			webProtected.GET("/question/:id", w.GetQuestion)
 			webProtected.PUT("/question/:id/answer", w.AnswerQuestion)
-			g, ok := m.DBConn.(*gorm.DB)
-			if !ok {
-				panic("can't cast to *gorm.DB")
-			}
-			webProtected.POST("/sendDailyNotifications", func(c *gin.Context) {
-				notification.SendDailyNotifications(g, notification.SendRequest)
-				c.Status(200)
-			})
 			webProtected.GET("/content", c.GetAllContent)
 			webProtected.GET("/content/:id", c.GetOneContent)
 			webProtected.POST("/content", w.CreateContent)
 			webProtected.PUT("/content/:id", w.UpdateContent)
 			webProtected.DELETE("/content/:id", w.DeleteContent)
+			webProtected.POST("/image/upload", c.UploadImage)
+
+			webProtected.POST("/sendDailyNotifications", w.SendDailyNotifications)
 		}
 	}
-	// common := r.Group("/common/api").Use(middleware.CommonAuthMiddleware)
-	// {
-	// 	common.GET("/content", c.GetAllContent)
-	// 	common.GET("/content/:id", c.GetOneContent)
-	// }
 }
 
 func setupDB() *gorm.DB {
 	dsn := config.AppConfig.DATABASE_DSN
-	message := "Connected to remote database"
-	if config.AppConfig.MODE == "dev" {
-		dsn = config.AppConfig.DATABASE_DSN_LOCAL
-		message = "Connected to local database"
-	}
 	// open db connection
 	gomysql.RegisterTLSConfig("tidb", &tls.Config{
 		MinVersion: tls.VersionTLS12,
@@ -160,7 +146,7 @@ func setupDB() *gorm.DB {
 	})
 	customDB, err := sql.Open("mysql", dsn)
 	if err != nil {
-		mainLogger.Panicf("Can't open connection to database : %v", err.Error())
+		mainLogger.Panicf("can't open connection to database : %v", err.Error())
 	}
 
 	db, err := gorm.Open(mysql.New(mysql.Config{
@@ -173,7 +159,7 @@ func setupDB() *gorm.DB {
 
 	sqlDB, err := db.DB()
 	if err != nil {
-		mainLogger.Panicf("Can't setup connection config : %v", err.Error())
+		mainLogger.Panicf("can't setup connection config : %v", err.Error())
 	}
 
 	// SetMaxIdleConns sets the maximum number of connections in the idle connection pool.
@@ -187,6 +173,7 @@ func setupDB() *gorm.DB {
 
 	// Migrate
 	db.AutoMigrate(
+		&model.ActivityLog{},
 		&model.Appointment{},
 		&model.Device{},
 		&model.Doctor{},
@@ -195,7 +182,7 @@ func setupDB() *gorm.DB {
 		&model.Content{},
 	)
 
-	mainLogger.Println(message)
+	mainLogger.Println("connected to the database")
 	// db.SetConnMaxLifetime(time.Minute * 3)
 	// db.SetMaxOpenConns(10)
 	// db.SetMaxIdleConns(10)
@@ -207,7 +194,11 @@ func setupDB() *gorm.DB {
 }
 
 func setupRouter() *gin.Engine {
-	gin.SetMode(gin.TestMode)
+	if config.AppConfig.MODE == "dev" {
+		gin.SetMode(gin.TestMode)
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	r := gin.Default()
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowCredentials = true
@@ -216,67 +207,64 @@ func setupRouter() *gin.Engine {
 	return r
 }
 
-func InitCronScheduler(db *gorm.DB) *cron.Cron {
+func InitCronScheduler(service notification.INotificationService) *cron.Cron {
 	c := cron.New()
 	// everyday on 10.00 (GMT +7) -> spec : "00 00 03 * * *"
 	c.AddFunc("00 00 03 * * *", func() {
-		mainLogger.Println("Executing Push Notifications..")
-		notification.SendDailyNotifications(db, notification.SendRequest)
+		mainLogger.Println("executing Push Notifications..")
+		service.SendDailyNotifications(nil)
 	})
 	c.Start()
-	mainLogger.Println("Cron scheduler initialized")
+	mainLogger.Println("cron scheduler initialized")
 	return c
 }
 
-func setupRedisClient() *middleware.RedisClient {
-	// check config
-	if !config.AppConfig.ENABLE_REDIS {
-		return nil
+func setupCloudStorageClient() *storage.Client {
+	var opts []option.ClientOption
+	const credFileName = "./storage-cred.json"
+	_, err := os.Stat(credFileName)
+	if !os.IsNotExist(err) {
+		mainLogger.Println("using service account json file for google cloud storage")
+		opts = append(opts, option.WithCredentialsFile(credFileName))
 	}
-	var middlewareclient *middleware.RedisClient
-	var serverMode string
-	if config.AppConfig.MODE != "test" {
-		serverMode = "local redis server"
-		client := redis.NewClient(&redis.Options{
-			Addr:     "localhost:6379",
-			Password: "", // No password set
-			DB:       0,  // Use default DB
-		})
-		middlewareclient = &middleware.RedisClient{Client: client}
-	} else {
-		serverMode = "remote redis server"
-		url := config.AppConfig.REDIS_URL
-		opts, err := redis.ParseURL(url)
-		if err != nil {
-			mainLogger.Panic(err)
-		}
-		middlewareclient = &middleware.RedisClient{Client: redis.NewClient(opts)}
+	gcsClient, err := storage.NewClient(context.Background(), opts...)
+	if err != nil {
+		mainLogger.Panicf("can't create google cloud storage client : %v", err.Error())
 	}
-	// check connection
-	if err := middlewareclient.Client.Ping(context.Background()).Err(); err != nil {
-		mainLogger.Panicln("Can't connect to ", serverMode)
-	}
-	// delete all keys
-	middlewareclient.Client.FlushDB(context.Background())
-	mainLogger.Println("Connected to", serverMode)
-	return middlewareclient
+	mainLogger.Println("connected to google cloud storage")
+	return gcsClient
 }
 
-// func testRepo() {
-// 	db := setupDB()
-// 	repo := repository.New(db)
-// 	mn := "mid na"
-// 	res, err := repo.CreateDoctor(model.Doctor{
-// 		Id:         -1,
-// 		FirstName:  "myrepo",
-// 		MiddleName: &mn,
-// 		LastName:   "ln na",
-// 		Username:   "myrepousername",
-// 		Password:   "1234",
-// 		Role:       model.USER,
-// 	})
-// 	if err != nil {
-// 		panic(err)
+// func setupRedisClient() *middleware.RedisClient {
+// 	// check config
+// 	if !config.AppConfig.ENABLE_REDIS {
+// 		return nil
 // 	}
-// 	log.Println(res)
+// 	var middlewareclient *middleware.RedisClient
+// 	var serverMode string
+// 	if config.AppConfig.MODE != "test" {
+// 		serverMode = "local redis server"
+// 		client := redis.NewClient(&redis.Options{
+// 			Addr:     "localhost:6379",
+// 			Password: "", // No password set
+// 			DB:       0,  // Use default DB
+// 		})
+// 		middlewareclient = &middleware.RedisClient{Client: client}
+// 	} else {
+// 		serverMode = "remote redis server"
+// 		url := config.AppConfig.REDIS_URL
+// 		opts, err := redis.ParseURL(url)
+// 		if err != nil {
+// 			mainLogger.Panic(err)
+// 		}
+// 		middlewareclient = &middleware.RedisClient{Client: redis.NewClient(opts)}
+// 	}
+// 	// check connection
+// 	if err := middlewareclient.Client.Ping(context.Background()).Err(); err != nil {
+// 		mainLogger.Panicln("Can't connect to ", serverMode)
+// 	}
+// 	// delete all keys
+// 	middlewareclient.Client.FlushDB(context.Background())
+// 	mainLogger.Println("Connected to", serverMode)
+// 	return middlewareclient
 // }

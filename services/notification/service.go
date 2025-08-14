@@ -12,30 +12,73 @@ import (
 
 	"github.com/PhasitWo/duchenne-server/config"
 	"github.com/PhasitWo/duchenne-server/model"
-	expo "github.com/PhasitWo/duchenne-server/notification/expo/exponent-server-sdk-golang-master/sdk"
+	"github.com/PhasitWo/duchenne-server/repository"
+	expo "github.com/PhasitWo/duchenne-server/services/notification/expo/exponent-server-sdk-golang-master/sdk"
 	"gorm.io/gorm"
 )
+
+type INotificationService interface {
+	SendDailyNotifications(dayRange *int) error
+	SendNotiByPatientId(id int, title string, body string) error
+}
+
+type service struct {
+	Repo  repository.IRepo
+	sqldb *sql.DB
+}
 
 var NotiLogger = log.New(os.Stdout, "[NOTI] ", log.LstdFlags)
 var ErrDevicesNotFound = errors.New("error not found any devices")
 
-func SendDailyNotifications(g *gorm.DB, sendRequestFunc func([]expo.PushMessage)) {
-	// query
-	db, err := g.DB()
+func NewService(db *gorm.DB) *service {
+	sqldb, err := db.DB()
 	if err != nil {
-		NotiLogger.Println("Can't get sql.DB from gorm")
-		return
+		panic("can't get *sql.DB from gorm")
 	}
-	res, err := queryDB(db)
+	return &service{
+		Repo:  repository.New(db),
+		sqldb: sqldb,
+	}
+}
+
+func (n *service) SendNotiByPatientId(id int, title string, body string) error {
+	devices, err := n.Repo.GetAllDevice(repository.Criteria{QueryCriteria: repository.PATIENTID, Value: id})
 	if err != nil {
-		NotiLogger.Println("Can't query database")
-		return
+		NotiLogger.Println("Error can't get devices to push notifications")
+		return err
 	}
-	if res == nil {
-		NotiLogger.Println("No appointment..")
-		return
+	if len(devices) == 0 {
+		NotiLogger.Println("Error no devices to push notifications")
+		return ErrDevicesNotFound
 	}
-	NotiLogger.Printf("Preparing messages..\n")
+	msg := expo.PushMessage{To: []expo.ExponentPushToken{}, Title: title, Body: body, Sound: "default", Priority: expo.HighPriority}
+	for _, d := range devices {
+		msg.To = append(msg.To, expo.ExponentPushToken(d.ExpoToken))
+	}
+	SendRequest([]expo.PushMessage{msg})
+	return nil
+}
+
+/*
+send daily notification about upcoming appointments,
+day_range = nil will use default value from config
+*/
+func (n *service) SendDailyNotifications(dayRange *int) error {
+	if dayRange == nil {
+		dayRange = &config.AppConfig.NOTIFY_IN_RANGE
+		NotiLogger.Println("using default day range from config")
+	}
+	res, err := queryDB(n.sqldb, *dayRange)
+	if err != nil {
+		msg := "can't query database"
+		NotiLogger.Println(msg)
+		return errors.New(msg)
+	}
+	if len(res) == 0 {
+		NotiLogger.Printf("no upcoming appointments in the next %v days\n", *dayRange)
+		return nil
+	}
+	NotiLogger.Printf("preparing messages..\n")
 	// prepare messages
 	// 1 appointmemnt -> 1 message -- to --> multiple receivers
 	messagesPool := []expo.PushMessage{}
@@ -50,31 +93,24 @@ func SendDailyNotifications(g *gorm.DB, sendRequestFunc func([]expo.PushMessage)
 			// create new message
 			newMessage = expo.PushMessage{
 				To:       []expo.ExponentPushToken{expo.ExponentPushToken(elem.ExpoToken)},
-				Body:     formatTimeOutput(elem.Date, int(time.Now().Unix())),
+				Body:     formatRemainingTime(elem.Date, int(time.Now().Unix())) + " (" + formatThaiTime(elem.Date) + ")",
 				Sound:    "default",
 				Title:    "อย่าลืมนัดหมายของคุณ!",
 				Priority: expo.HighPriority,
 			}
-			// special case -> if this new message is the last message
-			if index == len(res) - 1 {
-				messagesPool = append(messagesPool, newMessage)
-			}
 		} else {
 			newMessage.To = append(newMessage.To, expo.ExponentPushToken(elem.ExpoToken))
 		}
+		// special case -> if this new message is the last message
+		if index == len(res)-1 {
+			messagesPool = append(messagesPool, newMessage)
+		}
 		prior = elem.AppointmentId
 	}
-	// log result
-	for _, m := range messagesPool {
-		fmt.Printf("Message: %v\n", m.Body)
-		fmt.Println("To:")
-		for _, t := range m.To {
-			fmt.Printf("\t%v\n", t)
-		}
-	}
+
 	// 1 request can contain up to 100 messages, for safety purpose -> 1 request should contain only up to 80 messages
 	// divide len([]message) with 80 -> split up to multiple request
-	NotiLogger.Printf("Splitting up messages to multiple request\n")
+	NotiLogger.Printf("splitting up messages to multiple request\n")
 	const MAX_MESSAGES_PER_REQUEST = 80
 	var messageCnt = float64(len(messagesPool))
 	var cnt float64 = math.Ceil(float64(messageCnt) / MAX_MESSAGES_PER_REQUEST)
@@ -85,13 +121,9 @@ func SendDailyNotifications(g *gorm.DB, sendRequestFunc func([]expo.PushMessage)
 
 		// send request
 		NotiLogger.Printf("sending request %v => messagesPool[%v:%v]\n", i, base, limit)
-		sendRequestFunc(messagesPool[int(base):int(limit)])
+		SendRequest(messagesPool[int(base):int(limit)])
 	}
-
-}
-
-func MockSendRequest(messages []expo.PushMessage) {
-
+	return nil
 }
 
 func SendRequest(messages []expo.PushMessage) {
@@ -100,7 +132,7 @@ func SendRequest(messages []expo.PushMessage) {
 	responses, err := client.PublishMultiple(messages)
 
 	// Check errors
-	if err != nil && !strings.Contains(err.Error(), "Mismatched response length") {
+	if err != nil && !strings.Contains(err.Error(), "mismatched response length") {
 		NotiLogger.Panic(err)
 	}
 	NotiLogger.Println("validating..")
@@ -118,13 +150,13 @@ func SendRequest(messages []expo.PushMessage) {
 var apmtQuery = `
 select appointments.id ,date, devices.id, devices.device_name , devices.expo_token, appointments.patient_id from appointments
 inner join devices on appointments.patient_id = devices.patient_id
-where devices.expo_token != "" AND appointments.date > ? AND appointments.date < ?
+where devices.expo_token != "" AND appointments.approve_at IS NOT NULL AND appointments.date > ? AND appointments.date < ?
 order by appointments.id asc
 `
 
-func queryDB(db *sql.DB) ([]model.AppointmentDevice, error) {
+func queryDB(db *sql.DB, dayRange int) ([]model.AppointmentDevice, error) {
 	now := int(time.Now().Unix())
-	limit := now + config.AppConfig.NOTIFY_IN_RANGE*24*60*60
+	limit := now + dayRange*24*60*60
 	rows, err := db.Query(apmtQuery, now, limit)
 	if err != nil {
 		NotiLogger.Println("queryDB : Can't query database")
@@ -152,10 +184,11 @@ func queryDB(db *sql.DB) ([]model.AppointmentDevice, error) {
 		fmt.Printf("queryDB : %v", err.Error())
 		return nil, err
 	}
+	NotiLogger.Printf("now: %v, limit: %v (day range: %v)\n", now, limit, dayRange)
 	return res, nil
 }
 
-func formatTimeOutput(dueTimestamp int, nowTimestamp int) string {
+func formatRemainingTime(dueTimestamp int, nowTimestamp int) string {
 	sec := (dueTimestamp - nowTimestamp)
 	minute := sec / 60
 	hour := minute / 60
@@ -172,4 +205,22 @@ func formatTimeOutput(dueTimestamp int, nowTimestamp int) string {
 		output = fmt.Sprintf("%d วัน %d ชั่วโมง", day, hour%24)
 	}
 	return baseStr + output
+}
+
+var thaiMonths = []string{
+	"", // index 0 is not used
+	"มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน",
+	"พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม",
+	"กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม",
+}
+
+func formatThaiTime(dueTimestamp int) string {
+	t := time.Unix(int64(dueTimestamp), 0)
+	day := t.Day()
+	month := t.Month()
+	year := t.Year()
+	// format to thai
+	beYear := year + 543
+	thaiMonth := thaiMonths[int(month)]
+	return fmt.Sprintf("%d %s %d", day, thaiMonth, beYear)
 }

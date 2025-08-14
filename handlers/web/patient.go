@@ -50,6 +50,7 @@ func (w *WebHandler) CreatePatient(c *gin.Context) {
 		Verified:   input.Verified,
 		Weight:     input.Weight,
 		Height:     input.Height,
+		BirthDate:  input.BirthDate,
 	})
 	if err != nil {
 		if errors.Unwrap(err) == repository.ErrDuplicateEntry {
@@ -94,6 +95,7 @@ func (w *WebHandler) UpdatePatient(c *gin.Context) {
 		Verified:   input.Verified,
 		Weight:     input.Weight,
 		Height:     input.Height,
+		BirthDate:  input.BirthDate,
 	})
 	if err != nil {
 		if errors.Unwrap(err) == repository.ErrDuplicateEntry {

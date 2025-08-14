@@ -23,8 +23,7 @@ func TestLogin(t *testing.T) {
 	t.Run("bindingError", func(t *testing.T) {
 		input := gin.H{
 			"hn":         "test",
-			"firstName":  "fn",
-			"lastName":   "ln",
+			"pin":        nil,
 			"DeviceName": "goTest",
 			"expoToken":  "", // error require
 		}
@@ -45,8 +44,7 @@ func TestLogin(t *testing.T) {
 	t.Run("notFound", func(t *testing.T) {
 		input := gin.H{
 			"hn":         "test",
-			"firstName":  "fn",
-			"lastName":   "ln",
+			"pin":        "123456",
 			"DeviceName": "goTest",
 			"expoToken":  "expo",
 		}
@@ -71,8 +69,7 @@ func TestLogin(t *testing.T) {
 	t.Run("getPatientInternalError", func(t *testing.T) {
 		input := gin.H{
 			"hn":         "test",
-			"firstName":  "fn",
-			"lastName":   "ln",
+			"pin":        "123456",
 			"DeviceName": "goTest",
 			"expoToken":  "expo",
 		}
@@ -97,8 +94,7 @@ func TestLogin(t *testing.T) {
 	t.Run("unverifiedAccount", func(t *testing.T) {
 		input := gin.H{
 			"hn":         "test",
-			"firstName":  "fn",
-			"lastName":   "ln",
+			"pin":        "123456",
 			"DeviceName": "goTest",
 			"expoToken":  "expo",
 		}
@@ -108,7 +104,7 @@ func TestLogin(t *testing.T) {
 		repo := repository.NewMockRepo(t)
 		mobileH := mobile.MobileHandler{Repo: repo}
 
-		repo.EXPECT().GetPatientByHN("test").Return(model.Patient{Verified: false}, nil)
+		repo.EXPECT().GetPatientByHN("test").Return(model.Patient{Verified: false, Pin: "123456"}, nil)
 
 		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(rawInput))
 		recorder := httptest.NewRecorder()
@@ -122,8 +118,7 @@ func TestLogin(t *testing.T) {
 	t.Run("invalidCredential", func(t *testing.T) {
 		input := gin.H{
 			"hn":         "test",
-			"firstName":  "fn",
-			"lastName":   "ln",
+			"pin":        "123456",
 			"DeviceName": "goTest",
 			"expoToken":  "expo",
 		}
@@ -133,7 +128,8 @@ func TestLogin(t *testing.T) {
 		patient := model.Patient{
 			FirstName: "somefn",
 			LastName:  "someln",
-			Verified: true,
+			Pin:       "999999",
+			Verified:  true,
 		}
 		// setup mock
 		repo := repository.NewMockRepo(t)
@@ -153,8 +149,7 @@ func TestLogin(t *testing.T) {
 	t.Run("getAllDeviceInternalError", func(t *testing.T) {
 		input := gin.H{
 			"hn":         "test",
-			"firstName":  "fn",
-			"lastName":   "ln",
+			"pin":        "123456",
 			"DeviceName": "goTest",
 			"expoToken":  "expo",
 		}
@@ -164,7 +159,8 @@ func TestLogin(t *testing.T) {
 		patient := model.Patient{
 			FirstName: "fn",
 			LastName:  "ln",
-			Verified: true,
+			Pin:       "123456",
+			Verified:  true,
 		}
 		// setup mock
 		repo := repository.NewMockRepo(t)
@@ -185,8 +181,7 @@ func TestLogin(t *testing.T) {
 	t.Run("txBeginError", func(t *testing.T) {
 		input := gin.H{
 			"hn":         "test",
-			"firstName":  "fn",
-			"lastName":   "ln",
+			"pin":        "123456",
 			"DeviceName": "goTest",
 			"expoToken":  "expo",
 		}
@@ -196,7 +191,8 @@ func TestLogin(t *testing.T) {
 		patient := model.Patient{
 			FirstName: "fn",
 			LastName:  "ln",
-			Verified: true,
+			Pin:       "123456",
+			Verified:  true,
 		}
 		mg := &gorm.DB{Error: errors.New("err")}
 		// setup mock
@@ -220,8 +216,7 @@ func TestLogin(t *testing.T) {
 	t.Run("deleteDeviceInternalError", func(t *testing.T) {
 		input := gin.H{
 			"hn":         "test",
-			"firstName":  "fn",
-			"lastName":   "ln",
+			"pin":        "123456",
 			"DeviceName": "goTest",
 			"expoToken":  "expo",
 		}
@@ -231,7 +226,8 @@ func TestLogin(t *testing.T) {
 		patient := model.Patient{
 			FirstName: "fn",
 			LastName:  "ln",
-			Verified: true,
+			Pin:       "123456",
+			Verified:  true,
 		}
 		mg := &gorm.DB{}
 		// setup mock
@@ -264,8 +260,7 @@ func TestLogin(t *testing.T) {
 	t.Run("createDeviceInternalError", func(t *testing.T) {
 		input := gin.H{
 			"hn":         "test",
-			"firstName":  "fn",
-			"lastName":   "ln",
+			"pin":        "123456",
 			"DeviceName": "goTest",
 			"expoToken":  "expo",
 		}
@@ -275,7 +270,8 @@ func TestLogin(t *testing.T) {
 		patient := model.Patient{
 			FirstName: "fn",
 			LastName:  "ln",
-			Verified: true,
+			Pin:       "123456",
+			Verified:  true,
 		}
 		mg := &gorm.DB{}
 		// setup mock
@@ -309,8 +305,7 @@ func TestLogin(t *testing.T) {
 	t.Run("commitError", func(t *testing.T) {
 		input := gin.H{
 			"hn":         "test",
-			"firstName":  "fn",
-			"lastName":   "ln",
+			"pin":        "123456",
 			"DeviceName": "goTest",
 			"expoToken":  "expo",
 		}
@@ -318,10 +313,11 @@ func TestLogin(t *testing.T) {
 		assert.NoError(t, err)
 
 		patient := model.Patient{
-			ID: 85,
+			ID:        85,
 			FirstName: "fn",
 			LastName:  "ln",
-			Verified: true,
+			Pin:       "123456",
+			Verified:  true,
 		}
 		mg := &gorm.DB{
 			Config:       &gorm.Config{},

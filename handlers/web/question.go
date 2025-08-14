@@ -48,11 +48,12 @@ func (w *WebHandler) GetAllQuestion(c *gin.Context) {
 		criteriaList = append(criteriaList, repository.Criteria{QueryCriteria: repository.PATIENTID, Value: patientId})
 	}
 	if t, exist := c.GetQuery("type"); exist {
-		if t == "replied" {
+		switch t {
+		case "replied":
 			criteriaList = append(criteriaList, repository.Criteria{QueryCriteria: repository.ANSWERAT_ISNOTNULL})
-		} else if t == "unreplied" {
+		case "unreplied":
 			criteriaList = append(criteriaList, repository.Criteria{QueryCriteria: repository.ANSWERAT_ISNULL})
-		} else {
+		default:
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid type value"})
 			return
 		}
@@ -119,6 +120,6 @@ func (w *WebHandler) AnswerQuestion(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	go w.NotiService.SendNotiByPatientId(q.PatientID, "คุณหมอตอบคำถามของคุณแล้ว!", "ดูคำตอบในแอปพลิเคชัน")
+	go w.NotiService.SendNotiByPatientId(q.PatientID, "แพทย์ตอบคำถามของคุณแล้ว!", "ดูคำตอบในแอปพลิเคชัน")
 	c.Status(http.StatusOK)
 }

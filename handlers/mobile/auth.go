@@ -18,8 +18,7 @@ import (
 
 type login struct {
 	Hn         string `json:"hn" binding:"required"`
-	FirstName  string `json:"firstName" binding:"required"`
-	LastName   string `json:"lastName" binding:"required"`
+	Pin        string `json:"pin" binding:"required,len=6"`
 	DeviceName string `json:"deviceName" binding:"required"`
 	ExpoToken  string `json:"expoToken" binding:"required"`
 }
@@ -45,7 +44,7 @@ func (m *MobileHandler) Login(c *gin.Context) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "unverified account"})
 		return
 	}
-	if input.FirstName != storedPatient.FirstName || input.LastName != storedPatient.LastName {
+	if input.Pin != storedPatient.Pin {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credential"})
 		return
 	}
@@ -104,12 +103,14 @@ func (m *MobileHandler) Login(c *gin.Context) {
 }
 
 type signup struct {
-	Hn         string `json:"hn" binding:"required"`
-	FirstName  string `json:"firstName" binding:"required"`
-	MiddleName string `json:"middleName"`
-	LastName   string `json:"lastName" binding:"required"`
-	Phone      string `json:"phone" binding:"required"`
-	Email      string `json:"email" binding:"required"`
+	Hn         string  `json:"hn" binding:"required"`
+	FirstName  string  `json:"firstName" binding:"required"`
+	MiddleName *string `json:"middleName"`
+	LastName   string  `json:"lastName" binding:"required"`
+	Phone      *string `json:"phone" binding:"required"`
+	Email      *string `json:"email"`
+	BirthDate  int     `json:"birthDate" binding:"required"`
+	Pin        string  `json:"pin" binding:"required,len=6"`
 }
 
 func (m *MobileHandler) Signup(c *gin.Context) {
@@ -119,49 +120,36 @@ func (m *MobileHandler) Signup(c *gin.Context) {
 		return
 	}
 	// fetch patient from database
-	storedPatient, err := m.Repo.GetPatientByHN(s.Hn)
+	_, err := m.Repo.GetPatientByHN(s.Hn)
+	if err == nil {
+		c.JSON(http.StatusConflict, gin.H{"error": "the account is already existed"})
+		return
+	}
+	// save new patient to database
+	newId, err := m.Repo.CreatePatient(model.Patient{
+		Hn:             s.Hn,
+		Pin:            s.Pin,
+		FirstName:      s.FirstName,
+		MiddleName:     s.MiddleName,
+		LastName:       s.LastName,
+		Phone:          s.Phone,
+		Email:          s.Email,
+		Weight:         nil,
+		Height:         nil,
+		BirthDate:      s.BirthDate,
+		VaccineHistory: nil,
+		Medicine:       nil,
+		Verified:       true,
+	})
 	if err != nil {
-		if errors.Unwrap(err) == gorm.ErrRecordNotFound { // no rows found
-			c.Status(http.StatusNotFound)
+		if errors.Unwrap(err) == repository.ErrDuplicateEntry {
+			c.JSON(http.StatusConflict, gin.H{"error": "duplicate hn"})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	// checking
-	if storedPatient.Verified { // already verified
-		c.JSON(http.StatusConflict, gin.H{"error": "the account has been verified"})
-		return
-	}
-	if s.FirstName != storedPatient.FirstName || s.LastName != storedPatient.LastName {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid first name or last name"})
-		return
-	}
-	if storedPatient.MiddleName != nil && s.MiddleName != *storedPatient.MiddleName {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid middle name"})
-		return
-	}
-	if storedPatient.MiddleName == nil && s.MiddleName != "" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "does not require middle name"})
-		return
-	}
-	// update patient info and mark patient as verified
-	err = m.Repo.UpdatePatient(
-		model.Patient{
-			ID:         storedPatient.ID,
-			Hn:         storedPatient.Hn,
-			FirstName:  storedPatient.FirstName,
-			MiddleName: storedPatient.MiddleName,
-			LastName:   storedPatient.LastName,
-			Email:      &s.Email,
-			Phone:      &s.Phone,
-			Verified:   true,
-		})
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	c.Status(http.StatusOK)
+	c.JSON(http.StatusCreated, gin.H{"id": newId})
 }
 
 func (m *MobileHandler) Logout(c *gin.Context) {

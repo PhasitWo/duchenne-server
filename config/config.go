@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -10,36 +11,53 @@ import (
 )
 
 type config struct {
-	MODE               string
-	DATABASE_DSN       string
-	DATABASE_DSN_LOCAL string
-	ENABLE_REDIS       bool
-	REDIS_URL          string
-	JWT_KEY            string
-	MAX_DEVICE         int
-	NOTIFY_IN_RANGE    int
-	SERVER_DOMAIN      string
-	CORS_ALLOW		   []string
+	MODE            string
+	DATABASE_DSN    string
+	JWT_KEY         string
+	MAX_DEVICE      int
+	NOTIFY_IN_RANGE int
+	ENABLE_CRON     bool
+	SERVER_DOMAIN   string
+	CORS_ALLOW      []string
 }
 
 // shared config across packages
-var AppConfig = config{MODE: "dev"}
+var AppConfig = config{}
+var defaultConfig = config{
+	MODE:            "dev",
+	DATABASE_DSN:    "root:superuser@tcp(127.0.0.1)/master",
+	JWT_KEY:         "SAMPLE_KEY",
+	MAX_DEVICE:      3,
+	NOTIFY_IN_RANGE: 3,
+	ENABLE_CRON:     false,
+	SERVER_DOMAIN:   "127.0.0.1",
+	CORS_ALLOW:      []string{"http://localhost:5173", "http://localhost:4173", "https://duchenne-web.onrender.com"},
+}
 
 func LoadConfig() {
 	configLogger := log.New(os.Stdout, "[CONFIG] ", 0)
 	viper.SetConfigFile(".env")
 	if err := viper.ReadInConfig(); err != nil {
-		panic("Can't read config file")
+		if errors.Is(err, viper.ConfigFileNotFoundError{}) || errors.Is(err, os.ErrNotExist) {
+			configLogger.Println(".env file is not found, read from env variables instead")
+			viper.AutomaticEnv()
+		} else {
+			panic("Can't read config file")
+		}
 	}
 	// load config by struct field's name
 	f := reflect.ValueOf(&AppConfig).Elem()
-	configLogger.Print("Loading Config:\n")
+	df := reflect.ValueOf(&defaultConfig).Elem()
+	configLogger.Print("loading config:\n")
 	for i := 0; i < f.NumField(); i++ {
 		field := f.Field(i)
 		fieldName := f.Type().Field(i).Name
 		fieldValue := field.Interface()
 		if !viper.IsSet(fieldName) {
-			configLogger.Panicf("Can't read %s from .env", fieldName)
+			// use default
+			field.Set(reflect.ValueOf(df.Field(i).Interface()))
+			fmt.Printf("\t%-15s\t=>\t%-10v(default)\n", fieldName, f.Field(i).Interface())
+			continue
 		}
 		switch fieldValue.(type) {
 		case string:
@@ -55,21 +73,15 @@ func LoadConfig() {
 		}
 		fmt.Printf("\t%-15s\t=>\t%-10v\n", fieldName, f.Field(i).Interface())
 	}
-	if AppConfig.MODE == "dev" {
-		AppConfig.SERVER_DOMAIN = "127.0.0.1"
-	}
-
-	configLogger.Printf("Config Loaded\n")
-	configLogger.Printf("Server is running in mode `%v`\n", AppConfig.MODE)
-	configLogger.Printf("Server Domain -> `%v`\n\n", AppConfig.SERVER_DOMAIN)
+	configLogger.Printf("config loaded\n")
 }
 
 type constants struct {
-	WEB_ACCESS_COOKIE_NAME string
+	WEB_ACCESS_COOKIE_NAME  string
 	WEB_REFRESH_COOKIE_NAME string
 }
 
 var Constants = constants{
-	WEB_ACCESS_COOKIE_NAME: "web_access_token",
+	WEB_ACCESS_COOKIE_NAME:  "web_access_token",
 	WEB_REFRESH_COOKIE_NAME: "web_refresh_token",
 }

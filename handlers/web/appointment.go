@@ -49,11 +49,12 @@ func (w *WebHandler) GetAllAppointment(c *gin.Context) {
 		criteriaList = append(criteriaList, repository.Criteria{QueryCriteria: repository.PATIENTID, Value: patientId})
 	}
 	if t, exist := c.GetQuery("type"); exist {
-		if t == "incoming" {
+		switch t {
+		case "incoming":
 			criteriaList = append(criteriaList, repository.Criteria{QueryCriteria: repository.DATE_GREATERTHAN, Value: int(time.Now().Unix())})
-		} else if t == "history" {
+		case "history":
 			criteriaList = append(criteriaList, repository.Criteria{QueryCriteria: repository.DATE_LESSTHAN, Value: int(time.Now().Unix())})
-		} else {
+		default:
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid type value"})
 			return
 		}
@@ -80,7 +81,6 @@ func (w *WebHandler) GetAppointment(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, apm)
 }
-
 
 func (w *WebHandler) CreateAppointment(c *gin.Context) {
 	// binding request body
@@ -169,6 +169,6 @@ func (w *WebHandler) DeleteAppointment(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	go w.NotiService.SendNotiByPatientId(apm.PatientID, "นัดหมายของคุณถูกลบ!", "คุณหมอลบนัดหมายของคุณ")
+	go w.NotiService.SendNotiByPatientId(apm.PatientID, "นัดหมายของคุณถูกยกเลิก!", "เจ้าหน้าที่ยกเลิกนัดหมายของคุณ")
 	c.Status(http.StatusNoContent)
 }

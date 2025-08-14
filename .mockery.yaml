@@ -1,5 +1,3 @@
-with-expecter: true
-inpackage: true
 packages:
   "github.com/PhasitWo/duchenne-server/repository":
     # place your package-specific config here
@@ -9,14 +7,14 @@ packages:
       IRepo:
         config:
           filename: repository_mock.go
-          mockname: MockRepo
+          structname: MockRepo
       IGorm:
         config:
           filename: gorm_mock.go
-          mockname: MockGorm
-  "github.com/PhasitWo/duchenne-server/notification":
+          structname: MockGorm
+  "github.com/PhasitWo/duchenne-server/services/notification":
     interfaces:
       INotificationService:
         config:
           filename: service_mock.go
-          mockname: MockService
+          structname: MockService
