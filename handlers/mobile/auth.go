@@ -109,6 +109,7 @@ type signup struct {
 	LastName   string  `json:"lastName" binding:"required"`
 	Phone      *string `json:"phone" binding:"required"`
 	Email      *string `json:"email"`
+	BirthDate  int     `json:"birthDate" binding:"required"`
 	Pin        string  `json:"pin" binding:"required,len=6"`
 }
 
@@ -135,6 +136,7 @@ func (m *MobileHandler) Signup(c *gin.Context) {
 		Email:          s.Email,
 		Weight:         nil,
 		Height:         nil,
+		BirthDate:      s.BirthDate,
 		VaccineHistory: nil,
 		Medicine:       nil,
 		Verified:       true,
