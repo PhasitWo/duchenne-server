@@ -42,7 +42,7 @@ type CreateDoctorRequest struct {
 	FirstName  string  `json:"firstName" binding:"required"`
 	MiddleName *string `json:"middleName"`
 	LastName   string  `json:"lastName" binding:"required"`
-	Username   string  `json:"username" binding:"required,max=20"`
+	Username   string  `json:"username" binding:"required"`
 	Password   string  `json:"password" binding:"required"`
 	Role       Role    `json:"role" binding:"required"`
 	Specialist *string `json:"specialist"`
