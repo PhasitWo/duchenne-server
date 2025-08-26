@@ -12,15 +12,16 @@ const (
 )
 
 type Doctor struct {
-	ID         int     `json:"id"`
-	FirstName  string  `json:"firstName" gorm:"not null"`
-	MiddleName *string `json:"middleName"` // nullable
-	LastName   string  `json:"lastName" gorm:"not null"`
-	Username   string  `json:"username" gorm:"unique;not null"`
-	Password   string  `json:"password" gorm:"not null"`
-	Specialist *string `json:"specialist"`
-	Role       Role    `json:"role" gorm:"not null"`
-	DeletedAt  soft_delete.DeletedAt
+	ID             int     `json:"id"`
+	FirstName      string  `json:"firstName" gorm:"not null"`
+	MiddleName     *string `json:"middleName"` // nullable
+	LastName       string  `json:"lastName" gorm:"not null"`
+	Username       string  `json:"username" gorm:"unique;not null"`
+	Password       string  `json:"password" gorm:"not null"`
+	Specialist     *string `json:"specialist"`
+	Role           Role    `json:"role" gorm:"not null"`
+	CanBeAppointed bool    `json:"canBeAppointed" gorm:"not null"`
+	DeletedAt      soft_delete.DeletedAt
 }
 
 type TrimDoctor struct {
@@ -30,20 +31,22 @@ type TrimDoctor struct {
 }
 
 type UpdateProfileRequest struct {
-	FirstName  string  `json:"firstName" binding:"required"`
-	MiddleName *string `json:"middleName"`
-	LastName   string  `json:"lastName" binding:"required"`
-	Username   string  `json:"username" binding:"required"`
-	Password   string  `json:"password" binding:"required"`
-	Specialist *string `json:"specialist"`
+	FirstName      string  `json:"firstName" binding:"required"`
+	MiddleName     *string `json:"middleName"`
+	LastName       string  `json:"lastName" binding:"required"`
+	Username       string  `json:"username" binding:"required"`
+	Password       string  `json:"password" binding:"required"`
+	Specialist     *string `json:"specialist"`
+	CanBeAppointed bool    `json:"canBeAppointed"`
 }
 
 type CreateDoctorRequest struct {
-	FirstName  string  `json:"firstName" binding:"required"`
-	MiddleName *string `json:"middleName"`
-	LastName   string  `json:"lastName" binding:"required"`
-	Username   string  `json:"username" binding:"required"`
-	Password   string  `json:"password" binding:"required"`
-	Role       Role    `json:"role" binding:"required"`
-	Specialist *string `json:"specialist"`
+	FirstName      string  `json:"firstName" binding:"required"`
+	MiddleName     *string `json:"middleName"`
+	LastName       string  `json:"lastName" binding:"required"`
+	Username       string  `json:"username" binding:"required"`
+	Password       string  `json:"password" binding:"required"`
+	Role           Role    `json:"role" binding:"required"`
+	Specialist     *string `json:"specialist"`
+	CanBeAppointed bool    `json:"canBeAppointed"`
 }

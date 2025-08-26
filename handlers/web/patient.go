@@ -7,6 +7,7 @@ import (
 
 	"github.com/PhasitWo/duchenne-server/model"
 	"github.com/PhasitWo/duchenne-server/repository"
+	"github.com/PhasitWo/duchenne-server/utils"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -26,7 +27,12 @@ func (w *WebHandler) GetPatient(c *gin.Context) {
 }
 
 func (w *WebHandler) GetAllPatient(c *gin.Context) {
-	patients, err := w.Repo.GetAllPatient()
+	limit, offset, err := utils.Paging(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	patients, err := w.Repo.GetAllPatient(limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
