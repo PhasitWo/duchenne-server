@@ -28,9 +28,10 @@ func (r *Repo) GetPatientByHN(hn string) (model.Patient, error) {
 	return p, nil
 }
 
-func (r *Repo) GetAllPatient() ([]model.Patient, error) {
+func (r *Repo) GetAllPatient(limit int, offset int, criteria ...Criteria) ([]model.Patient, error) {
 	var res []model.Patient
-	err := r.db.Model(&model.Patient{}).Find(&res).Error
+	db := attachCriteria(r.db, criteria...)
+	err := db.Model(&model.Patient{}).Limit(limit).Offset(offset).Find(&res).Error
 	if err != nil {
 		return res, fmt.Errorf("query : %w", err)
 	}

@@ -14,6 +14,7 @@ import (
 	"github.com/PhasitWo/duchenne-server/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"gorm.io/gorm"
 )
 
@@ -84,7 +85,7 @@ func TestGetAllPatient(t *testing.T) {
 		repo := repository.NewMockRepo(t)
 		webH := web.WebHandler{Repo: repo}
 
-		repo.EXPECT().GetAllPatient().Return([]model.Patient{}, nil).Once()
+		repo.EXPECT().GetAllPatient(mock.Anything, mock.Anything).Return([]model.Patient{}, nil).Once()
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		recorder := httptest.NewRecorder()
@@ -100,7 +101,7 @@ func TestGetAllPatient(t *testing.T) {
 		repo := repository.NewMockRepo(t)
 		webH := web.WebHandler{Repo: repo}
 
-		repo.EXPECT().GetAllPatient().Return([]model.Patient{}, errors.New("some internal error")).Once()
+		repo.EXPECT().GetAllPatient(mock.Anything, mock.Anything).Return([]model.Patient{}, errors.New("some internal error")).Once()
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		recorder := httptest.NewRecorder()

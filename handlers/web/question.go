@@ -7,29 +7,19 @@ import (
 
 	"github.com/PhasitWo/duchenne-server/model"
 	"github.com/PhasitWo/duchenne-server/repository"
+	"github.com/PhasitWo/duchenne-server/utils"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 func (w *WebHandler) GetAllQuestion(c *gin.Context) {
 	criteriaList := []repository.Criteria{}
-	limit := 9999
-	offset := 0
 	var err error
 	// get url query param
-	if l, exist := c.GetQuery("limit"); exist {
-		limit, err = strconv.Atoi(l)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "cannot parse limit value"})
-			return
-		}
-	}
-	if of, exist := c.GetQuery("offset"); exist {
-		offset, err = strconv.Atoi(of)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "cannot parse offset value"})
-			return
-		}
+	limit, offset, err := utils.Paging(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 	if d, exist := c.GetQuery("doctorId"); exist {
 		doctorId, err := strconv.Atoi(d)
