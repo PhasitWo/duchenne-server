@@ -60,6 +60,7 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, c 
 	{
 		mobileAuth := mobile.Group("/auth")
 		{
+			mobileAuth.POST("/refresh", m.Refresh)
 			mobileAuth.POST("/login", m.Login)
 			mobileAuth.POST("/signup", m.Signup)
 			mobileAuth.POST("/logout", middleware.MobileAuthMiddleware, m.Logout)
@@ -112,7 +113,7 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, c 
 			webProtected.PUT("/doctor/:id", middleware.WebRBACMiddleware(middleware.UpdateDoctorPermission), w.UpdateDoctor)
 			webProtected.DELETE("/doctor/:id", middleware.WebRBACMiddleware(middleware.DeleteDoctorPermission), w.DeleteDoctor)
 			webProtected.GET("/patient", w.GetAllPatient)
-			webProtected.POST("/patient", middleware.WebRBACMiddleware(middleware.CreatePatientPermission), w.CreatePatient)
+			// webProtected.POST("/patient", middleware.WebRBACMiddleware(middleware.CreatePatientPermission), w.CreatePatient)
 			webProtected.GET("/patient/:id", w.GetPatient)
 			webProtected.PUT("/patient/:id", middleware.WebRBACMiddleware(middleware.UpdatePatientPermission), w.UpdatePatient)
 			webProtected.PUT("/patient/:id/vaccineHistory", middleware.WebRBACMiddleware(middleware.UpdatePatientPermission), w.UpdatePatientVaccineHistory)
@@ -182,13 +183,6 @@ func setupDB() *gorm.DB {
 	)
 
 	mainLogger.Println("connected to the database")
-	// db.SetConnMaxLifetime(time.Minute * 3)
-	// db.SetMaxOpenConns(10)
-	// db.SetMaxIdleConns(10)
-	// // ping db
-	// if err = db.Ping(); err != nil {
-	// 	mainLogger.Panic("Can't connect to database")
-	// }
 	return db
 }
 

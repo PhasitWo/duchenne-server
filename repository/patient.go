@@ -28,6 +28,15 @@ func (r *Repo) GetPatientByHN(hn string) (model.Patient, error) {
 	return p, nil
 }
 
+func (r *Repo) GetPatientByNID(nid string) (model.Patient, error) {
+	var p model.Patient
+	err := r.db.Where("nid = ?", nid).First(&p).Error
+	if err != nil {
+		return p, fmt.Errorf("query : %w", err)
+	}
+	return p, nil
+}
+
 func (r *Repo) GetAllPatient(limit int, offset int, criteria ...Criteria) ([]model.Patient, error) {
 	var res []model.Patient
 	db := attachCriteria(r.db, criteria...)
@@ -52,7 +61,7 @@ func (r *Repo) CreatePatient(patient model.Patient) (int, error) {
 }
 
 func (r *Repo) UpdatePatient(patient model.Patient) error {
-	err := r.db.Select("*").Omit("vaccine_history", "medicine").Updates(&patient).Error
+	err := r.db.Select("*").Omit("vaccine_history", "medicine", "pin", "password").Updates(&patient).Error
 	if err != nil {
 		var mysqlErr *mysql.MySQLError
 		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {

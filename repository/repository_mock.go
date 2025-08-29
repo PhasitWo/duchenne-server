@@ -1567,6 +1567,66 @@ func (_c *MockRepo_GetPatientById_Call) RunAndReturn(run func(id any) (model.Pat
 	return _c
 }
 
+// GetPatientByNID provides a mock function for the type MockRepo
+func (_mock *MockRepo) GetPatientByNID(nid string) (model.Patient, error) {
+	ret := _mock.Called(nid)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPatientByNID")
+	}
+
+	var r0 model.Patient
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(string) (model.Patient, error)); ok {
+		return returnFunc(nid)
+	}
+	if returnFunc, ok := ret.Get(0).(func(string) model.Patient); ok {
+		r0 = returnFunc(nid)
+	} else {
+		r0 = ret.Get(0).(model.Patient)
+	}
+	if returnFunc, ok := ret.Get(1).(func(string) error); ok {
+		r1 = returnFunc(nid)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockRepo_GetPatientByNID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPatientByNID'
+type MockRepo_GetPatientByNID_Call struct {
+	*mock.Call
+}
+
+// GetPatientByNID is a helper method to define mock.On call
+//   - nid string
+func (_e *MockRepo_Expecter) GetPatientByNID(nid interface{}) *MockRepo_GetPatientByNID_Call {
+	return &MockRepo_GetPatientByNID_Call{Call: _e.mock.On("GetPatientByNID", nid)}
+}
+
+func (_c *MockRepo_GetPatientByNID_Call) Run(run func(nid string)) *MockRepo_GetPatientByNID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRepo_GetPatientByNID_Call) Return(patient model.Patient, err error) *MockRepo_GetPatientByNID_Call {
+	_c.Call.Return(patient, err)
+	return _c
+}
+
+func (_c *MockRepo_GetPatientByNID_Call) RunAndReturn(run func(nid string) (model.Patient, error)) *MockRepo_GetPatientByNID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetQuestion provides a mock function for the type MockRepo
 func (_mock *MockRepo) GetQuestion(questionId any) (model.SafeQuestion, error) {
 	ret := _mock.Called(questionId)
