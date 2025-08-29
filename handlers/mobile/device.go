@@ -85,7 +85,7 @@ func (m *MobileHandler) CreateDevice(c *gin.Context) {
 		return
 	}
 	// generate token
-	token, err := auth.GeneratePatientToken(id, deviceId)
+	token, err := auth.GeneratePatientAccessToken(id, deviceId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

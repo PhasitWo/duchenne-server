@@ -45,6 +45,7 @@ type IRepo interface {
 	DeleteDoctorById(id any) error
 	GetPatientById(id any) (model.Patient, error)
 	GetPatientByHN(hn string) (model.Patient, error)
+	GetPatientByNID(nid string) (model.Patient, error)
 	GetAllPatient(limit int, offset int, criteria ...Criteria) ([]model.Patient, error)
 	CreatePatient(patient model.Patient) (int, error)
 	UpdatePatient(patient model.Patient) error

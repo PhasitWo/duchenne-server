@@ -40,37 +40,38 @@ func (w *WebHandler) GetAllPatient(c *gin.Context) {
 	c.JSON(http.StatusOK, patients)
 }
 
-func (w *WebHandler) CreatePatient(c *gin.Context) {
-	var input model.CreatePatientRequest
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	insertedId, err := w.Repo.CreatePatient(model.Patient{
-		Hn:         input.Hn,
-		FirstName:  input.FirstName,
-		MiddleName: input.MiddleName,
-		LastName:   input.LastName,
-		Email:      input.Email,
-		Phone:      input.Phone,
-		Verified:   input.Verified,
-		Weight:     input.Weight,
-		Height:     input.Height,
-		BirthDate:  input.BirthDate,
-	})
-	if err != nil {
-		if errors.Unwrap(err) == repository.ErrDuplicateEntry {
-			c.JSON(http.StatusConflict, gin.H{"error": "duplicate hn"})
-			return
-		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusCreated, gin.H{"id": insertedId})
-}
+// deprecated
+// func (w *WebHandler) CreatePatient(c *gin.Context) {
+// 	var input model.CreatePatientRequest
+// 	if err := c.ShouldBindJSON(&input); err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+// 		return
+// 	}
+// 	insertedId, err := w.Repo.CreatePatient(model.Patient{
+// 		Hn:         input.Hn,
+// 		FirstName:  input.FirstName,
+// 		MiddleName: input.MiddleName,
+// 		LastName:   input.LastName,
+// 		Email:      input.Email,
+// 		Phone:      input.Phone,
+// 		Verified:   input.Verified,
+// 		Weight:     input.Weight,
+// 		Height:     input.Height,
+// 		BirthDate:  input.BirthDate,
+// 	})
+// 	if err != nil {
+// 		if errors.Unwrap(err) == repository.ErrDuplicateEntry {
+// 			c.JSON(http.StatusConflict, gin.H{"error": "duplicate hn"})
+// 			return
+// 		}
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+// 	c.JSON(http.StatusCreated, gin.H{"id": insertedId})
+// }
 
 func (w *WebHandler) UpdatePatient(c *gin.Context) {
-	var input model.CreatePatientRequest
+	var input model.UpdatePatientRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -92,6 +93,7 @@ func (w *WebHandler) UpdatePatient(c *gin.Context) {
 	}
 	err = w.Repo.UpdatePatient(model.Patient{
 		ID:         id,
+		NID:        input.NID,
 		Hn:         input.Hn,
 		FirstName:  input.FirstName,
 		MiddleName: input.MiddleName,
@@ -105,7 +107,7 @@ func (w *WebHandler) UpdatePatient(c *gin.Context) {
 	})
 	if err != nil {
 		if errors.Unwrap(err) == repository.ErrDuplicateEntry {
-			c.JSON(http.StatusConflict, gin.H{"error": "duplicate hn"})
+			c.JSON(http.StatusConflict, gin.H{"error": "duplicate HN or NID"})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

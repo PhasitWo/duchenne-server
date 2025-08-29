@@ -17,7 +17,7 @@ func MobileAuthMiddleware(c *gin.Context) {
 		return
 	}
 	// parse token
-	claims := &auth.PatientClaims{PatientId: -1, DeviceId: -1}
+	claims := &auth.PatientAccessClaims{PatientId: -1, DeviceId: -1}
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(config.AppConfig.JWT_KEY), nil
 	})
