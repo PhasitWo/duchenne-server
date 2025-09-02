@@ -53,7 +53,7 @@ func (m *MobileHandler) Refresh(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"refresh_token": token})
+	c.JSON(http.StatusOK, gin.H{"refreshToken": token})
 }
 
 type loginRequest struct {
@@ -131,7 +131,12 @@ func (m *MobileHandler) Login(c *gin.Context) {
 		return
 	}
 	// generate token
-	token, err := auth.GeneratePatientAccessToken(patientId, deviceId)
+	accessToken, err := auth.GeneratePatientAccessToken(patientId, deviceId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	refreshToken, err := auth.GeneratePatientRefreshToken(patientId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -141,19 +146,19 @@ func (m *MobileHandler) Login(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Tx can't commit"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"token": token})
+	c.JSON(http.StatusOK, gin.H{"accessToken": accessToken, "refreshToken": refreshToken})
 }
 
 type signupRequest struct {
 	NID        string  `json:"nid" binding:"required,min=13"`
-	Password   string  `json:"password" binding:"required,min=8,max=20"`
+	Password   string  `json:"password" binding:"required,min=8,max=30"`
 	Hn         string  `json:"hn" binding:"required"`
 	FirstName  string  `json:"firstName" binding:"required"`
 	MiddleName *string `json:"middleName"`
 	LastName   string  `json:"lastName" binding:"required"`
 	Phone      *string `json:"phone" binding:"required"`
 	Email      *string `json:"email"`
-	BirthDate  int     `json:"birthDate" binding:"required"`
+	BirthDate  int     `json:"birthDate"`
 	Pin        string  `json:"pin" binding:"required,len=6"`
 }
 
@@ -163,7 +168,7 @@ func (m *MobileHandler) Signup(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	
+
 	// // fetch patient from database
 	// _, err := m.Repo.GetPatientByHN(s.Hn)
 	// if err == nil {
