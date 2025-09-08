@@ -85,7 +85,12 @@ func (m *MobileHandler) CreateDevice(c *gin.Context) {
 		return
 	}
 	// generate token
-	token, err := auth.GeneratePatientAccessToken(id, deviceId)
+	accessToken, err := auth.GeneratePatientAccessToken(id, deviceId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	refreshToken, err := auth.GeneratePatientRefreshToken(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -95,5 +100,5 @@ func (m *MobileHandler) CreateDevice(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Tx can't commit"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"token": token})
+	c.JSON(http.StatusOK, gin.H{"accessToken": accessToken, "refreshToken": refreshToken})
 }
