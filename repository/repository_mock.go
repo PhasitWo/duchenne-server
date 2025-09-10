@@ -466,6 +466,108 @@ func (_c *MockRepo_DeleteAppointment_Call) RunAndReturn(run func(appointmentId a
 	return _c
 }
 
+// DeleteConsentById provides a mock function for the type MockRepo
+func (_mock *MockRepo) DeleteConsentById(consentID any) error {
+	ret := _mock.Called(consentID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteConsentById")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(any) error); ok {
+		r0 = returnFunc(consentID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockRepo_DeleteConsentById_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteConsentById'
+type MockRepo_DeleteConsentById_Call struct {
+	*mock.Call
+}
+
+// DeleteConsentById is a helper method to define mock.On call
+//   - consentID any
+func (_e *MockRepo_Expecter) DeleteConsentById(consentID interface{}) *MockRepo_DeleteConsentById_Call {
+	return &MockRepo_DeleteConsentById_Call{Call: _e.mock.On("DeleteConsentById", consentID)}
+}
+
+func (_c *MockRepo_DeleteConsentById_Call) Run(run func(consentID any)) *MockRepo_DeleteConsentById_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 any
+		if args[0] != nil {
+			arg0 = args[0].(any)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRepo_DeleteConsentById_Call) Return(err error) *MockRepo_DeleteConsentById_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockRepo_DeleteConsentById_Call) RunAndReturn(run func(consentID any) error) *MockRepo_DeleteConsentById_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteConsentBySlug provides a mock function for the type MockRepo
+func (_mock *MockRepo) DeleteConsentBySlug(slug string) error {
+	ret := _mock.Called(slug)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteConsentBySlug")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(string) error); ok {
+		r0 = returnFunc(slug)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockRepo_DeleteConsentBySlug_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteConsentBySlug'
+type MockRepo_DeleteConsentBySlug_Call struct {
+	*mock.Call
+}
+
+// DeleteConsentBySlug is a helper method to define mock.On call
+//   - slug string
+func (_e *MockRepo_Expecter) DeleteConsentBySlug(slug interface{}) *MockRepo_DeleteConsentBySlug_Call {
+	return &MockRepo_DeleteConsentBySlug_Call{Call: _e.mock.On("DeleteConsentBySlug", slug)}
+}
+
+func (_c *MockRepo_DeleteConsentBySlug_Call) Run(run func(slug string)) *MockRepo_DeleteConsentBySlug_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRepo_DeleteConsentBySlug_Call) Return(err error) *MockRepo_DeleteConsentBySlug_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockRepo_DeleteConsentBySlug_Call) RunAndReturn(run func(slug string) error) *MockRepo_DeleteConsentBySlug_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteContent provides a mock function for the type MockRepo
 func (_mock *MockRepo) DeleteContent(contentID any) error {
 	ret := _mock.Called(contentID)
@@ -1263,6 +1365,126 @@ func (_c *MockRepo_GetAppointment_Call) Return(safeAppointment model.SafeAppoint
 }
 
 func (_c *MockRepo_GetAppointment_Call) RunAndReturn(run func(appointmentId any) (model.SafeAppointment, error)) *MockRepo_GetAppointment_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetConsentById provides a mock function for the type MockRepo
+func (_mock *MockRepo) GetConsentById(consentId any) (model.Consent, error) {
+	ret := _mock.Called(consentId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetConsentById")
+	}
+
+	var r0 model.Consent
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(any) (model.Consent, error)); ok {
+		return returnFunc(consentId)
+	}
+	if returnFunc, ok := ret.Get(0).(func(any) model.Consent); ok {
+		r0 = returnFunc(consentId)
+	} else {
+		r0 = ret.Get(0).(model.Consent)
+	}
+	if returnFunc, ok := ret.Get(1).(func(any) error); ok {
+		r1 = returnFunc(consentId)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockRepo_GetConsentById_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetConsentById'
+type MockRepo_GetConsentById_Call struct {
+	*mock.Call
+}
+
+// GetConsentById is a helper method to define mock.On call
+//   - consentId any
+func (_e *MockRepo_Expecter) GetConsentById(consentId interface{}) *MockRepo_GetConsentById_Call {
+	return &MockRepo_GetConsentById_Call{Call: _e.mock.On("GetConsentById", consentId)}
+}
+
+func (_c *MockRepo_GetConsentById_Call) Run(run func(consentId any)) *MockRepo_GetConsentById_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 any
+		if args[0] != nil {
+			arg0 = args[0].(any)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRepo_GetConsentById_Call) Return(consent model.Consent, err error) *MockRepo_GetConsentById_Call {
+	_c.Call.Return(consent, err)
+	return _c
+}
+
+func (_c *MockRepo_GetConsentById_Call) RunAndReturn(run func(consentId any) (model.Consent, error)) *MockRepo_GetConsentById_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetConsentBySlug provides a mock function for the type MockRepo
+func (_mock *MockRepo) GetConsentBySlug(slug string) (model.Consent, error) {
+	ret := _mock.Called(slug)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetConsentBySlug")
+	}
+
+	var r0 model.Consent
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(string) (model.Consent, error)); ok {
+		return returnFunc(slug)
+	}
+	if returnFunc, ok := ret.Get(0).(func(string) model.Consent); ok {
+		r0 = returnFunc(slug)
+	} else {
+		r0 = ret.Get(0).(model.Consent)
+	}
+	if returnFunc, ok := ret.Get(1).(func(string) error); ok {
+		r1 = returnFunc(slug)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockRepo_GetConsentBySlug_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetConsentBySlug'
+type MockRepo_GetConsentBySlug_Call struct {
+	*mock.Call
+}
+
+// GetConsentBySlug is a helper method to define mock.On call
+//   - slug string
+func (_e *MockRepo_Expecter) GetConsentBySlug(slug interface{}) *MockRepo_GetConsentBySlug_Call {
+	return &MockRepo_GetConsentBySlug_Call{Call: _e.mock.On("GetConsentBySlug", slug)}
+}
+
+func (_c *MockRepo_GetConsentBySlug_Call) Run(run func(slug string)) *MockRepo_GetConsentBySlug_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRepo_GetConsentBySlug_Call) Return(consent model.Consent, err error) *MockRepo_GetConsentBySlug_Call {
+	_c.Call.Return(consent, err)
+	return _c
+}
+
+func (_c *MockRepo_GetConsentBySlug_Call) RunAndReturn(run func(slug string) (model.Consent, error)) *MockRepo_GetConsentBySlug_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2168,6 +2390,66 @@ func (_c *MockRepo_UpdateQuestionAnswer_Call) Return(err error) *MockRepo_Update
 }
 
 func (_c *MockRepo_UpdateQuestionAnswer_Call) RunAndReturn(run func(questionId int, answer string, doctorId int) error) *MockRepo_UpdateQuestionAnswer_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpsertConsent provides a mock function for the type MockRepo
+func (_mock *MockRepo) UpsertConsent(consent model.Consent) (string, error) {
+	ret := _mock.Called(consent)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpsertConsent")
+	}
+
+	var r0 string
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(model.Consent) (string, error)); ok {
+		return returnFunc(consent)
+	}
+	if returnFunc, ok := ret.Get(0).(func(model.Consent) string); ok {
+		r0 = returnFunc(consent)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	if returnFunc, ok := ret.Get(1).(func(model.Consent) error); ok {
+		r1 = returnFunc(consent)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockRepo_UpsertConsent_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpsertConsent'
+type MockRepo_UpsertConsent_Call struct {
+	*mock.Call
+}
+
+// UpsertConsent is a helper method to define mock.On call
+//   - consent model.Consent
+func (_e *MockRepo_Expecter) UpsertConsent(consent interface{}) *MockRepo_UpsertConsent_Call {
+	return &MockRepo_UpsertConsent_Call{Call: _e.mock.On("UpsertConsent", consent)}
+}
+
+func (_c *MockRepo_UpsertConsent_Call) Run(run func(consent model.Consent)) *MockRepo_UpsertConsent_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 model.Consent
+		if args[0] != nil {
+			arg0 = args[0].(model.Consent)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRepo_UpsertConsent_Call) Return(s string, err error) *MockRepo_UpsertConsent_Call {
+	_c.Call.Return(s, err)
+	return _c
+}
+
+func (_c *MockRepo_UpsertConsent_Call) RunAndReturn(run func(consent model.Consent) (string, error)) *MockRepo_UpsertConsent_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -62,6 +62,11 @@ type IRepo interface {
 	CreateContent(content model.Content) (int, error)
 	UpdateContent(content model.Content) error
 	DeleteContent(contentID any) error
+	GetConsentById(consentId any) (model.Consent, error)
+	GetConsentBySlug(slug string) (model.Consent, error)
+	UpsertConsent(consent model.Consent) (string, error)
+	DeleteConsentById(consentID any) error
+	DeleteConsentBySlug(slug string) error
 }
 
 type IGorm interface {
