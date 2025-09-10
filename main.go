@@ -58,6 +58,11 @@ func main() {
 func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, c *common.CommonHandler, a *middleware.ActivityLogMiddleware) {
 	mobile := r.Group("/mobile")
 	{
+		// not protected
+		mobile.GET("/consent/:id", c.GetConsentById)
+		mobile.GET("/consent/slug/:slug", c.GetConsentBySlug)
+	}
+	{
 		mobileAuth := mobile.Group("/auth")
 		{
 			mobileAuth.POST("/refresh", m.Refresh)
@@ -133,6 +138,11 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, c 
 			webProtected.PUT("/content/:id", w.UpdateContent)
 			webProtected.DELETE("/content/:id", w.DeleteContent)
 			webProtected.POST("/image/upload", c.UploadImage)
+			webProtected.GET("/consent/:id", c.GetConsentById)
+			webProtected.GET("/consent/slug/:slug", c.GetConsentBySlug)
+			webProtected.PUT("/consent", middleware.WebRBACMiddleware(middleware.ManageConsentPermission), w.UpsertConsent)
+			webProtected.DELETE("/consent/:id", middleware.WebRBACMiddleware(middleware.ManageConsentPermission), w.DeleteConsentById)
+			webProtected.DELETE("/consent/slug/:slug", middleware.WebRBACMiddleware(middleware.ManageConsentPermission), w.DeleteConsentBySlug)
 		}
 	}
 }
@@ -180,6 +190,7 @@ func setupDB() *gorm.DB {
 		&model.Patient{},
 		&model.Question{},
 		&model.Content{},
+		&model.Consent{},
 	)
 
 	mainLogger.Println("connected to the database")

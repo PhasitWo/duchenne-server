@@ -59,12 +59,13 @@ const (
 	CreatePatientPermission permission = "createPatientPermission"
 	UpdatePatientPermission permission = "updatePatientPermission"
 	DeletePatientPermission permission = "deletePatientPermission"
+	ManageConsentPermission  permission = "manageConsentPermission"
 )
 
 var rolePermissionsMap = map[model.Role][]permission{
 	model.USER:  {},
 	model.ADMIN: {CreatePatientPermission, UpdatePatientPermission, DeletePatientPermission},
-	model.ROOT:  {CreatePatientPermission, UpdatePatientPermission, DeletePatientPermission, CreateDoctorPermission, UpdateDoctorPermission, DeleteDoctorPermission},
+	model.ROOT:  {CreatePatientPermission, UpdatePatientPermission, DeletePatientPermission, CreateDoctorPermission, UpdateDoctorPermission, DeleteDoctorPermission, ManageConsentPermission},
 }
 
 func WebRBACMiddleware(requiredPermission permission) gin.HandlerFunc {
