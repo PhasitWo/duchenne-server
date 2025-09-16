@@ -24,10 +24,10 @@ func TestLogin(t *testing.T) {
 	config.AppConfig.JWT_KEY = "test_key"
 	t.Run("success", func(t *testing.T) {
 		doctor := model.Doctor{
-			ID: 1,
+			ID:       1,
 			Username: "test",
 			Password: "admin",
-			Role: "root",
+			Role:     "root",
 		}
 		input := gin.H{
 			"username": "test",
@@ -44,11 +44,11 @@ func TestLogin(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(rawInput))
 		recorder := httptest.NewRecorder()
 		_, router := gin.CreateTestContext(recorder)
-		
-		expectToken, err := auth.GenerateDoctorToken(doctor.ID, doctor.Role)
+
+		expectToken, err := auth.GenerateDoctorAccessToken(doctor.ID, doctor.Role)
 		assert.NoError(t, err)
-		expectResp:= gin.H{
-			"token" : expectToken,
+		expectResp := gin.H{
+			"token": expectToken,
 		}
 		expectRespBody, err := json.Marshal(expectResp)
 		assert.NoError(t, err)
@@ -95,7 +95,7 @@ func TestLogin(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(rawInput))
 		recorder := httptest.NewRecorder()
 		_, router := gin.CreateTestContext(recorder)
-		
+
 		router.POST("/", webH.Login)
 		router.ServeHTTP(recorder, req)
 
@@ -118,7 +118,7 @@ func TestLogin(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(rawInput))
 		recorder := httptest.NewRecorder()
 		_, router := gin.CreateTestContext(recorder)
-		
+
 		router.POST("/", webH.Login)
 		router.ServeHTTP(recorder, req)
 
@@ -126,10 +126,10 @@ func TestLogin(t *testing.T) {
 	})
 	t.Run("invalidCredential", func(t *testing.T) {
 		doctor := model.Doctor{
-			ID: 1,
+			ID:       1,
 			Username: "test",
 			Password: "admin",
-			Role: "root",
+			Role:     "root",
 		}
 		input := gin.H{
 			"username": "test",

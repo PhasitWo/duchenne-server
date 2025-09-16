@@ -14,6 +14,7 @@ type config struct {
 	MODE            string
 	DATABASE_DSN    string
 	JWT_KEY         string
+	JWT_REFRESH_KEY string
 	MAX_DEVICE      int
 	NOTIFY_IN_RANGE int
 	NOTIFY_SECRET   string
@@ -28,6 +29,7 @@ var defaultConfig = config{
 	MODE:            "dev",
 	DATABASE_DSN:    "root:superuser@tcp(127.0.0.1)/master",
 	JWT_KEY:         "SAMPLE_KEY",
+	JWT_REFRESH_KEY: "REFRESH_KEY",
 	MAX_DEVICE:      3,
 	NOTIFY_IN_RANGE: 3,
 	NOTIFY_SECRET:   "SAMPLE_SECRET",

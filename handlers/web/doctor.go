@@ -7,6 +7,7 @@ import (
 
 	"github.com/PhasitWo/duchenne-server/model"
 	"github.com/PhasitWo/duchenne-server/repository"
+	"github.com/PhasitWo/duchenne-server/utils"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -26,14 +27,34 @@ func (w *WebHandler) GetDoctor(c *gin.Context) {
 }
 
 func (w *WebHandler) GetAllDoctor(c *gin.Context) {
-	doctors, err := w.Repo.GetAllDoctor()
+	criteriaList := []repository.Criteria{}
+	var err error
+	// get url query param
+	limit, offset, err := utils.Paging(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if canBeAppointedStr, exist := c.GetQuery("canBeAppointed"); exist {
+		var canBeAppointed bool
+		switch canBeAppointedStr {
+		case "true":
+			canBeAppointed = true
+		case "false":
+			canBeAppointed = false
+		default:
+			c.JSON(http.StatusBadRequest, gin.H{"error": "canBeAppointed can either be 'true' or 'false'"})
+			return
+		}
+		criteriaList = append(criteriaList, repository.Criteria{QueryCriteria: repository.CAN_BE_APPOINTED, Value: canBeAppointed})
+	}
+	doctors, err := w.Repo.GetAllDoctor(limit, offset, criteriaList...)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, doctors)
 }
-
 
 func (w *WebHandler) CreateDoctor(c *gin.Context) {
 	var input model.CreateDoctorRequest
@@ -46,13 +67,14 @@ func (w *WebHandler) CreateDoctor(c *gin.Context) {
 		return
 	}
 	insertedId, err := w.Repo.CreateDoctor(model.Doctor{
-		FirstName:  input.FirstName,
-		MiddleName: input.MiddleName,
-		LastName:   input.LastName,
-		Username:   input.Username,
-		Password:   input.Password,
-		Role:       input.Role,
-		Specialist: input.Specialist,
+		FirstName:      input.FirstName,
+		MiddleName:     input.MiddleName,
+		LastName:       input.LastName,
+		Username:       input.Username,
+		Password:       input.Password,
+		Role:           input.Role,
+		Specialist:     input.Specialist,
+		CanBeAppointed: input.CanBeAppointed,
 	})
 	if err != nil {
 		if errors.Unwrap(err) == repository.ErrDuplicateEntry {
@@ -91,14 +113,15 @@ func (w *WebHandler) UpdateDoctor(c *gin.Context) {
 		return
 	}
 	err = w.Repo.UpdateDoctor(model.Doctor{
-		ID:         id,
-		FirstName:  input.FirstName,
-		MiddleName: input.MiddleName,
-		LastName:   input.LastName,
-		Username:   input.Username,
-		Password:   input.Password,
-		Role:       input.Role,
-		Specialist: input.Specialist,
+		ID:             id,
+		FirstName:      input.FirstName,
+		MiddleName:     input.MiddleName,
+		LastName:       input.LastName,
+		Username:       input.Username,
+		Password:       input.Password,
+		Role:           input.Role,
+		Specialist:     input.Specialist,
+		CanBeAppointed: input.CanBeAppointed,
 	})
 	if err != nil {
 		if errors.Unwrap(err) == repository.ErrDuplicateEntry {

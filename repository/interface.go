@@ -39,13 +39,14 @@ type IRepo interface {
 	DeleteDevice(deviceId any) error
 	GetDoctorByUsername(username string) (model.Doctor, error)
 	GetDoctorById(id any) (model.Doctor, error)
-	GetAllDoctor() ([]model.TrimDoctor, error)
+	GetAllDoctor(limit int, offset int, criteria ...Criteria) ([]model.TrimDoctor, error)
 	CreateDoctor(doctor model.Doctor) (int, error)
 	UpdateDoctor(doctor model.Doctor) error
 	DeleteDoctorById(id any) error
 	GetPatientById(id any) (model.Patient, error)
 	GetPatientByHN(hn string) (model.Patient, error)
-	GetAllPatient() ([]model.Patient, error)
+	GetPatientByNID(nid string) (model.Patient, error)
+	GetAllPatient(limit int, offset int, criteria ...Criteria) ([]model.Patient, error)
 	CreatePatient(patient model.Patient) (int, error)
 	UpdatePatient(patient model.Patient) error
 	UpdatePatientVaccineHistory(patientId int, vaccineHistory []model.VaccineHistory) error
@@ -61,6 +62,11 @@ type IRepo interface {
 	CreateContent(content model.Content) (int, error)
 	UpdateContent(content model.Content) error
 	DeleteContent(contentID any) error
+	GetConsentById(consentId any) (model.Consent, error)
+	GetConsentBySlug(slug string) (model.Consent, error)
+	UpsertConsent(consent model.Consent) (string, error)
+	DeleteConsentById(consentID any) error
+	DeleteConsentBySlug(slug string) error
 }
 
 type IGorm interface {

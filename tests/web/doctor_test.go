@@ -14,6 +14,7 @@ import (
 	"github.com/PhasitWo/duchenne-server/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"gorm.io/gorm"
 )
 
@@ -84,7 +85,7 @@ func TestGetAllDoctor(t *testing.T) {
 		repo := repository.NewMockRepo(t)
 		webH := web.WebHandler{Repo: repo}
 
-		repo.EXPECT().GetAllDoctor().Return([]model.TrimDoctor{}, nil).Once()
+		repo.EXPECT().GetAllDoctor(mock.Anything, mock.Anything).Return([]model.TrimDoctor{}, nil).Once()
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		recorder := httptest.NewRecorder()
@@ -100,7 +101,7 @@ func TestGetAllDoctor(t *testing.T) {
 		repo := repository.NewMockRepo(t)
 		webH := web.WebHandler{Repo: repo}
 
-		repo.EXPECT().GetAllDoctor().Return([]model.TrimDoctor{}, errors.New("some internal error")).Once()
+		repo.EXPECT().GetAllDoctor(mock.Anything, mock.Anything).Return([]model.TrimDoctor{}, errors.New("some internal error")).Once()
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		recorder := httptest.NewRecorder()

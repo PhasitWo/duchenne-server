@@ -16,21 +16,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type login struct {
-	Hn         string `json:"hn" binding:"required"`
-	Pin        string `json:"pin" binding:"required,len=6"`
-	DeviceName string `json:"deviceName" binding:"required"`
-	ExpoToken  string `json:"expoToken" binding:"required"`
+type refreshRequest struct {
+	NID      string `json:"nid" binding:"required"`
+	Password string `json:"password" binding:"required"`
 }
 
-func (m *MobileHandler) Login(c *gin.Context) {
-	var input login
+func (m *MobileHandler) Refresh(c *gin.Context) {
+	var input refreshRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	// fetch patient from database
-	storedPatient, err := m.Repo.GetPatientByHN(input.Hn)
+	storedPatient, err := m.Repo.GetPatientByNID(input.NID)
 	if err != nil {
 		if errors.Unwrap(err) == gorm.ErrRecordNotFound { // no rows found
 			c.Status(http.StatusNotFound)
@@ -44,12 +42,56 @@ func (m *MobileHandler) Login(c *gin.Context) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "unverified account"})
 		return
 	}
-	if input.Pin != storedPatient.Pin {
+	// verify password
+	if storedPatient.Password != input.Password {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credential"})
+		return
+	}
+	// generate refresh token
+	token, err := auth.GeneratePatientRefreshToken(storedPatient.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"refreshToken": token})
+}
+
+type loginRequest struct {
+	RefreshToken string `json:"refreshToken" binding:"required"`
+	Pin          string `json:"pin" binding:"required,len=6"`
+	DeviceName   string `json:"deviceName" binding:"required"`
+	ExpoToken    string `json:"expoToken" binding:"required"`
+}
+
+func (m *MobileHandler) Login(c *gin.Context) {
+	var input loginRequest
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	// parse token
+	patientId, err := auth.ParsePatientRefreshToken(input.RefreshToken)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+	// fetch patient from database
+	storedPatient, err := m.Repo.GetPatientById(patientId)
+	if err != nil {
+		if errors.Unwrap(err) == gorm.ErrRecordNotFound { // no rows found
+			c.Status(http.StatusNotFound)
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	// verify pin
+	if storedPatient.Pin != input.Pin {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credential"})
 		return
 	}
 	// save this device for notification stuff
-	criteria := repository.Criteria{QueryCriteria: repository.PATIENTID, Value: storedPatient.ID}
+	criteria := repository.Criteria{QueryCriteria: repository.PATIENTID, Value: patientId}
 	devices, err := m.Repo.GetAllDevice(criteria)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -59,7 +101,7 @@ func (m *MobileHandler) Login(c *gin.Context) {
 		LoginAt:    int(time.Now().Unix()),
 		DeviceName: input.DeviceName,
 		ExpoToken:  input.ExpoToken,
-		PatientId:  storedPatient.ID,
+		PatientId:  patientId,
 	}
 	tx := m.DBConn.Begin()
 	defer func() {
@@ -89,7 +131,12 @@ func (m *MobileHandler) Login(c *gin.Context) {
 		return
 	}
 	// generate token
-	token, err := auth.GeneratePatientToken(storedPatient.ID, deviceId)
+	accessToken, err := auth.GeneratePatientAccessToken(patientId, deviceId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	refreshToken, err := auth.GeneratePatientRefreshToken(patientId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -99,34 +146,40 @@ func (m *MobileHandler) Login(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Tx can't commit"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"token": token})
+	c.JSON(http.StatusOK, gin.H{"accessToken": accessToken, "refreshToken": refreshToken})
 }
 
-type signup struct {
+type signupRequest struct {
+	NID        string  `json:"nid" binding:"required,min=13"`
+	Password   string  `json:"password" binding:"required,min=8,max=30"`
 	Hn         string  `json:"hn" binding:"required"`
 	FirstName  string  `json:"firstName" binding:"required"`
 	MiddleName *string `json:"middleName"`
 	LastName   string  `json:"lastName" binding:"required"`
 	Phone      *string `json:"phone" binding:"required"`
 	Email      *string `json:"email"`
-	BirthDate  int     `json:"birthDate" binding:"required"`
+	BirthDate  int     `json:"birthDate"`
 	Pin        string  `json:"pin" binding:"required,len=6"`
 }
 
 func (m *MobileHandler) Signup(c *gin.Context) {
-	var s signup
+	var s signupRequest
 	if err := c.ShouldBindJSON(&s); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	// fetch patient from database
-	_, err := m.Repo.GetPatientByHN(s.Hn)
-	if err == nil {
-		c.JSON(http.StatusConflict, gin.H{"error": "the account is already existed"})
-		return
-	}
+
+	// // fetch patient from database
+	// _, err := m.Repo.GetPatientByHN(s.Hn)
+	// if err == nil {
+	// 	c.JSON(http.StatusConflict, gin.H{"error": "the account is already existed"})
+	// 	return
+	// }
+
 	// save new patient to database
 	newId, err := m.Repo.CreatePatient(model.Patient{
+		NID:            s.NID,
+		Password:       s.Password,
 		Hn:             s.Hn,
 		Pin:            s.Pin,
 		FirstName:      s.FirstName,
@@ -143,7 +196,7 @@ func (m *MobileHandler) Signup(c *gin.Context) {
 	})
 	if err != nil {
 		if errors.Unwrap(err) == repository.ErrDuplicateEntry {
-			c.JSON(http.StatusConflict, gin.H{"error": "duplicate hn"})
+			c.JSON(http.StatusConflict, gin.H{"error": "duplicate HN or NID"})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -159,7 +212,7 @@ func (m *MobileHandler) Logout(c *gin.Context) {
 		return
 	}
 	// parse token
-	claims := &auth.PatientClaims{PatientId: -1, DeviceId: -1}
+	claims := &auth.PatientAccessClaims{PatientId: -1, DeviceId: -1}
 	jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(config.AppConfig.JWT_KEY), nil
 	})

@@ -4,33 +4,22 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/PhasitWo/duchenne-server/repository"
+	"github.com/PhasitWo/duchenne-server/utils"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 func (c *CommonHandler) GetAllContent(ctx *gin.Context) {
-	limit := 9999
-	offset := 0
 	criteria := []repository.Criteria{}
 	var err error
 	// get url query param
-	if l, exist := ctx.GetQuery("limit"); exist {
-		limit, err = strconv.Atoi(l)
-		if err != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": "cannot parse limit value"})
-			return
-		}
-	}
-	if of, exist := ctx.GetQuery("offset"); exist {
-		offset, err = strconv.Atoi(of)
-		if err != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": "cannot parse offset value"})
-			return
-		}
+	limit, offset, err := utils.Paging(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 	if _, exist := ctx.GetQuery("isPublished"); exist {
 		criteria = append(criteria, repository.Criteria{QueryCriteria: repository.IS_PUBLISHED, Value: true})

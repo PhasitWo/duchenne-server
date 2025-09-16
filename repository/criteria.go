@@ -29,6 +29,7 @@ const (
 	DATE_LESSTHAN        ColumnCriteria = "date < "
 	CREATEAT_GREATERTHAN ColumnCriteria = "create_at > "
 	IS_PUBLISHED         ColumnCriteria = "is_published = "
+	CAN_BE_APPOINTED     ColumnCriteria = "can_be_appointed ="
 )
 
 func attachCriteria(db *gorm.DB, criteria ...Criteria) *gorm.DB {

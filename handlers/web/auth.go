@@ -37,7 +37,7 @@ func (w *WebHandler) Login(c *gin.Context) {
 		return
 	}
 	// generate token
-	token, err := auth.GenerateDoctorToken(storedDoctor.ID, storedDoctor.Role)
+	token, err := auth.GenerateDoctorAccessToken(storedDoctor.ID, storedDoctor.Role)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

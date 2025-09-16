@@ -24,6 +24,8 @@ type Medicine struct {
 
 type Patient struct {
 	ID             int                                 `json:"id"`
+	NID            string                              `json:"nid" gorm:"unique;not null;column:nid"`
+	Password       string                              `gorm:"not null"`
 	Hn             string                              `json:"hn" gorm:"unique;not null"`
 	Pin            string                              `gorm:"not null"`
 	FirstName      string                              `json:"firstName" gorm:"not null"`
@@ -40,8 +42,22 @@ type Patient struct {
 	DeletedAt      soft_delete.DeletedAt               `gorm:"default:0"`
 }
 
-type CreatePatientRequest struct {
-	Hn         string   `json:"hn" binding:"required,max=15"`
+// type CreatePatientRequest struct {
+// 	Hn         string   `json:"hn" binding:"required"`
+// 	FirstName  string   `json:"firstName" binding:"required"`
+// 	MiddleName *string  `json:"middleName"`
+// 	LastName   string   `json:"lastName" binding:"required"`
+// 	Email      *string  `json:"email"`
+// 	Phone      *string  `json:"phone"`
+// 	Verified   bool     `json:"verified"`
+// 	Weight     *float32 `json:"weight"`
+// 	Height     *float32 `json:"height"`
+// 	BirthDate  int      `json:"birthDate"`
+// }
+
+type UpdatePatientRequest struct {
+	NID        string   `json:"nid" binding:"required,min=13"`
+	Hn         string   `json:"hn" binding:"required"`
 	FirstName  string   `json:"firstName" binding:"required"`
 	MiddleName *string  `json:"middleName"`
 	LastName   string   `json:"lastName" binding:"required"`
@@ -50,7 +66,7 @@ type CreatePatientRequest struct {
 	Verified   bool     `json:"verified"`
 	Weight     *float32 `json:"weight"`
 	Height     *float32 `json:"height"`
-	BirthDate  int      `json:"birthDate" binding:"required"`
+	BirthDate  int      `json:"birthDate"`
 }
 
 type UpdateVaccineHistoryRequest struct {

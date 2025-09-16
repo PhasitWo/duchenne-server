@@ -51,14 +51,15 @@ func (w *WebHandler) UpdateProfile(c *gin.Context) {
 	}
 	err := w.Repo.UpdateDoctor(
 		model.Doctor{
-			ID:         id,
-			FirstName:  input.FirstName,
-			MiddleName: input.MiddleName,
-			LastName:   input.LastName,
-			Username:   input.Username,
-			Password:   input.Password,
-			Specialist: input.Specialist,
-			Role:       role,
+			ID:             id,
+			FirstName:      input.FirstName,
+			MiddleName:     input.MiddleName,
+			LastName:       input.LastName,
+			Username:       input.Username,
+			Password:       input.Password,
+			Specialist:     input.Specialist,
+			CanBeAppointed: input.CanBeAppointed,
+			Role:           role,
 		})
 	if err != nil {
 		if errors.Unwrap(err) == repository.ErrDuplicateEntry {

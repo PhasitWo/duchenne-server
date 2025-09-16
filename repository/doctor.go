@@ -27,9 +27,10 @@ func (r *Repo) GetDoctorById(id any) (model.Doctor, error) {
 	return d, nil
 }
 
-func (r *Repo) GetAllDoctor() ([]model.TrimDoctor, error) {
+func (r *Repo) GetAllDoctor(limit int, offset int, criteria ...Criteria) ([]model.TrimDoctor, error) {
 	var res []model.TrimDoctor
-	err := r.db.Model(&model.Doctor{}).Find(&res).Error
+	db := attachCriteria(r.db, criteria...)
+	err := db.Model(&model.Doctor{}).Limit(limit).Offset(offset).Find(&res).Error
 	if err != nil {
 		return res, fmt.Errorf("query : %w", err)
 	}
