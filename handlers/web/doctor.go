@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/PhasitWo/duchenne-server/auth"
 	"github.com/PhasitWo/duchenne-server/model"
 	"github.com/PhasitWo/duchenne-server/repository"
 	"github.com/PhasitWo/duchenne-server/utils"
@@ -66,12 +67,18 @@ func (w *WebHandler) CreateDoctor(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid role value"})
 		return
 	}
+	// hash password
+	hashed, err := auth.HashPassword(input.Password)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	insertedId, err := w.Repo.CreateDoctor(model.Doctor{
 		FirstName:      input.FirstName,
 		MiddleName:     input.MiddleName,
 		LastName:       input.LastName,
 		Username:       input.Username,
-		Password:       input.Password,
+		Password:       hashed,
 		Role:           input.Role,
 		Specialist:     input.Specialist,
 		CanBeAppointed: input.CanBeAppointed,
@@ -88,7 +95,7 @@ func (w *WebHandler) CreateDoctor(c *gin.Context) {
 }
 
 func (w *WebHandler) UpdateDoctor(c *gin.Context) {
-	var input model.CreateDoctorRequest
+	var input model.UpdateDoctorRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -103,7 +110,7 @@ func (w *WebHandler) UpdateDoctor(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	_, err = w.Repo.GetDoctorById(id) // check if this id exist
+	storedDoctor, err := w.Repo.GetDoctorById(id) // check if this id exist
 	if err != nil {
 		if errors.Unwrap(err) == gorm.ErrRecordNotFound { // no rows found
 			c.Status(http.StatusNotFound)
@@ -112,13 +119,23 @@ func (w *WebHandler) UpdateDoctor(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	// hash password
+	password := storedDoctor.Password
+	if input.Password != nil {
+		hashed, err := auth.HashPassword(*input.Password)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		password = hashed
+	}
 	err = w.Repo.UpdateDoctor(model.Doctor{
 		ID:             id,
 		FirstName:      input.FirstName,
 		MiddleName:     input.MiddleName,
 		LastName:       input.LastName,
 		Username:       input.Username,
-		Password:       input.Password,
+		Password:       password,
 		Role:           input.Role,
 		Specialist:     input.Specialist,
 		CanBeAppointed: input.CanBeAppointed,

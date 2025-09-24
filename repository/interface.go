@@ -49,6 +49,8 @@ type IRepo interface {
 	GetAllPatient(limit int, offset int, criteria ...Criteria) ([]model.Patient, error)
 	CreatePatient(patient model.Patient) (int, error)
 	UpdatePatient(patient model.Patient) error
+	UpdatePatientPassword(patientId int, newPassword string) error
+	UpdatePatientPin(patientId int, newPin string) error
 	UpdatePatientVaccineHistory(patientId int, vaccineHistory []model.VaccineHistory) error
 	UpdatePatientMedicine(patientId int, medicines []model.Medicine) error
 	DeletePatientById(id any) error

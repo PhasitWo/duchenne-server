@@ -17,7 +17,7 @@ type Doctor struct {
 	MiddleName     *string `json:"middleName"` // nullable
 	LastName       string  `json:"lastName" gorm:"not null"`
 	Username       string  `json:"username" gorm:"unique;not null"`
-	Password       string  `json:"password" gorm:"not null"`
+	Password       string  `json:"-" gorm:"not null"`
 	Specialist     *string `json:"specialist"`
 	Role           Role    `json:"role" gorm:"not null"`
 	CanBeAppointed bool    `json:"canBeAppointed" gorm:"not null"`
@@ -35,7 +35,7 @@ type UpdateProfileRequest struct {
 	MiddleName     *string `json:"middleName"`
 	LastName       string  `json:"lastName" binding:"required"`
 	Username       string  `json:"username" binding:"required"`
-	Password       string  `json:"password" binding:"required"`
+	Password       *string `json:"password"`
 	Specialist     *string `json:"specialist"`
 	CanBeAppointed bool    `json:"canBeAppointed"`
 }
@@ -46,6 +46,17 @@ type CreateDoctorRequest struct {
 	LastName       string  `json:"lastName" binding:"required"`
 	Username       string  `json:"username" binding:"required"`
 	Password       string  `json:"password" binding:"required"`
+	Role           Role    `json:"role" binding:"required"`
+	Specialist     *string `json:"specialist"`
+	CanBeAppointed bool    `json:"canBeAppointed"`
+}
+
+type UpdateDoctorRequest struct {
+	FirstName      string  `json:"firstName" binding:"required"`
+	MiddleName     *string `json:"middleName"`
+	LastName       string  `json:"lastName" binding:"required"`
+	Username       string  `json:"username" binding:"required"`
+	Password       *string `json:"password"`
 	Role           Role    `json:"role" binding:"required"`
 	Specialist     *string `json:"specialist"`
 	CanBeAppointed bool    `json:"canBeAppointed"`

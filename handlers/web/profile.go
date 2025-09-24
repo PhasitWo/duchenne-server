@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/PhasitWo/duchenne-server/auth"
 	"github.com/PhasitWo/duchenne-server/model"
 	"github.com/PhasitWo/duchenne-server/repository"
 	"github.com/gin-gonic/gin"
@@ -37,29 +38,37 @@ func (w *WebHandler) UpdateProfile(c *gin.Context) {
 		return
 	}
 	id := i.(int)
-	r, exists := c.Get("doctorRole")
-	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "no 'doctorRole' from auth middleware"})
-		return
-	}
-	role := r.(model.Role)
 	// input
 	var input model.UpdateProfileRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	err := w.Repo.UpdateDoctor(
+	storedDoctor, err := w.Repo.GetDoctorById(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	password := storedDoctor.Password
+	if input.Password != nil {
+		hashed, err := auth.HashPassword(*input.Password)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		password = hashed
+	}
+	err = w.Repo.UpdateDoctor(
 		model.Doctor{
 			ID:             id,
 			FirstName:      input.FirstName,
 			MiddleName:     input.MiddleName,
 			LastName:       input.LastName,
 			Username:       input.Username,
-			Password:       input.Password,
+			Password:       password,
 			Specialist:     input.Specialist,
 			CanBeAppointed: input.CanBeAppointed,
-			Role:           role,
+			Role:           storedDoctor.Role,
 		})
 	if err != nil {
 		if errors.Unwrap(err) == repository.ErrDuplicateEntry {
