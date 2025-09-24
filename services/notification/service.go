@@ -52,11 +52,10 @@ func (n *service) SendNotiByPatientId(id int, title string, body string) error {
 		return ErrDevicesNotFound
 	}
 	msg := expo.PushMessage{To: []expo.ExponentPushToken{}, Title: title, Body: body, Sound: "default", Priority: expo.HighPriority}
-	silent := expo.PushMessage{To: []expo.ExponentPushToken{}, Data: map[string]string{"title": title, "body": body}}
 	for _, d := range devices {
 		msg.To = append(msg.To, expo.ExponentPushToken(d.ExpoToken))
 	}
-	SendRequest([]expo.PushMessage{msg, silent})
+	SendRequest([]expo.PushMessage{msg})
 	return nil
 }
 
@@ -84,13 +83,12 @@ func (n *service) SendDailyNotifications(dayRange *int) error {
 	// 1 appointmemnt -> 1 message -- to --> multiple receivers
 	messagesPool := []expo.PushMessage{}
 	var newMessage expo.PushMessage
-	var silent expo.PushMessage
 	prior := -1
 	for index, elem := range res {
 		if elem.AppointmentId != prior {
 			// add prior new message to pool
 			if prior != -1 {
-				messagesPool = append(messagesPool, newMessage, silent)
+				messagesPool = append(messagesPool, newMessage)
 			}
 			// create new message
 			title := "อย่าลืมนัดหมายของคุณ!"
@@ -102,17 +100,12 @@ func (n *service) SendDailyNotifications(dayRange *int) error {
 				Title:    title,
 				Priority: expo.HighPriority,
 			}
-			silent = expo.PushMessage{
-				To:   []expo.ExponentPushToken{expo.ExponentPushToken(elem.ExpoToken)},
-				Data: map[string]string{"title": title, "body": body},
-			}
 		} else {
 			newMessage.To = append(newMessage.To, expo.ExponentPushToken(elem.ExpoToken))
-			silent.To = append(silent.To, expo.ExponentPushToken(elem.ExpoToken))
 		}
 		// special case -> if this new message is the last message
 		if index == len(res)-1 {
-			messagesPool = append(messagesPool, newMessage, silent)
+			messagesPool = append(messagesPool, newMessage)
 		}
 		prior = elem.AppointmentId
 	}
