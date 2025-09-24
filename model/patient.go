@@ -24,9 +24,9 @@ type Medicine struct {
 
 type Patient struct {
 	ID             int                                 `json:"id"`
-	NID            string                              `json:"nid" gorm:"unique;not null;column:nid"`
+	NID            string                              `json:"nid" gorm:"uniqueIndex;not null;column:nid"`
 	Password       string                              `gorm:"not null"`
-	Hn             string                              `json:"hn" gorm:"unique;not null"`
+	Hn             string                              `json:"hn" gorm:"uniqueIndex;not null"`
 	Pin            string                              `gorm:"not null"`
 	FirstName      string                              `json:"firstName" gorm:"not null"`
 	MiddleName     *string                             `json:"middleName"` // nullable

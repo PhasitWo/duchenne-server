@@ -72,6 +72,28 @@ func (r *Repo) UpdatePatient(patient model.Patient) error {
 	return nil
 }
 
+func (r *Repo) UpdatePatientPassword(patientId int, newPassword string) error {
+	err := r.db.Select("password").Updates(&model.Patient{
+		ID: patientId,
+		Password: newPassword,
+	}).Error
+	if err != nil {
+		return fmt.Errorf("exec : %w", err)
+	}
+	return nil
+}
+
+func (r *Repo) UpdatePatientPin(patientId int, newPin string) error {
+	err := r.db.Select("pin").Updates(&model.Patient{
+		ID: patientId,
+		Pin: newPin,
+	}).Error
+	if err != nil {
+		return fmt.Errorf("exec : %w", err)
+	}
+	return nil
+}
+
 func (r *Repo) UpdatePatientVaccineHistory(patientId int, vaccineHistory []model.VaccineHistory) error {
 	err := r.db.Select("vaccine_history").Updates(&model.Patient{
 		ID:             patientId,

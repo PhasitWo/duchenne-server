@@ -43,7 +43,7 @@ func (m *MobileHandler) Refresh(c *gin.Context) {
 		return
 	}
 	// verify password
-	if storedPatient.Password != input.Password {
+	if err := auth.VerifyPassword(storedPatient.Password, input.Password); err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credential"})
 		return
 	}
@@ -86,7 +86,7 @@ func (m *MobileHandler) Login(c *gin.Context) {
 		return
 	}
 	// verify pin
-	if storedPatient.Pin != input.Pin {
+	if err := auth.VerifyPassword(storedPatient.Pin, input.Pin); err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credential"})
 		return
 	}
@@ -168,20 +168,22 @@ func (m *MobileHandler) Signup(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	// // fetch patient from database
-	// _, err := m.Repo.GetPatientByHN(s.Hn)
-	// if err == nil {
-	// 	c.JSON(http.StatusConflict, gin.H{"error": "the account is already existed"})
-	// 	return
-	// }
-
+	hashedPassword, err := auth.HashPassword(s.Password)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	hashedPin, err := auth.HashPassword(s.Pin)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	// save new patient to database
 	newId, err := m.Repo.CreatePatient(model.Patient{
 		NID:            s.NID,
-		Password:       s.Password,
+		Password:       hashedPassword,
 		Hn:             s.Hn,
-		Pin:            s.Pin,
+		Pin:            hashedPin,
 		FirstName:      s.FirstName,
 		MiddleName:     s.MiddleName,
 		LastName:       s.LastName,
@@ -222,6 +224,70 @@ func (m *MobileHandler) Logout(c *gin.Context) {
 	}
 
 	err := m.Repo.DeleteDevice(claims.DeviceId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.Status(http.StatusOK)
+}
+
+type PasswordResetRequest struct {
+	Password string `json:"password" binding:"required,min=8,max=30"`
+}
+
+func (m *MobileHandler) ResetPassword(c *gin.Context) {
+	i, exists := c.Get("patientId")
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "no 'patientId' from auth middleware"})
+		return
+	}
+	patientId := i.(int)
+	// input
+	var input PasswordResetRequest
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	// hash password
+	hashed, err := auth.HashPassword(input.Password)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	// update
+	err = m.Repo.UpdatePatientPassword(patientId, hashed)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.Status(http.StatusOK)
+}
+
+type PinResetRequest struct {
+	Pin string `json:"pin" binding:"required,len=6"`
+}
+
+func (m *MobileHandler) ResetPin(c *gin.Context) {
+	i, exists := c.Get("patientId")
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "no 'patientId' from auth middleware"})
+		return
+	}
+	patientId := i.(int)
+	// input
+	var input PinResetRequest
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	// hash pin
+	hashed, err := auth.HashPassword(input.Pin)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	// update
+	err = m.Repo.UpdatePatientPin(patientId, hashed)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

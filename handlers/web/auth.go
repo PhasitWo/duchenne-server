@@ -32,7 +32,7 @@ func (w *WebHandler) Login(c *gin.Context) {
 		return
 	}
 	// checking
-	if storedDoctor.Password != input.Password {
+	if err := auth.VerifyPassword(storedDoctor.Password, input.Password); err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credential"})
 		return
 	}
