@@ -86,6 +86,8 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, c 
 			mobileProtected.GET("/doctor", m.GetAllDoctor)
 			mobileProtected.GET("/device", m.GetAllDevice)
 			mobileProtected.POST("/device", m.CreateDevice)
+			mobileProtected.POST("/reset-password", m.ResetPassword)
+			mobileProtected.POST("/reset-pin", m.ResetPin)
 			mobileProtected.GET("/content", c.GetAllContent)
 			mobileProtected.GET("/content/:id", c.GetOneContent)
 		}

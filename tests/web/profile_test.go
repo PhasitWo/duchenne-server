@@ -90,6 +90,7 @@ func TestGetProfile(t *testing.T) {
 }
 
 func TestUpdateProfile(t *testing.T) {
+	password := "1234"
 	t.Run("noDoctorIdFromAuthMiddleware", func(t *testing.T) {
 		// setup mock
 		webH := web.WebHandler{}
@@ -122,7 +123,7 @@ func TestUpdateProfile(t *testing.T) {
 			MiddleName: nil,
 			LastName:   "ln",
 			Username:   "test",
-			Password:   "1234",
+			Password:   &password,
 			Specialist: nil,
 		}
 		rawInput, err := json.Marshal(&input)
@@ -152,7 +153,7 @@ func TestUpdateProfile(t *testing.T) {
 			MiddleName: nil,
 			LastName:   "ln",
 			Username:   "test",
-			Password:   "1234",
+			Password:   &password,
 			Specialist: nil,
 		}
 		rawInput, err := json.Marshal(&input)
@@ -169,7 +170,7 @@ func TestUpdateProfile(t *testing.T) {
 				MiddleName: input.MiddleName,
 				LastName:   input.LastName,
 				Username:   input.Username,
-				Password:   input.Password,
+				Password:   *input.Password,
 				Specialist: input.Specialist,
 				Role:       model.ADMIN,
 			},
@@ -197,7 +198,7 @@ func TestUpdateProfile(t *testing.T) {
 			MiddleName: nil,
 			LastName:   "ln",
 			Username:   "test",
-			Password:   "1234",
+			Password:   &password,
 			Specialist: nil,
 		}
 		rawInput, err := json.Marshal(&input)
@@ -214,7 +215,7 @@ func TestUpdateProfile(t *testing.T) {
 				MiddleName: input.MiddleName,
 				LastName:   input.LastName,
 				Username:   input.Username,
-				Password:   input.Password,
+				Password:   *input.Password,
 				Specialist: input.Specialist,
 				Role:       model.ADMIN,
 			},
@@ -242,7 +243,7 @@ func TestUpdateProfile(t *testing.T) {
 			MiddleName: nil,
 			LastName:   "ln",
 			Username:   "test",
-			Password:   "1234",
+			Password:   &password,
 			Specialist: nil,
 		}
 		rawInput, err := json.Marshal(&input)
@@ -258,7 +259,7 @@ func TestUpdateProfile(t *testing.T) {
 				MiddleName: input.MiddleName,
 				LastName:   input.LastName,
 				Username:   input.Username,
-				Password:   input.Password,
+				Password:   *input.Password,
 				Specialist: input.Specialist,
 				Role:       model.ADMIN,
 			},

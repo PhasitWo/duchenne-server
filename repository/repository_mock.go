@@ -2274,6 +2274,120 @@ func (_c *MockRepo_UpdatePatientMedicine_Call) RunAndReturn(run func(patientId i
 	return _c
 }
 
+// UpdatePatientPassword provides a mock function for the type MockRepo
+func (_mock *MockRepo) UpdatePatientPassword(patientId int, newPassword string) error {
+	ret := _mock.Called(patientId, newPassword)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdatePatientPassword")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(int, string) error); ok {
+		r0 = returnFunc(patientId, newPassword)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockRepo_UpdatePatientPassword_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdatePatientPassword'
+type MockRepo_UpdatePatientPassword_Call struct {
+	*mock.Call
+}
+
+// UpdatePatientPassword is a helper method to define mock.On call
+//   - patientId int
+//   - newPassword string
+func (_e *MockRepo_Expecter) UpdatePatientPassword(patientId interface{}, newPassword interface{}) *MockRepo_UpdatePatientPassword_Call {
+	return &MockRepo_UpdatePatientPassword_Call{Call: _e.mock.On("UpdatePatientPassword", patientId, newPassword)}
+}
+
+func (_c *MockRepo_UpdatePatientPassword_Call) Run(run func(patientId int, newPassword string)) *MockRepo_UpdatePatientPassword_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 int
+		if args[0] != nil {
+			arg0 = args[0].(int)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRepo_UpdatePatientPassword_Call) Return(err error) *MockRepo_UpdatePatientPassword_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockRepo_UpdatePatientPassword_Call) RunAndReturn(run func(patientId int, newPassword string) error) *MockRepo_UpdatePatientPassword_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdatePatientPin provides a mock function for the type MockRepo
+func (_mock *MockRepo) UpdatePatientPin(patientId int, newPin string) error {
+	ret := _mock.Called(patientId, newPin)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdatePatientPin")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(int, string) error); ok {
+		r0 = returnFunc(patientId, newPin)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockRepo_UpdatePatientPin_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdatePatientPin'
+type MockRepo_UpdatePatientPin_Call struct {
+	*mock.Call
+}
+
+// UpdatePatientPin is a helper method to define mock.On call
+//   - patientId int
+//   - newPin string
+func (_e *MockRepo_Expecter) UpdatePatientPin(patientId interface{}, newPin interface{}) *MockRepo_UpdatePatientPin_Call {
+	return &MockRepo_UpdatePatientPin_Call{Call: _e.mock.On("UpdatePatientPin", patientId, newPin)}
+}
+
+func (_c *MockRepo_UpdatePatientPin_Call) Run(run func(patientId int, newPin string)) *MockRepo_UpdatePatientPin_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 int
+		if args[0] != nil {
+			arg0 = args[0].(int)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRepo_UpdatePatientPin_Call) Return(err error) *MockRepo_UpdatePatientPin_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockRepo_UpdatePatientPin_Call) RunAndReturn(run func(patientId int, newPin string) error) *MockRepo_UpdatePatientPin_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdatePatientVaccineHistory provides a mock function for the type MockRepo
 func (_mock *MockRepo) UpdatePatientVaccineHistory(patientId int, vaccineHistory []model.VaccineHistory) error {
 	ret := _mock.Called(patientId, vaccineHistory)

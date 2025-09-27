@@ -91,11 +91,13 @@ func (n *service) SendDailyNotifications(dayRange *int) error {
 				messagesPool = append(messagesPool, newMessage)
 			}
 			// create new message
+			title := "อย่าลืมนัดหมายของคุณ!"
+			body := formatRemainingTime(elem.Date, int(time.Now().Unix())) + " (" + formatThaiTime(elem.Date) + ")"
 			newMessage = expo.PushMessage{
 				To:       []expo.ExponentPushToken{expo.ExponentPushToken(elem.ExpoToken)},
-				Body:     formatRemainingTime(elem.Date, int(time.Now().Unix())) + " (" + formatThaiTime(elem.Date) + ")",
+				Body:     body,
 				Sound:    "default",
-				Title:    "อย่าลืมนัดหมายของคุณ!",
+				Title:    title,
 				Priority: expo.HighPriority,
 			}
 		} else {
