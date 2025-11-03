@@ -6,7 +6,7 @@ type ContentType string
 
 const (
 	ARTICLE ContentType = "article"
-	LINK   ContentType = "link"
+	LINK    ContentType = "link"
 )
 
 type Content struct {
@@ -23,10 +23,10 @@ type Content struct {
 }
 
 type CreateContentRequest struct {
-	Title         string  `json:"title" binding:"required"`
-	Body          string  `json:"body" binding:"required"`
-	IsPublished   bool    `json:"isPublished"`
-	Order         int     `json:"order" binding:"required"`
-	CoverImageURL *string `json:"coverImageURL"`
-	ContentType   string  `json:"contentType" binding:"oneof=article link"`
+	Title         string      `json:"title" binding:"required"`
+	Body          string      `json:"body" binding:"required"`
+	IsPublished   bool        `json:"isPublished"`
+	Order         int         `json:"order" binding:"required"`
+	CoverImageURL *string     `json:"coverImageURL"`
+	ContentType   ContentType `json:"contentType" binding:"oneof=article link"`
 }
