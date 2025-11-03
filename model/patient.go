@@ -24,9 +24,9 @@ type Medicine struct {
 
 type Patient struct {
 	ID             int                                 `json:"id"`
-	NID            string                              `json:"nid" gorm:"uniqueIndex;not null;column:nid"`
+	NID            string                              `json:"nid" gorm:"type:varchar(13);uniqueIndex:idx_patients_n_id;not null;column:nid"`
 	Password       string                              `gorm:"not null"`
-	Hn             string                              `json:"hn" gorm:"uniqueIndex;not null"`
+	Hn             string                              `json:"hn" gorm:"type:varchar(20);uniqueIndex:idx_patients_hn;not null"`
 	Pin            string                              `gorm:"not null"`
 	FirstName      string                              `json:"firstName" gorm:"not null"`
 	MiddleName     *string                             `json:"middleName"` // nullable
@@ -56,8 +56,8 @@ type Patient struct {
 // }
 
 type UpdatePatientRequest struct {
-	NID        string   `json:"nid" binding:"required,min=13"`
-	Hn         string   `json:"hn" binding:"required"`
+	NID        string   `json:"nid" binding:"required,min=13,max=13"`
+	Hn         string   `json:"hn" binding:"required,min=1,max=20"`
 	FirstName  string   `json:"firstName" binding:"required"`
 	MiddleName *string  `json:"middleName"`
 	LastName   string   `json:"lastName" binding:"required"`
