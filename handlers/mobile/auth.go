@@ -150,9 +150,9 @@ func (m *MobileHandler) Login(c *gin.Context) {
 }
 
 type signupRequest struct {
-	NID        string  `json:"nid" binding:"required,min=13"`
+	NID        string  `json:"nid" binding:"required,min=13,max=13"`
 	Password   string  `json:"password" binding:"required,min=8,max=30"`
-	Hn         string  `json:"hn" binding:"required"`
+	Hn         string  `json:"hn" binding:"required,max=20"`
 	FirstName  string  `json:"firstName" binding:"required"`
 	MiddleName *string `json:"middleName"`
 	LastName   string  `json:"lastName" binding:"required"`
