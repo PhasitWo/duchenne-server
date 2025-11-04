@@ -22,6 +22,8 @@ type config struct {
 	SERVER_DOMAIN          string
 	CORS_ALLOW             []string
 	REQUIRE_MOBILE_VERSION string
+	ANDROID_STORE_LINK     string
+	IOS_STORE_LINK         string
 }
 
 // shared config across packages
@@ -38,6 +40,8 @@ var defaultConfig = config{
 	SERVER_DOMAIN:          "127.0.0.1",
 	CORS_ALLOW:             []string{"http://localhost:5173", "http://localhost:4173", "https://duchenne-web.onrender.com"},
 	REQUIRE_MOBILE_VERSION: "0.0.0",
+	ANDROID_STORE_LINK:     "https://play.google.com",
+	IOS_STORE_LINK:         "https://apps.apple.com/",
 }
 
 func LoadConfig() {
