@@ -11,31 +11,37 @@ import (
 )
 
 type config struct {
-	MODE            string
-	DATABASE_DSN    string
-	JWT_KEY         string
-	JWT_REFRESH_KEY string
-	MAX_DEVICE      int
-	NOTIFY_IN_RANGE int
-	NOTIFY_SECRET   string
-	ENABLE_CRON     bool
-	SERVER_DOMAIN   string
-	CORS_ALLOW      []string
+	MODE                   string
+	DATABASE_DSN           string
+	JWT_KEY                string
+	JWT_REFRESH_KEY        string
+	MAX_DEVICE             int
+	NOTIFY_IN_RANGE        int
+	NOTIFY_SECRET          string
+	ENABLE_CRON            bool
+	SERVER_DOMAIN          string
+	CORS_ALLOW             []string
+	REQUIRE_MOBILE_VERSION string
+	ANDROID_STORE_LINK     string
+	IOS_STORE_LINK         string
 }
 
 // shared config across packages
 var AppConfig = config{}
 var defaultConfig = config{
-	MODE:            "dev",
-	DATABASE_DSN:    "root:superuser@tcp(127.0.0.1)/master",
-	JWT_KEY:         "SAMPLE_KEY",
-	JWT_REFRESH_KEY: "REFRESH_KEY",
-	MAX_DEVICE:      3,
-	NOTIFY_IN_RANGE: 3,
-	NOTIFY_SECRET:   "SAMPLE_SECRET",
-	ENABLE_CRON:     false,
-	SERVER_DOMAIN:   "127.0.0.1",
-	CORS_ALLOW:      []string{"http://localhost:5173", "http://localhost:4173", "https://duchenne-web.onrender.com"},
+	MODE:                   "dev",
+	DATABASE_DSN:           "root:superuser@tcp(127.0.0.1)/master",
+	JWT_KEY:                "SAMPLE_KEY",
+	JWT_REFRESH_KEY:        "REFRESH_KEY",
+	MAX_DEVICE:             3,
+	NOTIFY_IN_RANGE:        3,
+	NOTIFY_SECRET:          "SAMPLE_SECRET",
+	ENABLE_CRON:            false,
+	SERVER_DOMAIN:          "127.0.0.1",
+	CORS_ALLOW:             []string{"http://localhost:5173", "http://localhost:4173", "https://duchenne-web.onrender.com"},
+	REQUIRE_MOBILE_VERSION: "0.0.0",
+	ANDROID_STORE_LINK:     "https://play.google.com",
+	IOS_STORE_LINK:         "https://apps.apple.com/",
 }
 
 func LoadConfig() {

@@ -21,6 +21,7 @@ func (w *WebHandler) CreateContent(c *gin.Context) {
 		IsPublished:   input.IsPublished,
 		Order:         input.Order,
 		CoverImageURL: input.CoverImageURL,
+		ContentType:   input.ContentType,
 	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

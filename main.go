@@ -59,6 +59,7 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, c 
 	mobile := r.Group("/mobile")
 	{
 		// not protected
+		mobile.GET("/require-version", m.GetRequireMobileVersion)
 		mobile.GET("/consent/:id", c.GetConsentById)
 		mobile.GET("/consent/slug/:slug", c.GetConsentBySlug)
 	}
