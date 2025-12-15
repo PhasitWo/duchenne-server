@@ -106,7 +106,6 @@ func attachHandler(r *gin.Engine, m *mobile.MobileHandler, w *web.WebHandler, c 
 		webAuth := web.Group("/auth")
 		{
 			webAuth.POST("/login", w.Login)
-			webAuth.POST("/logout", w.Logout)
 		}
 		webProtected := web.Group("/api")
 		webProtected.Use(middleware.WebAuthMiddleware)
@@ -209,6 +208,7 @@ func setupRouter() *gin.Engine {
 	r := gin.Default()
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowCredentials = true
+	corsConfig.AllowHeaders = []string{"*"}
 	corsConfig.AllowOrigins = config.AppConfig.CORS_ALLOW
 	r.Use(cors.New(corsConfig))
 	return r

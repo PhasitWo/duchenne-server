@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/PhasitWo/duchenne-server/auth"
-	"github.com/PhasitWo/duchenne-server/config"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -43,15 +42,7 @@ func (w *WebHandler) Login(c *gin.Context) {
 		return
 	}
 	// set cookie
-	c.SetSameSite(http.SameSiteNoneMode)
-	c.SetCookie(config.Constants.WEB_ACCESS_COOKIE_NAME, token, 60*60*10, "/", config.AppConfig.SERVER_DOMAIN, true, true)
 	c.JSON(http.StatusOK, gin.H{"token": token})
-}
-
-func (w *WebHandler) Logout(c *gin.Context) {
-	c.SetSameSite(http.SameSiteNoneMode)
-	c.SetCookie(config.Constants.WEB_ACCESS_COOKIE_NAME, "", 1, "/", config.AppConfig.SERVER_DOMAIN, true, true)
-	c.Status(http.StatusOK)
 }
 
 func (w *WebHandler) GetUserData(c *gin.Context) {

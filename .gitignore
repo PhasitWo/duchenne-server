@@ -12,3 +12,5 @@ test.yaml
 /mocks
 
 storage-cred.json
+
+*.DS_Store
