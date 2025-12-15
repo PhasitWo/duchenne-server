@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/PhasitWo/duchenne-server/auth"
 	"github.com/PhasitWo/duchenne-server/config"
@@ -11,16 +12,23 @@ import (
 )
 
 func WebAuthMiddleware(c *gin.Context) {
-	cookie, err := c.Cookie(config.Constants.WEB_ACCESS_COOKIE_NAME)
-	if err != nil {
-		// assume that the err is http.ErrNoCookie or expired
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "cannot get cookie from request"})
+	authHeader := c.GetHeader("Authorization")
+	if authHeader == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "cannot get token from authorization header"})
 		c.Abort()
 		return
 	}
+
+	parts := strings.SplitN(authHeader, " ", 2)
+	if len(parts) != 2 || parts[0] != "Bearer" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid authorization header format"})
+		c.Abort()
+		return
+	}
+	accessToken := parts[1]
 	// parse token
 	claims := &auth.DoctorClaims{DoctorId: -1}
-	token, err := jwt.ParseWithClaims(cookie, claims, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(accessToken, claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(config.AppConfig.JWT_KEY), nil
 	})
 	if err == jwt.ErrTokenExpired {
@@ -59,7 +67,7 @@ const (
 	CreatePatientPermission permission = "createPatientPermission"
 	UpdatePatientPermission permission = "updatePatientPermission"
 	DeletePatientPermission permission = "deletePatientPermission"
-	ManageConsentPermission  permission = "manageConsentPermission"
+	ManageConsentPermission permission = "manageConsentPermission"
 )
 
 var rolePermissionsMap = map[model.Role][]permission{
