@@ -19,7 +19,6 @@ type config struct {
 	NOTIFY_IN_RANGE        int
 	NOTIFY_SECRET          string
 	ENABLE_CRON            bool
-	SERVER_DOMAIN          string
 	CORS_ALLOW             []string
 	REQUIRE_MOBILE_VERSION string
 	ANDROID_STORE_LINK     string
@@ -37,7 +36,6 @@ var defaultConfig = config{
 	NOTIFY_IN_RANGE:        3,
 	NOTIFY_SECRET:          "SAMPLE_SECRET",
 	ENABLE_CRON:            false,
-	SERVER_DOMAIN:          "127.0.0.1",
 	CORS_ALLOW:             []string{"http://localhost:5173", "http://localhost:4173", "https://duchenne-web.onrender.com"},
 	REQUIRE_MOBILE_VERSION: "0.0.0",
 	ANDROID_STORE_LINK:     "https://play.google.com",
@@ -84,14 +82,4 @@ func LoadConfig() {
 		fmt.Printf("\t%-15s\t=>\t%-10v\n", fieldName, f.Field(i).Interface())
 	}
 	configLogger.Printf("config loaded\n")
-}
-
-type constants struct {
-	WEB_ACCESS_COOKIE_NAME  string
-	WEB_REFRESH_COOKIE_NAME string
-}
-
-var Constants = constants{
-	WEB_ACCESS_COOKIE_NAME:  "web_access_token",
-	WEB_REFRESH_COOKIE_NAME: "web_refresh_token",
 }
