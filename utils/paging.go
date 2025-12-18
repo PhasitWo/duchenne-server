@@ -24,5 +24,6 @@ func Paging(c *gin.Context) (limit int, offset int, err error) {
 		}
 	}
 	limit = int(math.Min(float64(limit), 100))
+	offset = int(math.Max(float64(offset), 0))
 	return limit, offset, err
 }

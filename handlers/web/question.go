@@ -48,6 +48,11 @@ func (w *WebHandler) GetAllQuestion(c *gin.Context) {
 			return
 		}
 	}
+	if search, exist := c.GetQuery("search"); exist {
+		if search != "" {
+			criteriaList = append(criteriaList, repository.Criteria{QueryCriteria: repository.QUESTION_SEARCH, Value: search})
+		}
+	}
 	// query
 	qs, err := w.Repo.GetAllQuestion(limit, offset, criteriaList...)
 	if err != nil {

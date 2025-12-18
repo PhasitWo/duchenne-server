@@ -64,7 +64,10 @@ func LoadConfig() {
 		if !viper.IsSet(fieldName) {
 			// use default
 			field.Set(reflect.ValueOf(df.Field(i).Interface()))
-			fmt.Printf("\t%-15s\t=>\t%-10v(default)\n", fieldName, f.Field(i).Interface())
+			runOnDev(func() {
+				fmt.Printf("\t%-15s\t=>\t%-10v(default)\n", fieldName, f.Field(i).Interface())
+
+			})
 			continue
 		}
 		switch fieldValue.(type) {
@@ -79,7 +82,15 @@ func LoadConfig() {
 		default:
 			panic("invalid config type")
 		}
-		fmt.Printf("\t%-15s\t=>\t%-10v\n", fieldName, f.Field(i).Interface())
+		runOnDev(func() {
+			fmt.Printf("\t%-15s\t=>\t%-10v\n", fieldName, f.Field(i).Interface())
+		})
 	}
 	configLogger.Printf("config loaded\n")
+}
+
+func runOnDev(fn func()) {
+	if AppConfig.MODE == "dev" {
+		fn()
+	}
 }

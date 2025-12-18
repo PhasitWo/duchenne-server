@@ -25,9 +25,9 @@ type Medicine struct {
 type Patient struct {
 	ID             int                                 `json:"id"`
 	NID            string                              `json:"nid" gorm:"type:varchar(13);uniqueIndex:idx_patients_n_id;not null;column:nid"`
-	Password       string                              `gorm:"not null"`
+	Password       string                              `json:"-" gorm:"not null"`
 	Hn             string                              `json:"hn" gorm:"type:varchar(20);uniqueIndex:idx_patients_hn;not null"`
-	Pin            string                              `gorm:"not null"`
+	Pin            string                              `json:"-" gorm:"not null"`
 	FirstName      string                              `json:"firstName" gorm:"not null"`
 	MiddleName     *string                             `json:"middleName"` // nullable
 	LastName       string                              `json:"lastName" gorm:"not null"`
@@ -39,7 +39,7 @@ type Patient struct {
 	BirthDate      int                                 `json:"birthDate" gorm:"not null"`
 	VaccineHistory datatypes.JSONSlice[VaccineHistory] `json:"vaccineHistory"` // nullable
 	Medicine       datatypes.JSONSlice[Medicine]       `json:"medicine"`       // nullable
-	DeletedAt      soft_delete.DeletedAt               `gorm:"default:0"`
+	DeletedAt      soft_delete.DeletedAt               `json:"-" gorm:"default:0"`
 }
 
 // type CreatePatientRequest struct {

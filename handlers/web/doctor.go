@@ -49,6 +49,11 @@ func (w *WebHandler) GetAllDoctor(c *gin.Context) {
 		}
 		criteriaList = append(criteriaList, repository.Criteria{QueryCriteria: repository.CAN_BE_APPOINTED, Value: canBeAppointed})
 	}
+	if search, exist := c.GetQuery("search"); exist {
+		if search != "" {
+			criteriaList = append(criteriaList, repository.Criteria{QueryCriteria: repository.DOCTOR_SEARCH, Value: search})
+		}
+	}
 	doctors, err := w.Repo.GetAllDoctor(limit, offset, criteriaList...)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
