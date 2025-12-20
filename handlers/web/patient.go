@@ -27,12 +27,18 @@ func (w *WebHandler) GetPatient(c *gin.Context) {
 }
 
 func (w *WebHandler) GetAllPatient(c *gin.Context) {
+	criteriaList := []repository.Criteria{}
 	limit, offset, err := utils.Paging(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	patients, err := w.Repo.GetAllPatient(limit, offset)
+	if search, exist := c.GetQuery("search"); exist {
+		if search != "" {
+			criteriaList = append(criteriaList, repository.Criteria{QueryCriteria: repository.PATIENT_SEARCH, Value: search})
+		}
+	}
+	patients, err := w.Repo.GetAllPatient(limit, offset, criteriaList...)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
